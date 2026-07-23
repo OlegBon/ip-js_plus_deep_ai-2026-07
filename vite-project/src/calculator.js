@@ -1,7 +1,12 @@
 /**
  * Конвертирует любую валюту в целевую
  */
-function convertToTarget(amount, currency, rates, targetCurrency = "USD") {
+export function convertToTarget(
+  amount,
+  currency,
+  rates,
+  targetCurrency = "USD",
+) {
   if (currency === targetCurrency) return amount;
 
   const rate = rates[currency];

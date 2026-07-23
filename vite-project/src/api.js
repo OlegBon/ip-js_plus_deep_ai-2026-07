@@ -26,13 +26,13 @@ export async function fetchData(url, headers = {}) {
 export async function getExchangeRates() {
   const data = await fetchData(API_URLS.rates);
 
-  // Этот API возвращает объект rates в формате { USD: 1, EUR: 0.92, ... }
-  if (data && data.rates) {
-    return data.rates;
+  // Возвращаем весь объект, он содержит дату и сами курсы
+  if (data && data.rates && data.time_last_update_utc) {
+    return data;
   }
 
   console.warn(
     "Не удалось получить курсы валют. Расчеты могут быть неточными.",
   );
-  return {};
+  return null;
 }
