@@ -59,7 +59,7 @@ async function init() {
       );
       stats.bySource[source] = {
         currencyStats: analyzedStats.currencyStatsBySource[source],
-        totalInTargetCurrency: sourceRevenue.total,
+        totalInTargetCurrency: sourceRevenue.totalInCents,
       };
       Object.keys(analyzedStats.currencyStatsBySource[source]).forEach((c) =>
         allCurrencies.add(c),
@@ -68,7 +68,11 @@ async function init() {
 
     const transactionsWithConvertedAmount = includedTransactions.map((t) => ({
       ...t,
-      convertedAmount: convertToTarget(t.amount, t.currency, ratesData.rates),
+      convertedAmount: convertToTarget(
+        t.amountInCents,
+        t.currency,
+        ratesData.rates,
+      ),
     }));
     transactionsWithConvertedAmount.sort(
       (a, b) => a.convertedAmount - b.convertedAmount,
@@ -77,7 +81,8 @@ async function init() {
     // 5. Prepare data package for the UI
     const renderData = {
       report: {
-        ...finalRevenue,
+        total: (finalRevenue.totalInCents / 100).toFixed(2),
+        currency: finalRevenue.currency,
         sources: ["Источник 1", "Источник 2"],
         reportDate: new Date().toLocaleString("ru-RU"),
       },

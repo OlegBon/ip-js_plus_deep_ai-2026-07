@@ -69,7 +69,7 @@ function renderStats(container, { bySource, excludedStats }) {
         <span>
           <span class="font-bold text-indigo-600">${currency}</span>: ${stats.count} транзакций
         </span>
-        <span class="font-semibold">${stats.sum.toFixed(2)}</span>
+        <span class="font-semibold">${(stats.sumInCents / 100).toFixed(2)}</span>
       `;
       currencyList.appendChild(item);
     }
@@ -79,7 +79,9 @@ function renderStats(container, { bySource, excludedStats }) {
       "p",
       "text-right font-bold text-gray-700 mt-2 pt-2 border-t",
     );
-    total.innerHTML = `Итого по источнику: <span class="text-green-600">${sourceStats.totalInTargetCurrency.toFixed(2)} USD</span>`;
+    total.innerHTML = `Итого по источнику: <span class="text-green-600">${(
+      sourceStats.totalInTargetCurrency / 100
+    ).toFixed(2)} USD</span>`;
     sourceBlock.appendChild(total);
 
     sourcesList.appendChild(sourceBlock);
@@ -104,7 +106,7 @@ function renderStats(container, { bySource, excludedStats }) {
       <span>
         <span class="font-bold">${source}</span>: ${stats.count} транзакций
       </span>
-      <span class="font-semibold">${stats.sum.toFixed(2)} USD</span>
+      <span class="font-semibold">${(stats.sum / 100).toFixed(2)} USD</span>
     `;
     excludedList.appendChild(item);
   }
@@ -163,10 +165,12 @@ function renderExtremeTransactions(container, { min, max }) {
         item.innerHTML = `
           <div class="flex justify-between items-center">
             <span class="text-sm">${t.source}</span>
-            <span class="font-bold text-lg ${color}">${t.amount.toFixed(2)} ${t.currency}</span>
+            <span class="font-bold text-lg ${color}">${(t.amountInCents / 100).toFixed(2)} ${
+              t.currency
+            }</span>
           </div>
           <div class="text-right text-xs text-gray-400">
-            ~${t.convertedAmount.toFixed(2)} USD
+            ~${(t.convertedAmount / 100).toFixed(2)} USD
           </div>
         `;
         list.appendChild(item);

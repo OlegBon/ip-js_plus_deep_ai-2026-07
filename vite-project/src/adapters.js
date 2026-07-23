@@ -17,13 +17,13 @@ export function adaptSource1(data) {
     const isValid = t && typeof t.amount === "number" && t.currency;
     if (isValid && t.type === "paid") {
       result.included.push({
-        amount: t.amount,
+        amountInCents: Math.round(t.amount * 100),
         currency: t.currency.toUpperCase(),
       });
     } else {
       // Сохраняем информацию об исключенных транзакциях
       result.excluded.push({
-        amount: isValid ? t.amount : 0,
+        amountInCents: Math.round((isValid ? t.amount : 0) * 100),
         currency: isValid ? t.currency.toUpperCase() : "N/A",
         reason: isValid
           ? `Транзакция на ${t.amount} ${t.currency} имеет статус: '${t.type}'`
@@ -53,7 +53,7 @@ export function adaptSource2(data) {
   data.forEach((item) => {
     if (typeof item !== "string") {
       result.excluded.push({
-        amount: 0,
+        amountInCents: 0,
         currency: "N/A",
         reason: `Неверный тип данных, ожидалась строка: ${JSON.stringify(item)}`,
       });
@@ -67,12 +67,12 @@ export function adaptSource2(data) {
 
     if (!isNaN(amount) && currency) {
       result.included.push({
-        amount,
+        amountInCents: Math.round(amount * 100),
         currency: currency.toUpperCase(),
       });
     } else {
       result.excluded.push({
-        amount: !isNaN(amount) ? amount : 0,
+        amountInCents: Math.round((!isNaN(amount) ? amount : 0) * 100),
         currency: "N/A",
         reason: `Не удалось обработать строку: "${item}"`,
       });

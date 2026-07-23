@@ -10,9 +10,9 @@ function getCurrencyStats(transactions) {
   return transactions.reduce((stats, t) => {
     const currency = t.currency;
     if (!stats[currency]) {
-      stats[currency] = { sum: 0, count: 0 };
+      stats[currency] = { sumInCents: 0, count: 0 };
     }
-    stats[currency].sum += t.amount;
+    stats[currency].sumInCents += t.amountInCents;
     stats[currency].count += 1;
     return stats;
   }, {});
@@ -51,14 +51,14 @@ export function analyzeData(rawData1, rawData2, rates) {
   const excludedStats = {
     "Источник 1": {
       sum: adapted1.excluded.reduce(
-        (sum, t) => sum + convertToTarget(t.amount, t.currency, rates),
+        (sum, t) => sum + convertToTarget(t.amountInCents, t.currency, rates),
         0,
       ),
       count: adapted1.excluded.length,
     },
     "Источник 2": {
       sum: adapted2.excluded.reduce(
-        (sum, t) => sum + convertToTarget(t.amount, t.currency, rates),
+        (sum, t) => sum + convertToTarget(t.amountInCents, t.currency, rates),
         0,
       ),
       count: adapted2.excluded.length,
