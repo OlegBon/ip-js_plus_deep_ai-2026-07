@@ -1,7 +1,7 @@
-import { fetchAllData } from "./api";
-import { getUnifiedTransactions } from "./adapters";
-import { analyzeTransactions } from "./analyzer";
-import { API_URLS } from "./config";
+import { fetchAllData } from "./lib/api";
+import { getUnifiedTransactions } from "./lib/adapters";
+import { analyzeTransactions } from "./lib/analyzer"; // Assuming analyzer.ts is already in lib
+import { API_URLS } from "./lib/config";
 import type { ReactNode } from "react";
 
 // --- Типи для аналітики ---

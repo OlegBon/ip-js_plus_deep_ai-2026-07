@@ -131,3 +131,26 @@ Astro использует "Архитектуру Островов" (Islands Ar
 ### Prompt 1
 
 К сожалению, не с одного промпта вышло и не совсем как в vite-project вёрстка - Section / SubSection и прочие мелочи.
+
+```text
+next-project/
+├── app/
+│   ├── lib/
+│   │   ├── api.ts
+│   │   ├── adapters.ts
+│   │   ├── analyzer.ts
+│   │   ├── calculator.js
+│   │   └── config.ts
+│   ├── favicon.ico
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── public/
+├── .env
+├── next.config.mjs
+├── package.json
+└── ...
+
+```
+
+![Скрин проекта](next-project-2026-07-27.jpg)
