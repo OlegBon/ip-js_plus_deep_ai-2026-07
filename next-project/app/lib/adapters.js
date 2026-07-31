@@ -45,8 +45,8 @@ function adaptSource2(data) {
     return {
       id: id,
       source: "Источник 2",
-      // В источнике 2 все транзакции считаются оплаченными
-      type: "paid",
+      // В источнике 2 статус не передается, оставляем пустым
+      type: "",
       amountInCents: !isNaN(amount) ? Math.round(amount * 100) : 0,
       currency: currency?.toUpperCase(),
       original: item,

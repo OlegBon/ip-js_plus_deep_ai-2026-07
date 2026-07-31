@@ -56,7 +56,7 @@ export function analyzeTransactions(
       isProblem = true;
     }
 
-    if (tx.type === "paid" && !isProblem) {
+    if ((tx.type === "paid" || tx.type === "") && !isProblem) {
       sourceAnalysis.included.push(tx);
       analysis.allIncludedTransactions.push(tx);
 
@@ -108,6 +108,7 @@ export function analyzeTransactions(
     totalRevenue: (analysis.totalRevenueInCents / 100).toFixed(2),
     currency: targetCurrency,
     sources: analysis.sources,
+    allIncludedTransactions: analysis.allIncludedTransactions, // <-- Вот это добавлено
     top3Min: sortedByValue
       .slice(0, 3)
       .map((tx) => ({ ...tx, convertedAmountInCents: getConvertedAmount(tx) })),

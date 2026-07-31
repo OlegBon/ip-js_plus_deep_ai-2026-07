@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { getUnifiedTransactions } from "../app/lib/adapters.js";
+import { analyzeTransactions } from "../app/lib/analyzer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -28,6 +30,10 @@ if (!apiKey) {
 
 const AUDIT_DIR = path.join(ROOT_DIR, "docs", "audits");
 const LATEST_REPORT_PATH = path.join(AUDIT_DIR, "api-audit-latest.md");
+const CALCULATION_SOURCES_PATH = path.join(
+  AUDIT_DIR,
+  "calculation-sources.json",
+);
 
 const API_URLS = {
   source1: "https://cpa-server-vtel.onrender.com/api/finance1",
@@ -62,11 +68,19 @@ async function runAudit() {
   const rates = resRates.success ? resRates.data.rates : null;
   let report = `# Отчет аудита API - ${new Date().toISOString()}\n\n`;
 
-  report += `## Статус эндпоинтов\n`;
-  report += `- Источник 1: ${res1.success ? "✅ OK" : "❌ Ошибка (" + res1.error + ")"}\n`;
-  report += `- Источник 2: ${res2.success ? "✅ OK" : "❌ Ошибка (" + res2.error + ")"}\n`;
-  report += `- Курсы валют: ${resRates.success ? "✅ OK" : "❌ Ошибка (" + resRates.error + ")"}\n\n`;
+  const statuses = {
+    "Источник 1": res1.success ? "✅ OK" : `❌ Ошибка (${res1.error})`,
+    "Источник 2": res2.success ? "✅ OK" : `❌ Ошибка (${res2.error})`,
+    "Курсы валют": resRates.success ? "✅ OK" : `❌ Ошибка (${resRates.error})`,
+  };
 
+  report += `## Статус эндпоинтов\n`;
+  for (const [source, status] of Object.entries(statuses)) {
+    report += `- ${source}: ${status}\n`;
+  }
+  report += "\n";
+
+  // --- Генерация Markdown отчета (старая логика) ---
   report += `## Анализ Источника 1 (finance1)\n`;
   if (res1.success && rates) {
     let hasErrors = false;
@@ -116,8 +130,47 @@ async function runAudit() {
   fs.writeFileSync(LATEST_REPORT_PATH, report);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   fs.writeFileSync(path.join(AUDIT_DIR, `api-audit-${timestamp}.md`), report);
+  console.log(`✅ Markdown отчет сохранен в ${LATEST_REPORT_PATH}`);
 
-  console.log(`✅ Аудит завершен! Отчет сохранен в ${LATEST_REPORT_PATH}`);
+  // --- Новая логика: Анализ и сохранение данных для расчетов ---
+  if (res1.success && res2.success && resRates.success) {
+    const unifiedTransactions = getUnifiedTransactions(res1.data, res2.data);
+    analyzeTransactions(unifiedTransactions, rates, "USD");
+
+    const calculationTransactions = unifiedTransactions.map(
+      (tx) => ({
+        source: tx.source,
+        amount: (tx.amountInCents / 100).toFixed(2),
+        currency: tx.currency,
+        status: tx.type,
+      }),
+    );
+
+    const CALCULATION_TRANSACTIONS_PATH = path.join(
+      AUDIT_DIR,
+      "calculation-transactions.json",
+    );
+
+    fs.writeFileSync(
+      CALCULATION_TRANSACTIONS_PATH,
+      JSON.stringify(calculationTransactions, null, 2),
+    );
+    console.log(
+      `✅ Транзакции для расчетов сохранены в ${CALCULATION_TRANSACTIONS_PATH}`,
+    );
+  } else {
+    console.warn(
+      "⚠️ Не удалось получить все данные, файл с транзакциями для расчетов не создан.",
+    );
+    // Создаем пустой файл, если его нет, чтобы страница не ломалась
+    const CALCULATION_TRANSACTIONS_PATH = path.join(
+        AUDIT_DIR,
+        "calculation-transactions.json",
+      );
+    if (!fs.existsSync(CALCULATION_TRANSACTIONS_PATH)) {
+      fs.writeFileSync(CALCULATION_TRANSACTIONS_PATH, "[]");
+    }
+  }
 }
 
 runAudit();
