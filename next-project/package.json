@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:api": "node scripts/audit-api.mjs"
   },
   "dependencies": {
     "next": "16.2.12",
