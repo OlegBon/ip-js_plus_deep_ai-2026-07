@@ -24,12 +24,12 @@ graph TD
     subgraph "Серверная инфраструктура"
         C(Next.js App Router)
         D(Next.js API Routes)
-        E[База данных: PostgreSQL + Prisma]
-        F[Хранилище файлов: S3-совместимое]
+        E["База данных: PostgreSQL + Prisma"]
+        F["Хранилище файлов: S3-совместимое"]
 
         subgraph "Ядро обработки (Workers)"
-            G[Воркер "sharp": в процессе Next.js]
-            H[Воркер "Gotenberg": Docker-контейнер]
+            G["Воркер 'sharp': в процессе Next.js"]
+            H["Воркер 'Gotenberg': Docker-контейнер"]
         end
     end
 
@@ -44,7 +44,6 @@ graph TD
     D -- "Потоковая загрузка/отдача" --> F
     D -- "Легкие задачи (JPG↔PNG)" --> G
     D -- "Тяжелые задачи (DOCX→PDF)" --> H
-
 ```
 
 ---
