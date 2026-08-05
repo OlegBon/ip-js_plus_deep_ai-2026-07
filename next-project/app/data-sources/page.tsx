@@ -204,12 +204,6 @@ export default async function DataSourcesPage() {
                     <summary className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 list-none">
                       <div className="font-medium text-gray-800">{source}</div>
                       <div className="flex items-center">
-                        <div className="mr-4 text-right">
-                          <span className="font-mono text-green-700 font-semibold">
-                            {totalAmount.toFixed(2)}
-                          </span>
-                          <span className="ml-2 text-gray-500">{currency}</span>
-                        </div>
                         <div className="flex items-center text-gray-500 text-sm">
                             <span className="transition-transform duration-200 group-open:rotate-90 mr-1">
                             &gt;
