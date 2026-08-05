@@ -139,6 +139,18 @@ export default async function DataSourcesPage() {
   const calculationTransactions = await getCalculationTransactions();
   const reportDate = new Date().toLocaleString("ru-RU");
 
+  // Group transactions by source
+  const groupedTransactions = calculationTransactions.reduce(
+    (acc, tx) => {
+      if (!acc[tx.source]) {
+        acc[tx.source] = [];
+      }
+      acc[tx.source].push(tx);
+      return acc;
+    },
+    {} as Record<string, CalculationTransaction[]>,
+  );
+
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 md:p-12 bg-gray-100 text-gray-800">
       <div className="w-full max-w-4xl space-y-8">
@@ -175,49 +187,93 @@ export default async function DataSourcesPage() {
         </Section>
 
         <Section title="Источники данных для расчетов">
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-700">Источник</th>
-                  <th className="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-700">Сумма</th>
-                  <th className="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-700">Статус</th>
-                </tr>
-              </thead>
-              <tbody>
-                {calculationTransactions.length > 0 ? (
-                  calculationTransactions.map((tx, index) => (
-                    <tr key={index} className="border-b border-gray-200">
-                      <td className="py-3 px-4">
-                        <span className="font-medium">{tx.source}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                          <div>
-                            <span className="font-mono text-green-700 font-semibold">{tx.amount}</span>
-                            <span className="ml-2 text-gray-500">{tx.currency}</span>
-                          </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-medium">{tx.status}</span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="text-center py-4 text-gray-500">
-                      Данные для расчетов не загружены.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {calculationTransactions.length > 0 ? (
+              Object.entries(groupedTransactions).map(([source, txs]) => {
+                const totalAmount = txs.reduce(
+                  (sum, tx) => sum + parseFloat(tx.amount),
+                  0,
+                );
+                const currency = txs.length > 0 ? txs[0].currency : "";
+
+                return (
+                  <details
+                    key={source}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 group"
+                  >
+                    <summary className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 list-none">
+                      <div className="font-medium text-gray-800">{source}</div>
+                      <div className="flex items-center">
+                        <div className="mr-4 text-right">
+                          <span className="font-mono text-green-700 font-semibold">
+                            {totalAmount.toFixed(2)}
+                          </span>
+                          <span className="ml-2 text-gray-500">{currency}</span>
+                        </div>
+                        <div className="flex items-center text-gray-500 text-sm">
+                            <span className="transition-transform duration-200 group-open:rotate-90 mr-1">
+                            &gt;
+                            </span>
+                            <span>Подробнее по транзакциям...</span>
+                        </div>
+                      </div>
+                    </summary>
+                    <div className="p-4 border-t border-gray-200 bg-gray-50">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white">
+                          <thead className="bg-gray-200">
+                            <tr>
+                              <th className="text-left py-2 px-4 uppercase font-semibold text-xs text-gray-700">
+                                Сумма
+                              </th>
+                              <th className="text-left py-2 px-4 uppercase font-semibold text-xs text-gray-700">
+                                Статус
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {txs.map((tx, index) => (
+                              <tr
+                                key={index}
+                                className="border-b border-gray-200"
+                              >
+                                <td className="py-2 px-4">
+                                  <div>
+                                    <span className="font-mono text-sm text-green-700 font-semibold">
+                                      {tx.amount}
+                                    </span>
+                                    <span className="ml-2 text-xs text-gray-500">
+                                      {tx.currency}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-2 px-4 text-sm font-medium">
+                                  {tx.status}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </details>
+                );
+              })
+            ) : (
+              <p className="text-center py-4 text-gray-500">
+                Данные для расчетов не загружены.
+              </p>
+            )}
           </div>
         </Section>
 
         <Section title="Детальный анализ источников">
           {analyses.length > 0 ? (
             analyses.map((source) => (
-              <div key={source.title} className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div
+                key={source.title}
+                className="mb-6 p-4 bg-gray-50 rounded-lg"
+              >
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2 mb-3">
                   {source.title}
                 </h3>
@@ -228,7 +284,9 @@ export default async function DataSourcesPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-green-700">Проблем не обнаружено.</p>
+                  <p className="text-sm text-green-700">
+                    Проблем не обнаружено.
+                  </p>
                 )}
               </div>
             ))
