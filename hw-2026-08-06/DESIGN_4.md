@@ -1,91 +1,118 @@
----
-version: alpha
-name: Convertly Paper Terminal
-description: SaaS File Converter - Minimalist Print Aesthetic
-colors:
-  canvas: "#f8f5ed"
-  ink: "#171717"
-  graphite: "#707070"
-  hairline: "#ebebeb"
-  accent: "#297a3a"
-typography:
-  headline:
-    fontFamily: Geist Sans, sans-serif
-    fontSize: 56px
-    fontWeight: 450
-    lineHeight: 1
-    letterSpacing: -3.36px
-  body:
-    fontFamily: Geist Sans, sans-serif
-    fontSize: 16px
-    fontWeight: 400
-    lineHeight: 1.5
-  label-mono:
-    fontFamily: Geist Mono, monospace
-    fontSize: 12px
-    fontWeight: 500
-    lineHeight: 1.5
-    letterSpacing: 0.071em
-spacing:
-  base: 8px
-  md: 16px
-  lg: 32px
-  section: 96px
-rounded:
-  sm: 2px
-  md: 6px
-  full: 9999px
-components:
-  card-base:
-    backgroundColor: "{colors.canvas}"
-    rounded: "{rounded.md}"
----
+# Дизайн-система: Аналитическая панель (Dashboard)
 
-# DESIGN.md
+Эта часть системы фокусируется на визуализации данных: графиках, таблицах и ключевых метриках.
 
-## Overview
+## Design Philosophy (Философия дизайна)
 
-Convertly Hub uses a "Paper Terminal" aesthetic—a disciplined, ultra-minimalist design language that blends the warmth of a printed engineering notebook[cite: 2] with the strict, developer-focused precision of a CLI terminal[cite: 3]. The visual identity is fundamentally achromatic, relying on high-contrast typography, generous layout styling, and hairline borders rather than color or shadows to establish hierarchy[cite: 2, 3]. It perfectly suits a SaaS platform built for both B2C file conversion and B2B API integrations[cite: 5].
+- **Наглядность**: Данные должны быть понятны с первого взгляда.
+- **Плотность информации**: Баланс между количеством данных на экране и их читаемостью.
+- **Интерактивность**: Пользователь может легко фильтровать, сортировать и исследовать данные.
 
-## Colors
+## Layout (Макет дашборда)
 
-The system is practically 0% colorful[cite: 3].
+- **Сетка**: Используется CSS Grid (`grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))`) для гибкого расположения виджетов.
+- **Виджеты**: Каждый виджет — это карточка (`Surfaces`) с заголовком, содержащая график, таблицу или ключевую метрику (KPI).
+- **Адаптивность**: На мобильных устройствах виджеты выстраиваются в одну колонку.
 
-- **Canvas (`#f8f5ed`):** A warm paper background replaces the usual harsh SaaS white, providing a tactile, editorial foundation[cite: 2].
-- **Ink (`#171717`):** Used for primary text and filled actions. It is a near-black (Obsidian) that avoids the harshness of pure `#000000`[cite: 3].
-- **Graphite (`#707070`):** Used for secondary text, metadata, and supporting paragraphs[cite: 2].
-- **Accent:** Color is heavily rationed. A single "Terminal Green" (`#297a3a`) is permitted exclusively for success confirmations[cite: 3].
+## Tokens (Токены)
 
-## Typography
+Добавляются специальные токены для визуализации данных.
 
-The typography system relies on a strict binary approach[cite: 3]:
+### Data Colors (Цвета для данных)
 
-- **Geist Sans:** The primary typeface for all reading materials. Headlines are set tight (e.g., `-3.36px` letter spacing) at a 450 font-weight—confident but not shouting[cite: 3].
-- **Geist Mono:** Exclusively owns the space for technical data, API keys, file extensions, and small uppercase labels (eyebrows)[cite: 3, 5]. It is always small (11-12px) and mechanically precise[cite: 3].
+## Surfaces (Поверхности)
 
-## Layout
+- **Виджеты (Widgets)**: Являются основным типом поверхности на дашборде. Это карточки, которые могут содержать графики, таблицы или KPI. Они используют `--color-background-secondary` и имеют `padding: var(--space-lg)`.
+- **Всплывающие подсказки (Tooltips)**: Поверхности, появляющиеся при наведении на элементы данных. Имеют тёмный фон (`#1F2937`) и светлый текст для контраста.
 
-The layout styling is centered and comfortable, utilizing a max-width container (e.g., 1200-1280px) with generous 96px vertical section gaps[cite: 2, 3]. Content flows in distinct horizontal bands[cite: 3]. The Drag & Drop conversion widgets are prominently centered on the page[cite: 5], surrounded by ample negative space to command focus.
+## Components (Компоненты для данных)
 
-## Elevation & Depth
+### Таблицы
+Таблицы оптимизированы для сканирования.
 
-There is zero shadow elevation in this system[cite: 2, 3]. No drop shadows, inner glows, or blurs[cite: 2, 3].
-Depth and separation are achieved entirely through 1px hairline borders (`#ebebeb` or `#171717`) on the cream surface—mimicking the logic of ink lines on paper[cite: 2, 3].
+### Фильтры и селекторы дат
+- **Селектор диапазона дат**: Позволяет выбрать предустановленные (`Сегодня`, `Последние 7 дней`) или произвольные диапазоны.
+- **Фильтры**: Кнопки-теги, которые можно активировать/деактивировать для фильтрации данных в реальном времени.
 
-## Shapes
+## Imagery (Изображения)
 
-The shape language is sharp and functional. Standardizing on a **6px border radius** for cards, buttons, and input fields gives the interface a rigid, engineered aesthetic[cite: 3]. Full pill shapes (9999px radius) are reserved strictly for small metadata tags and compact header actions[cite: 3].
+- **Графики**: Линейные графики, столбчатые диаграммы, круговые диаграммы. Линии должны быть толщиной `2px`.
+- **Пустые состояния**: Если данных для отображения нет, виджет должен показывать иллюстрацию и сообщение (например, "Нет данных за выбранный период").
 
-## Components
+## Do's and Don'ts (Что делать и чего не делать)
 
-- **Drag & Drop Zone:** Rendered as a flat area on the cream canvas with a 1px dashed ink border[cite: 5]. When a user hovers or drags a file, the border reacts by becoming solid or slightly thicker, without relying on colored background fills[cite: 5].
-- **API Documentation Panels:** CLI output and code snippets are embedded directly as UI elements[cite: 3]. They use Geist Mono text on the light canvas, resembling a printed terminal screenshot[cite: 3, 5].
-- **Dashboard Data Tables:** Transaction history and API key management tables use 1px horizontal hairline dividers with no vertical borders, keeping data presentation airy and uncluttered[cite: 5].
+### Do's (Что делать)
+- **Подписывайте оси**: Всегда добавляйте подписи к осям X и Y на графиках.
+- **Используйте Tooltips**: Предоставляйте точные значения во всплывающих подсказках при наведении на график.
+- **Обеспечьте состояние загрузки**: Используйте скелетные экраны (skeletons) для виджетов во время загрузки данных.
 
-## Do's and Don'ts
+### Don'ts (Чего не делать)
+- **Не используйте слишком много цветов**: В одном графике не должно быть более 5-7 категорий, чтобы избежать визуального шума.
+- **Не перегружайте дашборд**: Слишком много виджетов на одном экране затрудняет восприятие. Группируйте связанную информацию.
+- **Не используйте 3D-графики**: Они искажают данные и затрудняют сравнение значений.
 
-- Do define feature cards and file conversion zones with 1px hairline borders and a 6px radius[cite: 2, 3].
-- Do use Geist Mono for all file formats (e.g., `DOCX`, `PDF`), API keys, and system states[cite: 3, 5].
-- Don't use drop shadows, blurs, or any form of box-shadow elevation[cite: 2, 3].
-- Don't introduce secondary colors for structural UI (navigation, large backgrounds)[cite: 2, 3].
-- Don't use pure white (`#ffffff`) as a primary background surface; it breaks the paper canvas metaphor[cite: 2].
+## Quick Start (Быстрый старт)
+
+```css
+/* 1. Токены для данных */
+:root {
+  --color-data-1: #3B82F6; /* Синий */
+  --color-data-2: #10B981; /* Зеленый */
+  --color-data-3: #F59E0B; /* Желтый */
+  --color-data-4: #EF4444; /* Красный */
+  --color-data-5: #8B5CF6; /* Фиолетовый */
+}
+
+/* 2. Макет дашборда */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* 3. Компоненты */
+
+/* Таблицы */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table thead th {
+  background-color: var(--color-background-secondary);
+  font-weight: 600;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: var(--color-background-secondary);
+}
+
+.table tbody tr:hover {
+  background-color: #F0F0F0; /* Немного темнее для ховера */
+}
+
+/* Скелетные загрузчики */
+.skeleton {
+  background-color: var(--color-background-secondary);
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+```

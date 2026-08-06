@@ -1,118 +1,147 @@
----
-version: alpha
-name: Convertly Hub - Minimalist
-colors:
-  text-primary: "#171717"
-  text-secondary: "#666666"
-  accent: "#0070F3"
-  background: "#FAFAFA"
-  surface: "#FFFFFF"
-  border: "#EBEBEB"
-  error: "#FF1744"
-  success: "#297A3A" # From Vercel's 'Terminal Green'
-typography:
-  headline-display:
-    fontFamily: Inter
-    fontSize: 56px
-    fontWeight: 500
-    lineHeight: 1
-    letterSpacing: -0.05em
-  headline-lg:
-    fontFamily: Inter
-    fontSize: 30px
-    fontWeight: 500
-    lineHeight: 1.1
-    letterSpacing: -0.04em
-  body-md:
-    fontFamily: Inter
-    fontSize: 16px
-    fontWeight: 400
-    lineHeight: 1.5
-  label-mono:
-    fontFamily: "Fira Code, monospace"
-    fontSize: 13px
-    fontWeight: 400
-    lineHeight: 1.5
-rounded:
-  sm: 4px
-  md: 6px
-  full: 9999px
-spacing:
-  base: 16px
-  xs: 4px
-  sm: 8px
-  md: 16px
-  lg: 32px
-  xl: 64px
-  section: 96px
-components:
-  button-primary:
-    backgroundColor: "{colors.text-primary}"
-    textColor: "{colors.background}"
-    rounded: "{rounded.md}"
-    padding: "10px 20px"
-  button-ghost:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-secondary}"
-    rounded: "{rounded.md}"
-    padding: "10px 20px"
----
+# Дизайн-система: Улучшенный SaaS
 
-# Convertly Hub Design System (Minimalist)
+Этот документ развивает минималистичную дизайн-систему, добавляя больше визуальных акцентов и сложных компонентов, вдохновляясь практиками Vercel и Pirsch Analytics.
 
-This document outlines a refined, minimalist design system for "Convertly Hub," inspired by the developer-centric aesthetics of Vercel and the clean simplicity of Pirsch Analytics.
+## Design Philosophy (Философия дизайна)
 
-## Overview
+- **Информативность**: Элементы интерфейса должны не только быть функциональными, но и нести информацию.
+- **Обратная связь**: Четкая и немедленная реакция на действия пользователя.
+- **Масштабируемость**: Компоненты легко адаптируются под разные контексты и размеры экрана.
 
-The design language is precise, functional, and devoid of ornamentation. It evokes the feeling of a well-crafted developer tool: fast, clean, and respectful of the user's focus. The aesthetic is built on a disciplined monochrome palette, sharp typography, and generous whitespace, creating an experience that is both professional and effortlessly modern.
+## Layout (Макет)
 
-## Colors
+Сохраняется модульная сетка 8px. Вводятся дополнительные правила для сложных макетов.
 
-The palette is strictly monochromatic, ensuring that typography and layout are the primary drivers of hierarchy. A single accent color is used with restraint for critical actions.
+- **Отступы между секциями**: `var(--space-xl)` или `48px`.
+- **Внутренние отступы в карточках**: `var(--space-lg)`.
 
-- **Text Primary (`#171717`):** An obsidian, near-black for all headings and primary content. It's strong without the harshness of pure black.
-- **Text Secondary (`#666666`):** A stone gray for body copy, helper text, and de-emphasized UI labels.
-- **Accent (`#0070F3`):** A vibrant blue, used exclusively for primary calls-to-action or critical focused states.
-- **Background (`#FAFAFA`):** A paper-white canvas that feels clean and less sterile than pure white.
-- **Surface (`#FFFFFF`):** Pure white for elevated surfaces like cards and input fields, creating a subtle lift from the background.
-- **Border (`#EBEBEB`):** A faint, hairline gray for all borders, providing structure without visual noise.
+## Tokens (Токены)
 
-## Typography
+Токены расширены для поддержки большего разнообразия UI-элементов.
 
-Typography is the core of the design system, using a dual-font strategy to separate narrative content from technical data.
+### Colors (Цвета)
+```css
+:root {
+  /* Основные */
+  --color-background: #FFFFFF;
+  --color-background-secondary: #F9FAFB;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-border: #E5E7EB;
 
-- **UI & Headlines (Inter):** Headlines are set in Inter Medium (500) with tight letter-spacing to feel architectural and confident. Body copy uses Inter Regular (400) for excellent readability.
-- **Technical & Data (Fira Code):** A clean monospace font is used for API keys, code snippets, and data-dense tables in the dashboard. This creates a clear visual distinction for developer-focused information.
+  /* Семантические */
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+}
+```
 
-## Layout
+### Typography (Типографика)
+```css
+:root {
+  --font-family-headings: "Inter", sans-serif;
+  --font-family-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "Fira Code", monospace;
+}
+```
 
-The layout is built on a 4px grid and emphasizes generous whitespace. Sections are separated by large vertical gaps (96px) to let content breathe. The main content area has a maximum width of 1280px, creating a focused and comfortable reading environment. Density is compact and efficient.
+## Surfaces (Поверхности)
 
-## Elevation & Depth
+Вводятся более сложные поверхности с тенями для создания эффекта глубины.
 
-There are no drop shadows. Depth and hierarchy are conveyed through two methods only:
-1.  **Tonal Layers:** Using the `background` and `surface` colors to create distinct layers.
-2.  **Hairline Borders:** Using the `1px` `#EBEBEB` border to define the edges of cards, buttons, and inputs.
+- **Карточки (Cards)**: Используют `var(--color-background-secondary)` с легкой тенью и скругленными углами (`8px`) для визуального отделения от основного фона.
+- **Модальные окна (Modals)**: Имеют оверлей, затемняющий основной контент, и используют фон `var(--color-background)` с более выраженной тенью.
 
-## Shapes
+## Components (Компоненты)
 
-The shape language is defined by architectural sharpness. A crisp `6px` corner radius is used for all buttons, cards, and containers. This maintains a modern, engineered feel without being cold. Pill shapes (`9999px`) are reserved for small, specific UI elements like tags or status indicators.
+### Карточки (Cards)
+Карточки используются для группировки контента.
 
-## Components
+### Уведомления (Alerts)
+Используются для отображения семантических сообщений.
 
-Component styles are minimal and contrast-driven.
+## Imagery (Изображения)
 
-- **Primary Button:** A solid black button with white text. Reserved for the single most important action on a page (e.g., "Convert", "Save").
-- **Ghost Button:** A transparent button with a hairline border and gray text. Used for secondary or tertiary actions, providing an interactive option that doesn't compete for attention.
-- **Input Fields:** A pure white background with a simple hairline border. The border turns to the blue accent color on focus.
-- **Cards:** A white surface with a hairline border and a `6px` radius. They contain grouped content and rely on internal padding and typographic hierarchy, not decoration.
-- **API Key Display:** Uses the monospace font inside a bordered container with a "Copy" button, clearly distinguishing it as technical data.
+- **Иконография**: Стандартизированный набор иконок [Heroicons](https://heroicons.com/) (20px, `outline`). Цвет иконок должен соответствовать контексту: `--color-text-secondary` для нейтральных и `--color-accent` для интерактивных.
+- **Иллюстрации**: Можно использовать для онбординга или пустых состояний. Стиль должен быть простым, векторным, и соответствовать цветовой палитре.
 
-## Do's and Don'ts
+## Do's and Don'ts (Что делать и чего не делать)
 
-- **Do** use the monochrome color palette for 99% of the UI.
-- **Don't** ever use drop shadows for elevation. Use borders or tonal shifts.
-- **Do** use the blue accent color only for the single primary CTA or a critical focused state.
-- **Don't** use more than one accent color. The system's strength is its restraint.
-- **Do** use `Inter` for all user-facing prose and `Fira Code` for any technical data or code.
-- **Don't** use a corner radius larger than `6px` for primary containers like cards and buttons.
+### Do's (Что делать)
+- **Используйте семантические цвета**: Применяйте `--color-success`, `--color-error`, `--color-warning` для обратной связи пользователю.
+- **Группируйте контент в карточки**: Это помогает структурировать информацию на сложных страницах.
+- **Акцентируйте заголовки**: Используйте шрифт `Inter` для заголовков, чтобы создать визуальную иерархию.
+
+### Don'ts (Чего не делать)
+- **Не смешивайте стили кнопок**: Не используйте основной и вторичный стили для одной и той же цели.
+- **Не перегружайте карточки**: Карточка должна содержать связанную информацию. Избегайте "свалки" разнородных данных.
+- **Не используйте тени и рамки одновременно**: Выберите что-то одно для выделения элемента.
+
+## Quick Start (Быстрый старт)
+
+```css
+/* 1. Токены (наследуются из DESIGN_1, здесь только дополнения) */
+:root {
+  /* Основные */
+  --color-background: #FFFFFF;
+  --color-background-secondary: #F9FAFB;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-border: #E5E7EB;
+
+  /* Семантические */
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  
+  /* Типографика */
+  --font-family-headings: "Inter", sans-serif;
+  --font-family-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "Fira Code", monospace;
+}
+
+/* 2. Глобальные стили */
+h1, h2, h3 {
+  font-family: var(--font-family-headings);
+}
+
+code {
+  font-family: var(--font-family-mono);
+}
+
+/* 3. Компоненты */
+
+/* Карточки */
+.card {
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  padding: var(--space-lg);
+}
+
+/* Уведомления */
+.alert {
+  padding: var(--space-md);
+  border-radius: 6px;
+}
+
+.alert-success {
+  background-color: #ECFDF5;
+  color: #065F46;
+}
+
+.alert-error {
+  background-color: #FEF2F2;
+  color: #991B1B;
+}
+
+.alert-warning {
+  background-color: #FFFBEB;
+  color: #92400E;
+}
+```
