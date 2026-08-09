@@ -32,11 +32,11 @@
 
 1. Клонируйте репозиторий и установите зависимости:
 
-   ```bash
-   git clone <url-репозитория>
-   cd convertly-hub
-   npm install
-   ```
+```bash
+git clone <url-репозитория>
+cd convertly-hub
+npm install
+```
 
 2. Поднимите инфраструктуру (PostgreSQL, MinIO, Gotenberg) через Docker:
 
