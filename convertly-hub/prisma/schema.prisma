@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conversions ConversionLog[]
+}
+
+model ConversionLog {
+  id        String   @id @default(uuid())
+  fileName  String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  // Связь с пользователем
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
