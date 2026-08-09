@@ -1,4 +1,3 @@
-````markdown
 # 🚀 Convertly Hub: Developer Start Guide (START.md)
 
 Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**.
@@ -43,7 +42,6 @@
 ```bash
 docker compose up -d
 ```
-````
 
 _(Флаг `-d` запускает контейнеры в фоновом режиме)._
 
