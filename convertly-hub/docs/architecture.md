@@ -25,7 +25,7 @@ graph TD
         subgraph "Основное приложение"
             C(Next.js App: UI и API)
         end
-        
+
         subgraph "Сервисы данных"
             E["База данных (PostgreSQL)"]
             F["Хранилище файлов (S3-совместимое)"]
@@ -105,6 +105,7 @@ services:
 ├── .env.local               # Переменные окружения (ключи, доступы)
 ├── .prettierrc              # Конфигурация Prettier
 ├── .prettierignore          # Файлы, игнорируемые Prettier
+├── docker-compose.yml       # Конфигурация локальной среды
 ├── eslint.config.mjs        # Конфигурация ESLint
 ├── tailwind.config.ts       # Конфигурация Tailwind CSS
 ├── postcss.config.mjs       # Конфигурация PostCSS
