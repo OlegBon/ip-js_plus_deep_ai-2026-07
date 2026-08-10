@@ -84,12 +84,15 @@ services:
 ```plaintext
 /
 ├── 📂 app/                  # Основная папка Next.js App Router
-│   ├── 📂 (auth)/           # Группа маршрутов для аутентификации
-│   ├── 📂 (dashboard)/      # Группа защищенных маршрутов
+│   ├── 📂 (auth)/           # Группа маршрутов для аутентификации (login, register)
+│   ├── 📂 (dashboard)/      # Группа защищенных маршрутов (личный кабинет)
 │   ├── 📂 api/              # API-маршруты
-│   └── ...
+│   └── page.tsx             # Главная страница
 │
 ├── 📂 components/           # Переиспользуемые React-компоненты (UI)
+│   ├── 📂 auth/             # Компоненты, связанные с аутентификацией
+│   ├── 📂 core/             # Ключевые компоненты (Header, Footer, FileDropzone)
+│   └── 📂 dashboard/        # Компоненты для личного кабинета
 │
 ├── 📂 lib/                  # Вспомогательные модули (например, клиенты к БД)
 │
@@ -97,11 +100,16 @@ services:
 │
 ├── 📂 prisma/               # Файлы Prisma ORM (схема, миграции)
 │
-├── 📂 public/               # Статические файлы
+├── 📂 public/               # Статические файлы (изображения, иконки)
 │
-├── docker-compose.yml       # Конфигурация локальной среды
 ├── .env.local               # Переменные окружения (ключи, доступы)
-├── next.config.mjs          # Конфигурация Next.js
+├── .prettierrc              # Конфигурация Prettier
+├── .prettierignore          # Файлы, игнорируемые Prettier
+├── eslint.config.mjs        # Конфигурация ESLint
+├── tailwind.config.ts       # Конфигурация Tailwind CSS
+├── postcss.config.mjs       # Конфигурация PostCSS
+├── docker-compose.yml       # Конфигурация локальной среды
+├── next.config.ts           # Конфигурация Next.js
 └── package.json             # Зависимости и скрипты
 ```
 
