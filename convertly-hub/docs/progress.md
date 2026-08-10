@@ -1,5 +1,18 @@
 # Журнал изменений проекта
 
+## 2026-08-10 (v6)
+
+- **Задача:** Frontend - 4. Аутентификация: Созданы страницы и формы для регистрации и входа, согласно п.4 `work_plan.md`.
+- **Новые файлы:**
+  - `convertly-hub/app/(auth)/login/page.tsx` (создан)
+  - `convertly-hub/app/(auth)/register/page.tsx` (создан)
+  - `convertly-hub/components/auth/LoginForm.tsx` (создан)
+  - `convertly-hub/components/auth/RegisterForm.tsx` (создан)
+- **Измененные файлы:**
+  - Нет
+- **Новые переменные окружения:**
+  - Нет
+
 ## 2026-08-10 (v5)
 
 - **Задача:** Frontend - 3. Главная страница: Реализованы виджеты Drag & Drop для конвертации файлов, согласно п.3 `work_plan.md`.
