@@ -1,5 +1,16 @@
 # Журнал изменений проекта
 
+## 2026-08-10 (v5)
+
+- **Задача:** Frontend - 3. Главная страница: Реализованы виджеты Drag & Drop для конвертации файлов, согласно п.3 `work_plan.md`.
+- **Новые файлы:**
+  - `convertly-hub/components/core/FileDropzone.tsx` (создан)
+- **Измененные файлы:**
+  - `convertly-hub/app/page.tsx` (интегрированы виджеты Drag & Drop)
+  - `convertly-hub/package.json` (добавлены `react-dropzone` и `lucide-react`)
+- **Новые переменные окружения:**
+  - Нет
+
 ## 2026-08-10 (v4)
 
 - **Задача:** Frontend - 2. Основной макет: Создан корневой layout с навигацией и футером, согласно п.2 `work_plan.md`.
