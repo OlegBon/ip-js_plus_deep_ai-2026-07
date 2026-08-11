@@ -42,7 +42,6 @@ npm install
 
 ```bash
 docker compose up -d
-
 ```
 
 3. Настройте файл `.env` (обратите внимание на пример `.env.example`).
@@ -50,15 +49,28 @@ docker compose up -d
 
 ```bash
 npx prisma db push
-
 ```
 
 5. Запустите проект в режиме разработки:
 
 ```bash
 npm run dev
-
 ```
+
+---
+
+## 📚 Документация
+
+- [Архитектура проекта](./docs/architecture.md)
+- [Технологии и SaaS](./docs/tech_saas.md)
+- [План работ](./docs/work_plan.md)
+- [Прогресс проекта](./docs/progress.md)
+
+---
+
+## 🎥 Видео
+
+- [Демонстрация интерфейса и функционала (2026-08-10)](./videos/convertly-hub-20260810.mp4) - Краткий обзор реализованных страниц и их адаптивности.
 
 ---
 
