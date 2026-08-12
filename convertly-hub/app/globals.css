@@ -33,6 +33,7 @@ body {
   background-color: var(--color-background);
   color: var(--color-text-primary);
   font-family: var(--font-family-body);
+  overflow-y: scroll;
 }
 
 h1, h2, h3, h4, h5, h6 {

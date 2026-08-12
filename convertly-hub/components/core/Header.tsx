@@ -12,13 +12,16 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background border-border sticky top-0 z-50 border-b">
+    <header className="bg-white border-border sticky top-0 z-50 border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center space-x-8">
           <Link href="/" className="text-accent text-lg font-bold">
             Convertly Hub
           </Link>
           <nav className="hidden items-center space-x-6 md:flex">
+            <Link href="/dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
+              Dashboard
+            </Link>
             <Link href="/pricing" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
               Pricing
             </Link>
@@ -42,8 +45,11 @@ const Header = () => {
         </div>
       </div>
       {isMobileMenuOpen && (
-        <div className="bg-background border-border border-t md:hidden">
+        <div className="bg-white border-border border-t md:hidden">
           <nav className="flex flex-col space-y-4 p-4">
+            <Link href="/dashboard" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
+              Dashboard
+            </Link>
             <Link href="/pricing" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
               Pricing
             </Link>
