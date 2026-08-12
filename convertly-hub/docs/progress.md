@@ -1,5 +1,24 @@
 # Журнал изменений проекта
 
+## 2026-08-12 (v2)
+
+- **Задача:** Frontend - 5. Личный кабинет (/dashboard): Разработаны компоненты для страницы личного кабинета, согласно п.5 `work_plan.md`.
+- **Описание:**
+  - Созданы компоненты `UserProfile`, `ApiKeyManager`, `PrivacySettings`, и `ConversionHistory` для управления профилем, API-ключами, настройками приватности и просмотра истории конвертаций.
+  - Реализована базовая структура страницы `/dashboard` с использованием моковых данных.
+  - Исправлена критическая ошибка импорта `useState` в `ApiKeyManager.tsx`, которая блокировала рендеринг страницы.
+- **Новые файлы:**
+  - `convertly-hub/app/(dashboard)/dashboard/page.tsx` (создан)
+  - `convertly-hub/app/(dashboard)/layout.tsx` (создан)
+  - `convertly-hub/components/dashboard/UserProfile.tsx` (создан)
+  - `convertly-hub/components/dashboard/ApiKeyManager.tsx` (создан)
+  - `convertly-hub/components/dashboard/PrivacySettings.tsx` (создан)
+  - `convertly-hub/components/dashboard/ConversionHistory.tsx` (создан)
+- **Измененные файлы:**
+  - `convertly-hub/docs/work_plan.md` (задача 5 отмечена как выполненная)
+- **Новые переменные окружения:**
+  - Нет
+
 ## 2026-08-12
 
 - **Задача:** Настройка ESLint, Prettier и Tailwind CSS для проекта Convertly Hub. Внедрение eslint-plugin-tailwindcss и устранение проблем с его конфигурацией.
