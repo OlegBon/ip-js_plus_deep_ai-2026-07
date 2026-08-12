@@ -1,5 +1,22 @@
 # Журнал изменений проекта
 
+## 2026-08-12
+
+- **Задача:** Настройка ESLint, Prettier и Tailwind CSS для проекта Convertly Hub. Внедрение eslint-plugin-tailwindcss и устранение проблем с его конфигурацией.
+- **Описание:**
+  - Настроена интеграция `eslint-plugin-tailwindcss` для корректной работы с Tailwind CSS v4 и ESLint 9.
+  - Добавлен `convertly-hub/src/style.css` как временное решение (костыль) для обхода бага в `eslint-plugin-tailwindcss`, который некорректно обрабатывает путь к файлам стилей. Этот файл импортирует `../app/globals.css`, чтобы линтер мог корректно читать CSS-переменные.
+  - Исправлена ошибка `react/no-unescaped-entities` в `app/(auth)/login/page.tsx` путем экранирования апострофа (`'`) как `&apos;`.
+  - Подтверждено, что удаление `eslintConfig` из `eslint.config.mjs` не имеет побочных эффектов, так как эта переменная не использовалась вне файла.
+- **Измененные файлы:**
+  - `convertly-hub/package.json` (добавлены скрипты `linteslint` и `linteslint:fix`, добавлены зависимости `eslint-plugin-tailwindcss`, `postcss`, `prettier`, `prettier-plugin-tailwindcss`)
+  - `convertly-hub/.prettierrc` (обновлены настройки для Tailwind CSS)
+  - `convertly-hub/eslint.config.mjs` (обновлена конфигурация ESLint для поддержки `eslint-plugin-tailwindcss`)
+  - `convertly-hub/src/style.css` (создан как временный файл)
+  - `convertly-hub/app/(auth)/login/page.tsx` (исправлена ошибка экранирования символов)
+- **Новые переменные окружения:**
+  - Нет
+
 ## 2026-08-10 (v7)
 
 - **Задача:** UI/UX - Улучшение консистентности и исправление ошибок в UI.

@@ -63,35 +63,35 @@ const FileDropzone = ({ title, description, accept, onUpload }: FileDropzoneProp
         return (
             <div className="text-center">
                 <p className="text-text-secondary mb-2">{fileName}</p>
-                <div className="w-full bg-border rounded-full h-2.5">
+                <div className="bg-border h-2.5 w-full rounded-full">
                     <div className="bg-accent h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
                 </div>
-                <p className="text-sm text-text-secondary mt-2">{progress}%</p>
+                <p className="text-text-secondary mt-2 text-sm">{progress}%</p>
             </div>
         );
         case 'success':
         return (
             <div className="text-center">
-                <CheckCircle className="mx-auto h-12 w-12 text-success" />
-                <p className="mt-2 text-text-primary">{fileName} uploaded successfully!</p>
+                <CheckCircle className="text-success mx-auto h-12 w-12" />
+                <p className="text-text-primary mt-2">{fileName} uploaded successfully!</p>
             </div>
         );
         case 'error':
         return (
             <div className="text-center">
-                <AlertCircle className="mx-auto h-12 w-12 text-error" />
-                <p className="mt-2 text-text-primary">{fileName} failed to upload.</p>
-                <p className="text-sm text-text-secondary">{errorMessage}</p>
+                <AlertCircle className="text-error mx-auto h-12 w-12" />
+                <p className="text-text-primary mt-2">{fileName} failed to upload.</p>
+                <p className="text-text-secondary text-sm">{errorMessage}</p>
             </div>
         );
         case 'idle':
         default:
         return (
             <div className="text-center">
-                <UploadCloud className="mx-auto h-12 w-12 text-text-secondary" />
-                <p className="mt-2 text-text-primary font-semibold">{title}</p>
-                <p className="text-sm text-text-secondary">{description}</p>
-                <p className="text-sm text-accent mt-4">Drag & drop a file or click to select</p>
+                <UploadCloud className="text-text-secondary mx-auto h-12 w-12" />
+                <p className="text-text-primary mt-2 font-semibold">{title}</p>
+                <p className="text-text-secondary text-sm">{description}</p>
+                <p className="text-accent mt-4 text-sm">Drag & drop a file or click to select</p>
             </div>
         );
     }
@@ -100,7 +100,7 @@ const FileDropzone = ({ title, description, accept, onUpload }: FileDropzoneProp
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 transition-colors cursor-pointer
+      className={`cursor-pointer rounded-lg border-2 border-dashed p-8 transition-colors
         ${isDragActive ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'}
         ${status === 'success' && 'border-success'}
         ${status === 'error' && 'border-error'}`}

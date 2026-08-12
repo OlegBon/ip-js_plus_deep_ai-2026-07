@@ -27,9 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${firaCode.variable}`}>
-      <body className="bg-background text-text-primary min-h-screen flex flex-col antialiased">
+      <body className="bg-background text-text-primary flex min-h-screen flex-col antialiased">
         <Header />
-        <main className="flex-grow flex flex-col">{children}</main>
+        <main className="flex flex-grow flex-col">{children}</main>
         <Footer />
       </body>
     </html>

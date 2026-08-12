@@ -4,10 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "devnppm": "parallel --filter @convertly-hub/* --filter @convertly-hub/api dev'",
     "build": "next build",
+    "buildnppm": "pnpm -r --if-present build",
     "start": "next start",
-    "lint": "eslint",
-    "audit:api": "node scripts/audit-api.mjs"
+    "linteslint": "npx eslint .",
+    "linteslint:fix": " npx eslint . --fix",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "audit:api": "node scripts/audit-api.mjs",
+    "db:generate": "pnpm --filter @convertly-hub/api db:generate",
+    "db:migrate": "pnpm --filter @convertly-hub/api db:migrate",
+    "db:deploy": "pnpm --filter @convertly-hub/api db:deploy",
+    "db:studio": "pnpm --filter @convertly-hub/api db:studio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1106.0",
@@ -36,6 +47,7 @@
     "eslint-config-next": "16.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-tailwindcss": "^4.2.0",
     "prettier": "^3.9.6",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",

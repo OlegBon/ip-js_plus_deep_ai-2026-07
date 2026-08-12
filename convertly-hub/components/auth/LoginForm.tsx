@@ -15,7 +15,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-text-primary">
+        <label htmlFor="email" className="text-text-primary block text-sm font-medium">
           Email
         </label>
         <div className="mt-1">
@@ -27,13 +27,13 @@ export function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="block w-full rounded-md border-border bg-background py-2 px-3 text-text-primary shadow-sm focus:border-accent focus:ring-accent"
+            className="border-border bg-background text-text-primary focus:border-accent focus:ring-accent block w-full rounded-md px-3 py-2 shadow-sm"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-text-primary">
+        <label htmlFor="password" className="text-text-primary block text-sm font-medium">
           Password
         </label>
         <div className="mt-1">
@@ -45,13 +45,13 @@ export function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="block w-full rounded-md border-border bg-background py-2 px-3 text-text-primary shadow-sm focus:border-accent focus:ring-accent"
+            className="border-border bg-background text-text-primary focus:border-accent focus:ring-accent block w-full rounded-md px-3 py-2 shadow-sm"
           />
         </div>
       </div>
 
       <div>
-        <button type="submit" className="flex w-full justify-center rounded-md border border-transparent bg-gray-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2">
+        <button type="submit" className="focus:ring-accent flex w-full justify-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:ring-2 focus:ring-offset-2 focus:outline-none">
           Sign In
         </button>
       </div>

@@ -16,19 +16,19 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col flex-grow items-center justify-center p-4">
+    <div className="flex flex-grow flex-col items-center justify-center p-4">
       <div className="container mx-auto px-4">
-        <section className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-text-primary mb-2">
+        <section className="mb-12 text-center">
+          <h1 className="text-text-primary mb-2 text-4xl font-bold">
             Seamless File Conversion
           </h1>
-          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+          <p className="text-text-secondary mx-auto max-w-2xl text-lg">
             Quickly and easily convert your files. Drag and drop to get started.
             No registration required for basic conversions.
           </p>
         </section>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
           <FileDropzone
             title="Image Converter"
             description="Convert between JPG and PNG."
