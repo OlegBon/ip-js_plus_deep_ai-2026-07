@@ -108,7 +108,8 @@ services:
 │   ├── 📂 auth/             # Компоненты, связанные с аутентификацией
 │   │   ├── LoginForm.tsx    # Форма входа
 │   │   └── RegisterForm.tsx # Форма регистрации
-│   ├── 📂 core/             # Ключевые компоненты (Header, Footer, FileDropzone)
+│   ├── 📂 core/             # Ключевые компоненты (Header, Footer, FileDropzone, модальные окна)
+│   │   ├── ConfirmationModal.tsx # Модальное окно подтверждения (например, для удаления)
 │   │   ├── Header.tsx
 │   │   ├── Footer.tsx
 │   │   └── FileDropzone.tsx
@@ -117,10 +118,11 @@ services:
 │   │   ├── UserPlan.tsx
 │   │   ├── ApiKeyManager.tsx
 │   │   ├── PrivacySettings.tsx
-│   │   └── ConversionHistory.tsx
+│   │   └── ConversionHistory.tsx # История конвертаций с поиском, сортировкой и пагинацией
 │   └── 📂 admin/            # Компоненты для панели администратора
+│       ├── EditUserModal.tsx    # Модальное окно для редактирования пользователя
 │       ├── SystemMonitoring.tsx
-│       └── UserManagement.tsx
+│       └── UserManagement.tsx # Управление пользователями с редактированием, удалением, сортировкой и пагинацией
 │
 ├── 📂 lib/                  # Вспомогательные модули (например, клиенты к БД)
 │
