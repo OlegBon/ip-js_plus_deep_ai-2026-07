@@ -196,7 +196,7 @@ const UserManagement = () => {
             </tbody>
           </table>
         </div>
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        <Pagination page={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
 
       <EditUserModal 
