@@ -5,5 +5,11 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="p-4 sm:p-6 md:p-8">{children}</div>;
+  return (
+    <div className="py-16 sm:py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        {children}
+      </div>
+    </div>
+  );
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import UserProfile from "@/components/dashboard/UserProfile";
+import UserPlan from "@/components/dashboard/UserPlan";
 import ApiKeyManager from "@/components/dashboard/ApiKeyManager";
 import PrivacySettings from "@/components/dashboard/PrivacySettings";
 import ConversionHistory from "@/components/dashboard/ConversionHistory";
@@ -12,6 +13,11 @@ export default function DashboardPage() {
       <section>
         <h2 className="text-2xl font-semibold mb-4">User Profile</h2>
         <UserProfile />
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">Current Plan</h2>
+        <UserPlan />
       </section>
       
       <section>
