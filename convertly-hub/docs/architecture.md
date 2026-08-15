@@ -92,6 +92,8 @@ services:
 │   ├── 📂 (dashboard)/      # Группа защищенных маршрутов (личный кабинет)
 │   │   ├── 📂 dashboard/
 │   │   │   └── page.tsx     # Страница личного кабинета
+│   │   ├── 📂 admin/
+│   │   │   └── page.tsx     # Страница панели администратора
 │   │   └── layout.tsx       # Макет для личного кабинета
 │   ├── 📂 api/              # API-маршруты
 │   ├── 📂 pricing/          # Маршрут для страницы с тарифами
@@ -110,11 +112,15 @@ services:
 │   │   ├── Header.tsx
 │   │   ├── Footer.tsx
 │   │   └── FileDropzone.tsx
-│   └── 📂 dashboard/        # Компоненты для личного кабинета
-│       ├── UserProfile.tsx
-│       ├── ApiKeyManager.tsx
-│       ├── PrivacySettings.tsx
-│       └── ConversionHistory.tsx
+│   ├── 📂 dashboard/        # Компоненты для личного кабинета
+│   │   ├── UserProfile.tsx
+│   │   ├── UserPlan.tsx
+│   │   ├── ApiKeyManager.tsx
+│   │   ├── PrivacySettings.tsx
+│   │   └── ConversionHistory.tsx
+│   └── 📂 admin/            # Компоненты для панели администратора
+│       ├── SystemMonitoring.tsx
+│       └── UserManagement.tsx
 │
 ├── 📂 lib/                  # Вспомогательные модули (например, клиенты к БД)
 │
