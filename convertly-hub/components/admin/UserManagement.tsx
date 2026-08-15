@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from '../ui/Button';
+import Search from '../ui/Search';
+import { MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import EditUserModal from './EditUserModal';
 import ConfirmationModal from '../core/ConfirmationModal';
-import Pagination from '../core/Pagination';
+import Pagination from '../ui/Pagination';
 
 type User = {
   id: number;
@@ -143,16 +145,11 @@ const UserManagement = () => {
     <>
       <div className="p-6 bg-white rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
-          <div className="relative w-full max-w-xs">
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 pl-10 border rounded"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          </div>
+          <Search
+            placeholder="Search users..."
+            onSearch={setSearchTerm}
+            className="w-full max-w-xs"
+          />
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm text-left text-gray-500">
@@ -184,13 +181,13 @@ const UserManagement = () => {
                   <td className="px-6 py-4"><StatusBadge status={user.status} /></td>
                   <td className="px-6 py-4">{user.lastLogin}</td>
                   <td className="px-6 py-4 text-right relative">
-                    <button onClick={() => setActiveActionMenu(activeActionMenu === user.id ? null : user.id)} className="p-2 text-gray-500 hover:text-gray-800">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveActionMenu(activeActionMenu === user.id ? null : user.id)}>
                       <MoreVertical size={20} />
-                    </button>
+                    </Button>
                     {activeActionMenu === user.id && (
                       <div ref={actionMenuRef} className="absolute right-0 mt-2 w-28 bg-white rounded-md shadow-lg z-10 border">
-                        <a href="#" onClick={(e) => { e.preventDefault(); handleEditClick(user); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
-                        <a href="#" onClick={(e) => { e.preventDefault(); handleDeleteClick(user); }} className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+                        <Button variant="ghost" onClick={() => handleEditClick(user)} className="w-full justify-start">Edit</Button>
+                        <Button variant="ghost" onClick={() => handleDeleteClick(user)} className="w-full justify-start text-red-600 hover:text-red-700">Delete</Button>
                       </div>
                     )}
                   </td>

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Search, ArrowUp, ArrowDown } from 'lucide-react';
-import ConfirmationModal from '../core/ConfirmationModal';
-import Pagination from '../core/Pagination';
+import Search from '../ui/Search';
+import Pagination from '../ui/Pagination';
+import { Button } from '../ui/Button';
 
 type Conversion = {
   id: number;
@@ -135,28 +135,26 @@ const ConversionHistory = () => {
     <>
       <div className="p-6 bg-white rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-            <div className="relative w-full max-w-xs">
-              <input
-                type="text"
-                placeholder="Search files..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full p-2 pl-10 border rounded"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
+            <Search
+              placeholder="Search files..."
+              onSearch={(query) => {
+                setSearchTerm(query);
+                setCurrentPage(1);
+              }}
+              className="w-full max-w-xs"
+            />
             {selected.length > 0 && (
               <div className="flex items-center gap-4">
                 <span className="text-sm font-semibold">{selected.length} item(s) selected</span>
-                <button 
+                <Button 
                   onClick={handleOpenConfirmModal}
-                  className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
+                  variant="secondary"
                 >
                   Delete
-                </button>
-                <button className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900">
+                </Button>
+                <Button>
                   Download
-                </button>
+                </Button>
               </div>
             )}
         </div>

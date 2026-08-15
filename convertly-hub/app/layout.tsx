@@ -3,6 +3,7 @@ import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/core/Header";
 import Footer from "@/components/core/Footer";
+import { Toaster } from "@/components/ui/Toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
         <Header />
         <main className="flex flex-grow flex-col">{children}</main>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );

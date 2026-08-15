@@ -1,5 +1,7 @@
 "use client";
-import React, { useEffect } from 'react';
+import React from 'react';
+import Modal from '../ui/Modal';
+import { Button } from '../ui/Button';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -10,46 +12,25 @@ interface ConfirmationModalProps {
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, title, message }) => {
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
-
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4">{title}</h2>
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      <div className="pt-4">
         <p className="text-gray-600 mb-6">{message}</p>
         <div className="flex items-center justify-end gap-4">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
           >
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={onConfirm}
-            className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900"
           >
             Confirm
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 
