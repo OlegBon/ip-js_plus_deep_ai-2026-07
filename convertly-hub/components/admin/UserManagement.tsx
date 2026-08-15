@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Button } from '../ui/Button';
 import Search from '../ui/Search';
 import { MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
@@ -46,6 +46,12 @@ type SortConfig = { key: keyof User; direction: 'ascending' | 'descending'; } | 
 const UserManagement = () => {
   const [users, setUsers] = useState(mockUsers);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = React.useCallback((query: string) => {
+    setSearchTerm(query);
+    setCurrentPage(1);
+  }, []);
+
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
@@ -147,7 +153,7 @@ const UserManagement = () => {
         <div className="flex justify-between items-center mb-4">
           <Search
             placeholder="Search users..."
-            onSearch={setSearchTerm}
+            onSearch={handleSearch}
             className="w-full max-w-xs"
           />
         </div>

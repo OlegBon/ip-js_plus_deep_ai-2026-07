@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Search from '../ui/Search';
 import Pagination from '../ui/Pagination';
 import { Button } from '../ui/Button';
@@ -56,6 +56,11 @@ const ConversionHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSearch = React.useCallback((query: string) => {
+    setSearchTerm(query);
+    setCurrentPage(1);
+  }, []);
 
   const filteredConversions = useMemo(() =>
     conversions.filter(conversion =>
@@ -138,10 +143,7 @@ const ConversionHistory = () => {
         <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
             <Search
               placeholder="Search files..."
-              onSearch={(query) => {
-                setSearchTerm(query);
-                setCurrentPage(1);
-              }}
+              onSearch={handleSearch}
               className="w-full max-w-xs"
             />
             {selected.length > 0 && (
