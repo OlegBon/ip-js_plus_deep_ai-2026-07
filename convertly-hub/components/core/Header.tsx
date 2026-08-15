@@ -1,15 +1,24 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import Link from 'next/link';
+import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  const navLinks = [
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/admin', label: 'Admin' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/docs', label: 'Docs' },
+  ];
 
   return (
     <header className="bg-white border-border sticky top-0 z-50 border-b">
@@ -19,27 +28,37 @@ const Header = () => {
             Convertly Hub
           </Link>
           <nav className="hidden items-center space-x-6 md:flex">
-            <Link href="/dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/admin" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
-              Admin
-            </Link>
-            <Link href="/pricing" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
-              Pricing
-            </Link>
-            <Link href="/docs" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
-              Docs
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-medium transition-colors ${
+                  pathname === link.href
+                    ? 'text-indigo-600'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
         <div className="hidden items-center space-x-4 md:flex">
-          <Link href="/login" className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900">
+          <Link
+            href="/login"
+            className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900"
+          >
             Log In
           </Link>
-          <Link href="/register" className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100">
+          <Link
+            href="/register"
+            className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
+          >
             Sign Up
           </Link>
+          <button className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100">
+            Log Out
+          </button>
         </div>
         <div className="md:hidden">
           <button onClick={toggleMobileMenu} className="text-text-primary">
@@ -50,25 +69,41 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="bg-white border-border border-t md:hidden">
           <nav className="flex flex-col space-y-4 p-4">
-            <Link href="/dashboard" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
-              Dashboard
-            </Link>
-            <Link href="/admin" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
-              Admin
-            </Link>
-            <Link href="/pricing" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
-              Pricing
-            </Link>
-            <Link href="/docs" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
-              Docs
-            </Link>
-            <div className="flex flex-row gap-4 pt-4">
-              <Link href="/login" className="flex-1 rounded-md bg-gray-800 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-gray-900" onClick={toggleMobileMenu}>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`transition-colors ${
+                  pathname === link.href
+                    ? 'text-indigo-600'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+                onClick={toggleMobileMenu}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="flex flex-col gap-4 pt-4">
+              <Link
+                href="/login"
+                className="flex-1 rounded-md bg-gray-800 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-gray-900"
+                onClick={toggleMobileMenu}
+              >
                 Log In
               </Link>
-              <Link href="/register" className="text-text-primary border-border flex-1 rounded-md border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-gray-100" onClick={toggleMobileMenu}>
+              <Link
+                href="/register"
+                className="text-text-primary border-border flex-1 rounded-md border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-gray-100"
+                onClick={toggleMobileMenu}
+              >
                 Sign Up
               </Link>
+              <button
+                className="text-text-primary border-border w-full rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
+                onClick={toggleMobileMenu}
+              >
+                Log Out
+              </button>
             </div>
           </nav>
         </div>

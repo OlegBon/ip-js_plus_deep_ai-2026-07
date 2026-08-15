@@ -88,7 +88,7 @@ const FileDropzone = ({ title, description, accept, onUpload }: FileDropzoneProp
         default:
         return (
             <div className="text-center">
-                <UploadCloud className="text-text-secondary mx-auto h-12 w-12" />
+                <UploadCloud className="text-indigo-600 mx-auto h-12 w-12" />
                 <p className="text-text-primary mt-2 font-semibold">{title}</p>
                 <p className="text-text-secondary text-sm">{description}</p>
                 <p className="text-accent mt-4 text-sm">Drag & drop a file or click to select</p>

@@ -87,7 +87,7 @@ const UserPlan = () => {
                 <ul role="list" className="space-y-3 text-sm leading-6 text-gray-600">
                     {userPlan.features.map((feature) => (
                     <li key={feature} className="flex gap-x-3">
-                        <CheckIcon className="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                        <CheckIcon className="h-6 w-5 flex-none" aria-hidden="true" />
                         {feature}
                     </li>
                     ))}

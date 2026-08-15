@@ -70,7 +70,7 @@ export default function DocsPage() {
                 <h3 className="text-lg font-semibold leading-7 text-white">
                   <span className={
                     "text-sm font-semibold " +
-                    (endpoint.method === 'POST' ? 'text-blue-400' : 'text-green-400') +
+                    (endpoint.method === 'POST' ? 'text-white' : 'text-green-400') +
                     " mr-2"
                   }>{endpoint.method}</span>
                   <span className="font-mono">{endpoint.path}</span>
