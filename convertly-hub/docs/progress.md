@@ -1,5 +1,31 @@
 # Журнал изменений проекта
 
+## 2026-08-15 (v3)
+
+- **Задача:** Frontend - 10. UI-компоненты: Создать переиспользуемые компоненты для уведомлений (Toasts), модальных окон и других элементов обратной связи.
+- **Описание:**
+  - Создана новая директория `components/ui` для хранения базовых UI-компонентов.
+  - Созданы и интегрированы переиспользуемые компоненты: `Button`, `Modal`, `Pagination`, `Search`.
+  - Добавлена библиотека `sonner` для toast-уведомлений и создан компонент `Toast`.
+  - Внедрены toast-уведомления для различных действий пользователя: загрузка файлов, CRUD-операции с пользователями, управление API-ключами и т.д.
+  - Исправлена ошибка с `asChild` пропом в компоненте `Button` с помощью `@radix-ui/react-slot`.
+  - Исправлены ошибки в работе пагинации, связанные с некорректным использованием `useCallback`.
+- **Новые файлы:**
+  - `convertly-hub/components/ui/Button.tsx`
+  - `convertly-hub/components/ui/Modal.tsx`
+  - `convertly-hub/components/ui/Pagination.tsx`
+  - `convertly-hub/components/ui/Search.tsx`
+  - `convertly-hub/components/ui/Toast.tsx`
+  - `convertly-hub/lib/hooks/use-toast.ts`
+- **Удаленные файлы:**
+  - `convertly-hub/components/core/Pagination.tsx`
+- **Измененные файлы:**
+  - `convertly-hub/docs/architecture.md` (актуализирована структура и добавлены UI-библиотеки)
+  - `convertly-hub/package.json` (добавлены `sonner`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`)
+  - Множество компонентов были рефакторены для использования новых UI-компонентов.
+- **Новые переменные окружения:**
+  - Нет
+
 ## 2026-08-15 (v2)
 
 - **Задача:** Рефакторинг и унификация стилей, улучшение пользовательского опыта и расширение функциональности Admin Panel и Dashboard.
