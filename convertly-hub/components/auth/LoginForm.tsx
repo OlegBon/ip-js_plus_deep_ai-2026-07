@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { toast } from '@/lib/hooks/use-toast';
+import { Button } from '../ui/Button';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -8,8 +10,12 @@ export function LoginForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Handle login logic
-    console.log('Login attempt with:', { email, password });
+    // Simulate login logic
+    if (email === 'admin@example.com' && password === 'password') {
+      toast.success('Login successful!');
+    } else {
+      toast.error('Invalid email or password.');
+    }
   };
 
   return (
@@ -51,9 +57,9 @@ export function LoginForm() {
       </div>
 
       <div>
-        <button type="submit" className="focus:ring-accent flex w-full justify-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:ring-2 focus:ring-offset-2 focus:outline-none">
+        <Button type="submit" className="w-full">
           Sign In
-        </button>
+        </Button>
       </div>
     </form>
   );

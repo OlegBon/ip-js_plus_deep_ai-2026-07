@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { toast } from '@/lib/hooks/use-toast';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -11,6 +13,14 @@ const Header = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    // Simulate logout logic
+    toast.success('You have been logged out.');
+    if (isMobileMenuOpen) {
+      toggleMobileMenu();
+    }
   };
 
   const navLinks = [
@@ -44,21 +54,15 @@ const Header = () => {
           </nav>
         </div>
         <div className="hidden items-center space-x-4 md:flex">
-          <Link
-            href="/login"
-            className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900"
-          >
-            Log In
-          </Link>
-          <Link
-            href="/register"
-            className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
-          >
-            Sign Up
-          </Link>
-          <button className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100">
+          <Button asChild>
+            <Link href="/login">Log In</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/register">Sign Up</Link>
+          </Button>
+          <Button variant="secondary" onClick={handleLogout}>
             Log Out
-          </button>
+          </Button>
         </div>
         <div className="md:hidden">
           <button onClick={toggleMobileMenu} className="text-text-primary">
@@ -84,26 +88,15 @@ const Header = () => {
               </Link>
             ))}
             <div className="flex flex-col gap-4 pt-4">
-              <Link
-                href="/login"
-                className="flex-1 rounded-md bg-gray-800 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-gray-900"
-                onClick={toggleMobileMenu}
-              >
-                Log In
-              </Link>
-              <Link
-                href="/register"
-                className="text-text-primary border-border flex-1 rounded-md border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-gray-100"
-                onClick={toggleMobileMenu}
-              >
-                Sign Up
-              </Link>
-              <button
-                className="text-text-primary border-border w-full rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100"
-                onClick={toggleMobileMenu}
-              >
+              <Button asChild>
+                <Link href="/login" onClick={toggleMobileMenu}>Log In</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/register" onClick={toggleMobileMenu}>Sign Up</Link>
+              </Button>
+              <Button variant="secondary" onClick={handleLogout}>
                 Log Out
-              </button>
+              </Button>
             </div>
           </nav>
         </div>

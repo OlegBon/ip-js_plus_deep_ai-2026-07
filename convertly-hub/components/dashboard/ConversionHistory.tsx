@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import Search from '../ui/Search';
 import Pagination from '../ui/Pagination';
+import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
 import ConfirmationModal from '../core/ConfirmationModal';
 
@@ -127,7 +128,9 @@ const ConversionHistory = () => {
   const handleCloseConfirmModal = () => setIsConfirmModalOpen(false);
 
   const handleDeleteSelected = () => {
+    const selectedCount = selected.length;
     setConversions(conversions.filter(c => !selected.includes(c.id)));
+    toast.success(`${selectedCount} item(s) have been deleted.`);
     handleCloseConfirmModal();
     setSelected([]);
   };

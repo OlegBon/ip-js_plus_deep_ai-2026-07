@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
 import Search from '../ui/Search';
 import { MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
@@ -135,9 +136,14 @@ const UserManagement = () => {
   const confirmDelete = () => {
     if (deletingUser) {
       setUsers(users.filter(u => u.id !== deletingUser.id));
+      toast.success(`User ${deletingUser.name} has been deleted.`);
       setDeletingUser(null);
     }
     setConfirmModalOpen(false);
+  };
+
+  const handleSaveUser = (updatedUser: User) => {
+    setUsers(users.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u));
   };
 
   const renderSortArrow = (key: keyof User) => {
@@ -209,6 +215,7 @@ const UserManagement = () => {
         isOpen={isEditModalOpen}
         onClose={() => setEditModalOpen(false)}
         user={editingUser}
+        onSave={handleSaveUser}
       />
       <ConfirmationModal
         isOpen={isConfirmModalOpen}

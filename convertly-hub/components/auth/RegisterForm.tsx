@@ -1,23 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from '@/lib/hooks/use-toast';
+import { Button } from '../ui/Button';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError("Passwords don't match");
+      toast.error("Passwords don't match");
       return;
     }
-    setError('');
-    // TODO: Handle registration logic
-    console.log('Registration attempt with:', { name, email, password });
+    // Simulate registration logic
+    toast.success('Registration successful!');
   };
 
   return (
@@ -105,16 +105,11 @@ export function RegisterForm() {
           />
         </div>
       </div>
-      
-      {error && <p className="text-error text-sm">{error}</p>}
 
       <div>
-        <button
-          type="submit"
-          className="focus:ring-accent flex w-full justify-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-900 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-        >
+        <Button type="submit" className="w-full">
           Register
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from '@/lib/hooks/use-toast';
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { File as FileIcon, UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
@@ -43,9 +44,12 @@ const FileDropzone = ({ title, description, accept, onUpload }: FileDropzoneProp
       await onUpload(file);
       setProgress(100);
       setStatus('success');
+      toast.success(`${file.name} uploaded successfully!`);
     } catch (error) {
       setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
+      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setErrorMessage(message);
+      toast.error(`${file.name} failed to upload. ${message}`);
     } finally {
         clearInterval(interval);
     }
