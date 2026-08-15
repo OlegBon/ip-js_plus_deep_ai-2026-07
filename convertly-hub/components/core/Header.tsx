@@ -34,10 +34,10 @@ const Header = () => {
           </nav>
         </div>
         <div className="hidden items-center space-x-4 md:flex">
-          <Link href="/login" className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100">
+          <Link href="/login" className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900">
             Log In
           </Link>
-          <Link href="/register" className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900">
+          <Link href="/register" className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100">
             Sign Up
           </Link>
         </div>
@@ -63,10 +63,10 @@ const Header = () => {
               Docs
             </Link>
             <div className="flex flex-row gap-4 pt-4">
-              <Link href="/login" className="text-text-primary border-border flex-1 rounded-md border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-gray-100" onClick={toggleMobileMenu}>
+              <Link href="/login" className="flex-1 rounded-md bg-gray-800 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-gray-900" onClick={toggleMobileMenu}>
                 Log In
               </Link>
-              <Link href="/register" className="flex-1 rounded-md bg-gray-800 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-gray-900" onClick={toggleMobileMenu}>
+              <Link href="/register" className="text-text-primary border-border flex-1 rounded-md border px-4 py-2 text-center text-sm font-medium transition-colors hover:bg-gray-100" onClick={toggleMobileMenu}>
                 Sign Up
               </Link>
             </div>

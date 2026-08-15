@@ -51,7 +51,7 @@ const UserPlan = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Plan Details */}
         <div className="md:col-span-1">
-          <h3 id="tier-pro" className="text-lg font-semibold leading-7 text-indigo-600">
+          <h3 id="tier-pro" className="text-lg font-semibold leading-7 text-gray-900">
             {userPlan.name} Plan
           </h3>
           <p className="mt-2 flex items-baseline gap-x-2">
@@ -61,7 +61,7 @@ const UserPlan = () => {
           <p className="mt-4 text-sm text-gray-600">Your current subscription.</p>
            <a
                 href="/pricing"
-                className='mt-4 block rounded-md py-2 px-3 text-center text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300'
+                className='mt-4 block rounded-md py-2 px-3 text-center text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-gray-50'
               >
                 Change Plan
               </a>

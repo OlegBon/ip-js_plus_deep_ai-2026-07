@@ -22,7 +22,7 @@ const PrivacySettings = () => {
             <button
             onClick={handleToggle}
             className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-300 focus:outline-none flex-shrink-0 ${
-                saveFiles ? "bg-blue-600" : "bg-gray-300"
+                saveFiles ? "bg-indigo-600" : "bg-gray-300"
             }`}
             >
             <span

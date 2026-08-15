@@ -86,7 +86,7 @@ export default function PricingPage() {
                 'rounded-3xl p-8 ring-1 ring-gray-200 sm:p-10'
               )}
             >
-              <h3 id={tier.id} className="text-base font-semibold leading-7 text-indigo-600">
+              <h3 id={tier.id} className="text-base font-semibold leading-7 text-gray-900">
                 {tier.name}
               </h3>
               <p className="mt-4 flex items-baseline gap-x-2">
@@ -97,7 +97,7 @@ export default function PricingPage() {
               <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-600">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex gap-x-3">
-                    <CheckIcon className="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                    <CheckIcon className="h-6 w-5 flex-none text-gray-900" aria-hidden="true" />
                     {feature}
                   </li>
                 ))}
@@ -107,8 +107,8 @@ export default function PricingPage() {
                 aria-describedby={tier.id}
                 className={classNames(
                   tier.mostPopular
-                    ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-indigo-600'
-                    : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300',
+                    ? 'bg-gray-800 text-white shadow-sm hover:bg-gray-900 focus-visible:outline-gray-900'
+                    : 'text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-gray-50 focus-visible:outline-indigo-500',
                   'mt-8 block rounded-md py-2.5 px-3.5 text-center text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:mt-10'
                 )}
               >

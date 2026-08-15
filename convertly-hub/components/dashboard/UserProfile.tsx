@@ -22,7 +22,7 @@ const UserProfile = () => {
         </div>
         <button
           onClick={handleLogout}
-          className="flex md:items-center justify-center w-full md:w-48 px-4 py-2 font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="flex md:items-center justify-center w-full md:w-48 px-4 py-2 font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           aria-label="Log Out"
         >
           <LogOut size={20} className="mr-2" />
