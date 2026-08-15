@@ -1,12 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "@/lib/hooks/use-toast";
 
 const PrivacySettings = () => {
   const [saveFiles, setSaveFiles] = useState(true);
 
   const handleToggle = () => {
-    setSaveFiles(!saveFiles);
+    const newValue = !saveFiles;
+    setSaveFiles(newValue);
+    toast.success(
+      `File storage ${newValue ? "enabled" : "disabled"}.`
+    );
   };
 
   return (

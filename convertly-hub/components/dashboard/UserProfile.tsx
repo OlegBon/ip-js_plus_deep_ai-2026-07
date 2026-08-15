@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import EditProfileModal from './EditProfileModal';
 import ConfirmationModal from '../core/ConfirmationModal';
+import { Button } from '../ui/Button';
+import { toast } from '@/lib/hooks/use-toast';
 
 const UserProfile = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -20,7 +22,14 @@ const UserProfile = () => {
 
   const handleDeleteAccount = () => {
     console.log('Account deletion confirmed.');
+    toast.success('Your account deletion request has been submitted.');
     handleCloseConfirmModal();
+  };
+
+  const handleSaveProfile = (updatedUser: any) => {
+    console.log('Profile updated:', updatedUser);
+    toast.success('Your profile has been updated.');
+    handleCloseEditModal();
   };
 
   return (
@@ -31,12 +40,12 @@ const UserProfile = () => {
             <p className="text-lg font-semibold">{user.name}</p>
             <p className="text-gray-600">{user.email}</p>
           </div>
-          <button
+          <Button
             onClick={handleOpenEditModal}
-            className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-900 w-full md:w-48 flex justify-center"
+            className="w-full md:w-48"
           >
             Edit
-          </button>
+          </Button>
         </div>
 
         <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -46,15 +55,16 @@ const UserProfile = () => {
               Note: Account deletion will be handled by an administrator.
             </p>
           </div>
-          <button 
+          <Button 
             onClick={handleOpenConfirmModal}
-            className="text-text-primary border-border rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 w-full md:w-48 flex justify-center"
+            variant="secondary"
+            className="w-full md:w-48"
           >
             Delete Account
-          </button>
+          </Button>
         </div>
       </div>
-      <EditProfileModal isOpen={isEditModalOpen} onClose={handleCloseEditModal} />
+      <EditProfileModal isOpen={isEditModalOpen} onClose={handleCloseEditModal} onSave={handleSaveProfile} />
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={handleCloseConfirmModal}
