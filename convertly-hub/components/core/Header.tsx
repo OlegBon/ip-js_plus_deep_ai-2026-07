@@ -22,6 +22,9 @@ const Header = () => {
             <Link href="/dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
               Dashboard
             </Link>
+            <Link href="/admin" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
+              Admin
+            </Link>
             <Link href="/pricing" className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors">
               Pricing
             </Link>
@@ -49,6 +52,9 @@ const Header = () => {
           <nav className="flex flex-col space-y-4 p-4">
             <Link href="/dashboard" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
               Dashboard
+            </Link>
+            <Link href="/admin" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
+              Admin
             </Link>
             <Link href="/pricing" className="text-text-secondary hover:text-text-primary transition-colors" onClick={toggleMobileMenu}>
               Pricing
