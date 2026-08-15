@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Search from '../ui/Search';
 import Pagination from '../ui/Pagination';
 import { Button } from '../ui/Button';
+import ConfirmationModal from '../core/ConfirmationModal';
 
 type Conversion = {
   id: number;
