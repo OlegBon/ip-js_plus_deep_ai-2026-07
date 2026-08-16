@@ -10,14 +10,22 @@
 
 Модель для хранения информации о пользователях.
 
-| Поле      | Тип      | Описание                                    | Атрибуты             |
-|:----------|:---------|:--------------------------------------------|:---------------------|
-| `id`      | `String` | Уникальный идентификатор пользователя (UUID)  | `@id @default(uuid())` |
-| `email`     | `String` | Электронная почта пользователя              | `@unique`            |
-| `password`  | `String` | Хеш пароля пользователя                     |                      |
-| `createdAt` | `DateTime` | Дата и время создания пользователя          | `@default(now())`    |
-| `updatedAt` | `DateTime` | Дата и время последнего обновления         | `@updatedAt`         |
-| `conversions`| `ConversionLog[]` | Связь с логами конвертаций | |
+| Поле                        | Тип       | Описание                                                  | Атрибуты               |
+|:----------------------------|:----------|:----------------------------------------------------------|:-----------------------|
+| `id`                        | `String`  | Уникальный идентификатор пользователя (UUID)                | `@id @default(uuid())`   |
+| `name`                      | `String?` | Имя пользователя                                          |                        |
+| `email`                     | `String`  | Электронная почта пользователя                            | `@unique`              |
+| `password`                  | `String`  | Хеш пароля пользователя                                   |                        |
+| `createdAt`                 | `DateTime`| Дата и время создания пользователя                        | `@default(now())`      |
+| `updatedAt`                 | `DateTime`| Дата и время последнего обновления                       | `@updatedAt`           |
+| `emailVerified`             | `DateTime?`| Дата и время подтверждения почты                         |                        |
+| `emailVerificationToken`    | `String?` | Токен для подтверждения почты                             | `@unique`              |
+| `passwordResetToken`        | `String?` | Токен для сброса пароля                                   | `@unique`              |
+| `passwordResetExpires`      | `DateTime?`| Время истечения срока действия токена сброса пароля       |                        |
+| `telegramId`                | `String?` | Уникальный идентификатор пользователя в Telegram            | `@unique`              |
+| `telegramVerified`          | `DateTime?`| Дата и время подтверждения аккаунта Telegram              |                        |
+| `telegramVerificationToken` | `String?` | Токен для подтверждения аккаунта Telegram                 | `@unique`              |
+| `conversions`               | `ConversionLog[]` | Связь с логами конвертаций                        |                        |
 
 ### `ConversionLog`
 
@@ -49,8 +57,19 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
+  name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  emailVerified           DateTime?
+  emailVerificationToken  String?   @unique
+  
+  passwordResetToken      String?   @unique
+  passwordResetExpires    DateTime?
+
+  telegramId                String?   @unique
+  telegramVerified          DateTime?
+  telegramVerificationToken String?   @unique
 
   conversions ConversionLog[]
 }

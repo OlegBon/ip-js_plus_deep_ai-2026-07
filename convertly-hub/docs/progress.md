@@ -1,5 +1,34 @@
 # Журнал изменений проекта
 
+## 2026-08-16
+
+- **Задача:** Завершение и слияние ветки `feature/auth-payment-flow`.
+- **Описание:**
+  - Реализован полный цикл аутентификации и управления аккаунтом:
+    - **Восстановление пароля:** Добавлены страницы для запроса на сброс и установки нового пароля. Реализована логика отправки токенов на почту.
+    - **Верификация:** Добавлен механизм подтверждения почты и аккаунта Telegram.
+    - **Оплата:** На странице с тарифами добавлено модальное окно для начала процесса оплаты.
+    - **UX:** На странице "Forgot Password" ссылка "Назад" теперь ведет на предыдущую страницу.
+  - Все изменения из ветки `feature/auth-payment-flow` были слиты в `main`.
+  - Обновлена документация (`architecture.md`, `db-schema.md`, `work_plan.md`) для отражения новых функций.
+- **Новые файлы:**
+  - `convertly-hub/app/(auth)/password-reset/page.tsx`
+  - `convertly-hub/app/(auth)/password-reset/[token]/page.tsx`
+  - `convertly-hub/components/pricing/PaymentModal.tsx`
+  - `convertly-hub/components/ui/Card.tsx`
+  - `convertly-hub/components/ui/Input.tsx`
+  - `convertly-hub/components/ui/Label.tsx`
+  - `convertly-hub/prisma/migrations/20260816094436_auth_features/...`
+- **Измененные файлы:**
+  - `convertly-hub/prisma/schema.prisma` (расширена модель `User`)
+  - `convertly-hub/docs/work_plan.md` (добавлен п.11)
+  - `convertly-hub/docs/db-schema.md` (обновлена схема `User`)
+  - `convertly-hub/docs/architecture.md` (обновлена структура папок и добавлены потоки аутентификации)
+  - `convertly-hub/components/dashboard/UserProfile.tsx` (добавлена ссылка на сброс пароля и поле Telegram)
+  - `convertly-hub/app/pricing/page.tsx` (интегрировано модальное окно оплаты)
+- **Новые переменные окружения:**
+  - Нет
+
 ## 2026-08-15 (v3)
 
 - **Задача:** Frontend - 10. UI-компоненты: Создать переиспользуемые компоненты для уведомлений (Toasts), модальных окон и других элементов обратной связи.
