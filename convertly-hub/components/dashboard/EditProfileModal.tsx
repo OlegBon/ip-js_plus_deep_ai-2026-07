@@ -7,13 +7,14 @@ interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (user: any) => void;
+  user: {
+    name: string;
+    email: string;
+    telegramId?: string;
+  }
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, onSave }) => {
-  const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-  };
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, onSave, user }) => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,6 +22,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, on
     const updatedUser = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
+      telegramId: formData.get('telegramId') as string,
     };
     onSave(updatedUser);
   };
@@ -51,6 +53,22 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, on
             defaultValue={user.email}
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="telegramId">
+            Telegram ID
+          </label>
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">@</span>
+            <input
+              type="text"
+              id="telegramId"
+              name="telegramId"
+              defaultValue={user.telegramId}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pl-7"
+              placeholder="your_telegram_handle"
+            />
+          </div>
         </div>
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="password">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import Search from '../ui/Search';
 import Pagination from '../ui/Pagination';
 import { toast } from '@/lib/hooks/use-toast';

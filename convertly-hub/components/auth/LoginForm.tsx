@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
@@ -53,6 +54,14 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             className="border-border bg-background text-text-primary focus:border-accent focus:ring-accent block w-full rounded-md px-3 py-2 shadow-sm"
           />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end">
+        <div className="text-sm">
+          <Link href="/password-reset" className="text-accent hover:text-accent-hover font-medium">
+            Forgot your password?
+          </Link>
         </div>
       </div>
 
