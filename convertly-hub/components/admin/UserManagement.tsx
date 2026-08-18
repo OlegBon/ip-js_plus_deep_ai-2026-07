@@ -193,7 +193,14 @@ const UserManagement = () => {
                   <td className="px-6 py-4"><StatusBadge status={user.status} /></td>
                   <td className="px-6 py-4">{user.lastLogin}</td>
                   <td className="px-6 py-4 text-right relative">
-                    <Button variant="ghost" size="icon" onClick={() => setActiveActionMenu(activeActionMenu === user.id ? null : user.id)}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onMouseDown={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        setActiveActionMenu(activeActionMenu === user.id ? null : user.id);
+                      }}
+                    >
                       <MoreVertical size={20} />
                     </Button>
                     {activeActionMenu === user.id && (

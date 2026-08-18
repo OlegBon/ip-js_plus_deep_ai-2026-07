@@ -117,7 +117,7 @@ const UserProfile = () => {
               <Button
                 onClick={() => handleSendConfirmation('telegram')}
                 variant="secondary"
-                className="w-full md:w-[150px]"
+                className="w-full md:w-[150px] whitespace-nowrap"
               >
                 Confirm Telegram
               </Button>

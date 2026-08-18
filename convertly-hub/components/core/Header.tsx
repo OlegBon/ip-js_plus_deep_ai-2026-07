@@ -25,7 +25,7 @@ const Header = () => {
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/admin', label: 'Admin' },
+    { href: '/management', label: 'Admin' },
     { href: '/pricing', label: 'Pricing' },
     { href: '/docs', label: 'Docs' },
   ];
@@ -33,11 +33,11 @@ const Header = () => {
   return (
     <header className="bg-white border-border sticky top-0 z-50 border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="text-accent text-lg font-bold">
-            Convertly Hub
-          </Link>
-          <nav className="hidden items-center space-x-6 md:flex">
+        <Link href="/" className="text-accent text-lg font-bold">
+          Convertly Hub
+        </Link>
+        <div className="hidden items-center space-x-6 md:flex">
+          <nav className="flex items-center space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -52,17 +52,18 @@ const Header = () => {
               </Link>
             ))}
           </nav>
-        </div>
-        <div className="hidden items-center space-x-4 md:flex">
-          <Button asChild>
-            <Link href="/login">Log In</Link>
-          </Button>
-          <Button asChild variant="secondary">
-            <Link href="/register">Sign Up</Link>
-          </Button>
-          <Button variant="secondary" onClick={handleLogout}>
-            Log Out
-          </Button>
+          <div className="h-6 w-px bg-gray-200" />
+          <div className="flex items-center space-x-4">
+            <Button asChild>
+              <Link href="/login">Log In</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/register">Sign Up</Link>
+            </Button>
+            <Button variant="secondary" onClick={handleLogout}>
+              Log Out
+            </Button>
+          </div>
         </div>
         <div className="md:hidden">
           <button onClick={toggleMobileMenu} className="text-text-primary">
