@@ -1,5 +1,7 @@
 # 🚀 Convertly Hub: Developer Start Guide (START.md)
 
+> **Статус на 22 августа 2026:** Docker Compose, Prisma-схема и `GET /api/health` подготовлены. Инфраструктурные сервисы не подключены к пользовательским потокам конвертации, аутентификации или S3-хранению.
+
 Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**.
 
 ---
@@ -8,13 +10,13 @@
 
 Инфраструктура проекта работает в изолированных Docker-контейнерах и связана с локальным приложением Next.js:
 
-- **Next.js (Фронтенд/Бэкенд):** `http://localhost:3001` (порт `3000` занят воркером)[cite: 2].
-- **Gotenberg (Воркер конвертации документов):** `http://localhost:3000` (Health Check: `http://localhost:3000/health`)[cite: 2].
+- **Next.js (frontend и health-check):** `http://localhost:3001` (порт `3000` занят воркером).
+- **Gotenberg (воркер документов):** `http://localhost:3000` (health-check: `http://localhost:3000/health`).
 - **MinIO (S3-совместимое хранилище файлов):**
   - API: `http://localhost:9000`[cite: 2]
   - Web UI (Панель управления): `http://localhost:9001` (Логин: `minioadmin`, Пароль: `minioadminpassword`)[cite: 2].
-- **PostgreSQL (Реляционная база данных):** `localhost:5432` (База: `convertly_hub`, Пользователь: `postgres`)[cite: 2].
-- **Prisma Studio (Визуальная админка БД):** `http://localhost:5555` (запускается вручную)[cite: 2].
+- **PostgreSQL (реляционная БД):** `localhost:5432`.
+- **Prisma Studio (визуальная админка БД):** `http://localhost:5555` (запускается вручную).
 
 ---
 
@@ -58,7 +60,7 @@ npx prisma generate
 ### Шаг 3. Запуск приложения (Next.js)
 
 ```bash
-npm run dev
+npm run dev -- --port 3001
 
 ```
 
@@ -81,7 +83,7 @@ _(Данные базы не удалятся благодаря настрое�
 Ты можешь в любой момент проверить работоспособность всех слоев системы:
 
 1. **Воркер Gotenberg:** `http://localhost:3000/health` (должен вернуть JSON со статусом `up` для Chromium и LibreOffice).
-2. **Системный API (Next.js + БД + Воркер):** `http://localhost:3001/api/health`
+2. **Системный API (Next.js + БД + воркер):** `http://localhost:3001/api/health`
 
 - Успешный ответ:
 
