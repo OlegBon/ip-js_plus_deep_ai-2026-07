@@ -1,87 +1,69 @@
 # Схема базы данных
 
-В этом документе описывается структура базы данных проекта, управляемая с помощью Prisma ORM.
+Документ описывает целевую Prisma-схему Convertly Hub для PostgreSQL. Схема подготовлена для backend-потоков, но новая миграция ещё не создана: это следующий пункт [плана работ](./work_plan.md).
 
----
+## Перечисления
 
-## Модели данных
+| Перечисление | Значения | Назначение |
+| --- | --- | --- |
+| `UserRole` | `USER`, `ADMIN` | Доступ к пользовательским и административным действиям. |
+| `UserStatus` | `ACTIVE`, `SUSPENDED` | Блокировка учётной записи без её удаления. |
+| `SubscriptionPlan` | `FREE`, `BASIC`, `PRO`, `ENTERPRISE` | Текущий тариф; биллинг будет добавлен отдельной задачей. |
+| `ConversionStatus` | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED` | Состояние обработки файла. |
+
+## Модели
 
 ### `User`
 
-Модель для хранения информации о пользователях.
+Пользователь, его настройки, состояние доступа и связи с ключами/конвертациями.
 
-| Поле                        | Тип       | Описание                                                  | Атрибуты               |
-|:----------------------------|:----------|:----------------------------------------------------------|:-----------------------|
-| `id`                        | `String`  | Уникальный идентификатор пользователя (UUID)                | `@id @default(uuid())`   |
-| `name`                      | `String?` | Имя пользователя                                          |                        |
-| `email`                     | `String`  | Электронная почта пользователя                            | `@unique`              |
-| `password`                  | `String`  | Хеш пароля пользователя                                   |                        |
-| `createdAt`                 | `DateTime`| Дата и время создания пользователя                        | `@default(now())`      |
-| `updatedAt`                 | `DateTime`| Дата и время последнего обновления                       | `@updatedAt`           |
-| `emailVerified`             | `DateTime?`| Дата и время подтверждения почты                         |                        |
-| `emailVerificationToken`    | `String?` | Токен для подтверждения почты                             | `@unique`              |
-| `passwordResetToken`        | `String?` | Токен для сброса пароля                                   | `@unique`              |
-| `passwordResetExpires`      | `DateTime?`| Время истечения срока действия токена сброса пароля       |                        |
-| `telegramId`                | `String?` | Уникальный идентификатор пользователя в Telegram            | `@unique`              |
-| `telegramVerified`          | `DateTime?`| Дата и время подтверждения аккаунта Telegram              |                        |
-| `telegramVerificationToken` | `String?` | Токен для подтверждения аккаунта Telegram                 | `@unique`              |
-| `conversions`               | `ConversionLog[]` | Связь с логами конвертаций                        |                        |
+| Поле | Тип | Ограничения и назначение |
+| --- | --- | --- |
+| `id` | `String` | Первичный ключ, UUID. |
+| `email` | `String` | Обязательное уникальное значение. |
+| `password` | `String` | Обязательный хеш пароля; открытый пароль не хранится. |
+| `role` | `UserRole` | Обязательное, по умолчанию `USER`. |
+| `status` | `UserStatus` | Обязательное, по умолчанию `ACTIVE`; индекс для административной фильтрации. |
+| `plan` | `SubscriptionPlan` | Обязательное, по умолчанию `FREE`. |
+| `storeConversions` | `Boolean` | Обязательная настройка хранения результатов, по умолчанию `true`. |
+| auth и Telegram-поля | `String?` / `DateTime?` | Хеши одноразовых токенов и даты подтверждения; хеши и Telegram ID уникальны. |
+| `apiKeys`, `conversions` | связи | Один пользователь имеет много API-ключей и записей конвертаций. |
+
+### `ApiKey`
+
+Ключ публичного API. Секрет ключа хранится только в виде `keyHash`; `keyPrefix` предназначен для безопасного отображения в UI.
+
+| Поле | Тип | Ограничения и назначение |
+| --- | --- | --- |
+| `id` | `String` | Первичный ключ, UUID. |
+| `name` | `String` | Обязательное имя ключа, по умолчанию `Default`. |
+| `keyHash` | `String` | Обязательное уникальное значение для аутентификации. |
+| `keyPrefix` | `String` | Несекретный префикс ключа для отображения. |
+| `lastUsedAt`, `revokedAt` | `DateTime?` | Время последнего использования и отзыва ключа. |
+| `userId` | `String` | Обязательный внешний ключ на `User`; при удалении пользователя ключ удаляется каскадно. |
+| `conversions` | связь | Конвертации, инициированные этим ключом. |
+
+Индекс `@@index([userId, revokedAt])` поддерживает выдачу активных ключей пользователя.
 
 ### `ConversionLog`
 
-Модель для логирования операций конвертации файлов.
+Метаданные одной конвертации. В БД не хранятся бинарные файлы: `storageKey` связывает сохранённый результат с S3-совместимым хранилищем.
 
-| Поле      | Тип      | Описание                                  | Атрибуты                 |
-|:----------|:---------|:------------------------------------------|:-------------------------|
-| `id`      | `String` | Уникальный идентификатор записи (UUID)    | `@id @default(uuid())`   |
-| `fileName`| `String` | Имя исходного файла                       |                          |
-| `status`  | `String` | Текущий статус конвертации (`pending` и т.д.) | `@default("pending")`    |
-| `createdAt` | `DateTime` | Дата и время создания записи              | `@default(now())`        |
-| `userId`  | `String` | Внешний ключ для связи с `User`           |                          |
-| `user`    | `User`   | Связанный пользователь                    | `@relation(...)`         |
+| Поле | Тип | Ограничения и назначение |
+| --- | --- | --- |
+| `id` | `String` | Первичный ключ, UUID. |
+| `sourceFileName`, `sourceMimeType`, `sourceSize` | `String`, `String`, `BigInt` | Обязательные метаданные исходного файла. |
+| `targetFormat` | `String` | Обязательный целевой формат. |
+| `status` | `ConversionStatus` | Обязательное состояние, по умолчанию `PENDING`. |
+| result-поля | `String?` / `BigInt?` | Метаданные результата после успешной обработки. |
+| `storageKey` | `String?` | Уникальный ключ объекта в S3; `null` для режима без хранения. |
+| `errorMessage` | `String?` | Контекст ошибки конвертации без чувствительных данных. |
+| lifecycle-поля | `DateTime?` | Время старта, завершения и истечения временной ссылки. |
+| `userId` | `String` | Обязательный внешний ключ на `User`; каскадное удаление записей при удалении пользователя. |
+| `apiKeyId` | `String?` | Необязательный внешний ключ на `ApiKey`; при удалении ключа ссылка становится `null`. |
 
----
+Индексы `@@index([userId, createdAt])`, `@@index([status, createdAt])` и `@@index([apiKeyId])` поддерживают историю пользователя, обработку очереди и аудит API-вызовов.
 
-## Схема в формате Prisma
+## Время и следующий шаг
 
-```prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-}
-
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  emailVerified           DateTime?
-  emailVerificationToken  String?   @unique
-  
-  passwordResetToken      String?   @unique
-  passwordResetExpires    DateTime?
-
-  telegramId                String?   @unique
-  telegramVerified          DateTime?
-  telegramVerificationToken String?   @unique
-
-  conversions ConversionLog[]
-}
-
-model ConversionLog {
-  id        String   @id @default(uuid())
-  fileName  String
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-
-  // Связь с пользователем
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-}
-```
+Все временные поля хранятся в PostgreSQL как `timestamptz(3)`. Одноразовые токены подтверждения и сброса пароля должны сравниваться по хешу: исходное значение допускается показать или отправить пользователю лишь в момент создания. Следующим шагом нужно создать новую Prisma-миграцию, проверить её на локальной базе и лишь затем применять к общим окружениям.

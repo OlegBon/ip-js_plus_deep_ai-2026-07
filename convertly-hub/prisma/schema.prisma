@@ -6,34 +6,102 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum ConversionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id       String           @id @default(uuid())
+  email    String           @unique
+  password String
+  name     String?
+  role     UserRole         @default(USER)
+  status   UserStatus       @default(ACTIVE)
+  plan     SubscriptionPlan @default(FREE)
 
-  emailVerified           DateTime?
-  emailVerificationToken  String?   @unique
-  
-  passwordResetToken      String?   @unique
-  passwordResetExpires    DateTime?
+  storeConversions Boolean   @default(true)
+  lastLoginAt      DateTime? @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
 
-  telegramId                String?   @unique
-  telegramVerified          DateTime?
-  telegramVerificationToken String?   @unique
+  emailVerified              DateTime? @db.Timestamptz(3)
+  emailVerificationTokenHash String?   @unique
+  passwordResetTokenHash     String?   @unique
+  passwordResetExpires       DateTime? @db.Timestamptz(3)
+
+  telegramId                    String?   @unique
+  telegramVerified              DateTime? @db.Timestamptz(3)
+  telegramVerificationTokenHash String?   @unique
+
+  apiKeys     ApiKey[]
+  conversions ConversionLog[]
+
+  @@index([status])
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  name       String    @default("Default")
+  keyHash    String    @unique
+  keyPrefix  String
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
+  lastUsedAt DateTime? @db.Timestamptz(3)
+  revokedAt  DateTime? @db.Timestamptz(3)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   conversions ConversionLog[]
+
+  @@index([userId, revokedAt])
 }
 
 model ConversionLog {
-  id        String   @id @default(uuid())
-  fileName  String
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
+  id             String           @id @default(uuid())
+  sourceFileName String
+  sourceMimeType String
+  sourceSize     BigInt
+  targetFormat   String
+  status         ConversionStatus @default(PENDING)
 
-  // Связь с пользователем
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  resultFileName String?
+  resultMimeType String?
+  resultSize     BigInt?
+  storageKey     String?   @unique
+  errorMessage   String?
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  startedAt      DateTime? @db.Timestamptz(3)
+  completedAt    DateTime? @db.Timestamptz(3)
+  expiresAt      DateTime? @db.Timestamptz(3)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  apiKeyId String?
+  apiKey   ApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([apiKeyId])
 }
