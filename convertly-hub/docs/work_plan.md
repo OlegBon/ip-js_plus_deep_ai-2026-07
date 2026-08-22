@@ -65,5 +65,6 @@
 2.  **Тестирование:** (частично выполнено)
     - [x] Добавлены unit-, component- и integration-тесты frontend для загрузки файлов, форм аутентификации, модальных окон, оплаты, поиска, пагинации, Dashboard и управления пользователями.
     - [x] Настроены Jest, React Testing Library, `@testing-library/user-event`, MSW и команды `npm test` / `npm run test:coverage`.
+    - [x] Настроены Playwright и Chromium, добавлены команды `npm run test:e2e` / `npm run test:e2e:ui` и E2E-сценарии для главной страницы, входа, выбора тарифа, Dashboard и Admin.
     - [ ] Добавить тесты backend: API-аутентификация, логика конвертации и интеграции с инфраструктурой.
 3.  **Развертывание:** Подготовить скрипты и инструкции для развертывания проекта на Vercel, а также зависимых сервисов (PostgreSQL, S3, Gotenberg) в облаке.

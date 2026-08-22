@@ -32,7 +32,7 @@ const UsageBar = ({ used, limit, unit }: { used: number, limit: number, unit?: s
   return (
     <div>
       <div className="flex justify-between text-sm font-medium text-gray-600">
-        <span>{`${used.toLocaleString()} / ${limit.toLocaleString()}${unit ? ` ${unit}`: ''}`}</span>
+        <span>{`${used.toLocaleString('en-US')} / ${limit.toLocaleString('en-US')}${unit ? ` ${unit}`: ''}`}</span>
         <span>{percentage.toFixed(0)}%</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
