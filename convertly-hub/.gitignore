@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# convertly-hub plugins
+plugins/
+
+# Local Codex MCP configuration may contain access tokens.
+.codex/config.toml
