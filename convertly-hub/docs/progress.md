@@ -6,6 +6,7 @@
 - **Описание:**
   - Добавлены unit-, component- и integration-тесты для загрузки файлов, регистрации, модальных окон, оплаты, поиска, пагинации, API-ключей, приватности и управления пользователями.
   - Добавлена команда `npm run test:coverage` и dev-зависимость `msw` для изолированного мокирования будущих сетевых integration-тестов.
+  - Обновлены `docs/architecture.md` и `docs/work_plan.md`: описана тестовая архитектура, а задача тестирования отмечена как частично выполненная — backend-покрытие остаётся в плане.
   - Проверки: `npm test` — 9 suites / 18 tests passed; `npm run test:coverage` — 88.52% statements; `npm run linteslint` и `npm run build` — успешно.
 - **Измененные файлы:**
   - `package.json`, `package-lock.json`
