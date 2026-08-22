@@ -47,6 +47,7 @@
 | Project Discovery | Первое знакомство с кодовой базой или запрос на онбординг/обзор проекта. | `.codex/skills/project-discovery/SKILL.md` |
 | API Response Auditor | Аудит ответов API. | `.codex/skills/api-response-auditor/SKILL.md` |
 | Security Review | Запрос на аудит безопасности или изменение чувствительного кода. | `.codex/skills/security-review/SKILL.md` |
+| Database Reviewer | Проектирование или ревью PostgreSQL/Prisma: схема, миграции, запросы, индексы и производительность. | `.codex/skills/database-reviewer/SKILL.md` |
 | Prisma skills | Работа с Prisma CLI, клиентом, PostgreSQL или обновлением Prisma. | `.agents/skills/prisma-*/SKILL.md` |
 
 ## Проверка и документация

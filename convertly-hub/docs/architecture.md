@@ -161,6 +161,9 @@ services:
 │
 ├── 📂 public/               # Статические файлы (изображения, иконки)
 │
+├── 📂 .codex/               # Локальные правила и skills для Codex
+│   └── 📂 skills/database-reviewer/ # Ревью PostgreSQL и Prisma
+│
 ├── .env.local               # Переменные окружения (ключи, доступы)
 ├── .prettierrc              # Конфигурация Prettier
 ├── .prettierignore          # Файлы, игнорируемые Prettier
