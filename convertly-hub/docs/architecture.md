@@ -162,7 +162,12 @@ services:
 ├── 📂 public/               # Статические файлы (изображения, иконки)
 │
 ├── 📂 .codex/               # Локальные правила и skills для Codex
-│   └── 📂 skills/database-reviewer/ # Ревью PostgreSQL и Prisma
+│   ├── 📂 rules/local-database.md   # Правила работы с PostgreSQL и Prisma
+│   └── 📂 skills/                   # Локальные skills Codex
+│       ├── database-reviewer/       # Ревью PostgreSQL и Prisma
+│       ├── database-migrations/     # Безопасные миграции
+│       ├── postgres-patterns/       # SQL и производительность PostgreSQL
+│       └── prisma-patterns/         # Схема и Prisma Client
 │
 ├── .env.local               # Переменные окружения (ключи, доступы)
 ├── .prettierrc              # Конфигурация Prettier

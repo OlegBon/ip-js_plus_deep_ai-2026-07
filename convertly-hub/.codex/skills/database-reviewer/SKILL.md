@@ -13,6 +13,7 @@ description: "Проверка PostgreSQL и Prisma: схемы, миграци�
 
 ## Контекст проекта
 
+- Для реализации миграции используйте `database-migrations`, для серверного кода Prisma — `prisma-patterns`, для углублённого анализа SQL и индексов — `postgres-patterns`.
 - База данных — PostgreSQL; ORM — Prisma 7 с драйвером `@prisma/adapter-pg`.
 - Актуальная схема находится в `prisma/schema.prisma`, миграции — в `prisma/migrations/`.
 - Локальная PostgreSQL запускается через `docker compose`; не раскрывайте значения из `.env`.
