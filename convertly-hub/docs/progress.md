@@ -2,6 +2,18 @@
 
 ## 2026-08-22
 
+- **Задача:** Выполнить настройку и запуск локальной инфраструктуры PostgreSQL, MinIO и Gotenberg.
+- **Описание:**
+  - Проверены Docker Desktop и Compose; запущены сервисы `db`, `minio` и `gotenberg` из `docker-compose.yml`.
+  - Проверки: PostgreSQL — `pg_isready` принимает подключения; MinIO — успешный liveness check; Gotenberg — Chromium и LibreOffice в статусе `up`; `npx prisma migrate status` подтвердил актуальность схемы.
+  - Обновлены инструкция запуска, архитектурный статус и план работ. Пользовательские потоки конвертации, S3-хранения и аутентификации не изменялись.
+- **Измененные файлы:**
+  - `docs/work_plan.md`, `docs/architecture.md`, `START.md`, `docs/progress.md`
+- **Новые переменные окружения:**
+  - Нет
+
+## 2026-08-22
+
 - **Задача:** Добавить русскоязычные skills и правила для PostgreSQL и Prisma.
 - **Описание:**
   - Созданы `database-migrations`, `postgres-patterns` и `prisma-patterns` для безопасных миграций, PostgreSQL-производительности и Prisma 7.

@@ -1,6 +1,6 @@
 # 🚀 Convertly Hub: Developer Start Guide (START.md)
 
-> **Статус на 22 августа 2026:** Docker Compose, Prisma-схема и `GET /api/health` подготовлены. Инфраструктурные сервисы не подключены к пользовательским потокам конвертации, аутентификации или S3-хранению.
+> **Статус на 22 августа 2026:** Docker Compose запущен и проверен: PostgreSQL, MinIO и Gotenberg доступны локально; Prisma подтверждает актуальность схемы. Инфраструктурные сервисы ещё не подключены к пользовательским потокам конвертации, аутентификации или S3-хранению.
 
 Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**.
 
@@ -13,8 +13,8 @@
 - **Next.js (frontend и health-check):** `http://localhost:3001` (порт `3000` занят воркером).
 - **Gotenberg (воркер документов):** `http://localhost:3000` (health-check: `http://localhost:3000/health`).
 - **MinIO (S3-совместимое хранилище файлов):**
-  - API: `http://localhost:9000`[cite: 2]
-  - Web UI (Панель управления): `http://localhost:9001` (Логин: `minioadmin`, Пароль: `minioadminpassword`)[cite: 2].
+  - API: `http://localhost:9000`
+  - Web UI (Панель управления): `http://localhost:9001`
 - **PostgreSQL (реляционная БД):** `localhost:5432`.
 - **Prisma Studio (визуальная админка БД):** `http://localhost:5555` (запускается вручную).
 
@@ -82,8 +82,10 @@ _(Данные базы не удалятся благодаря настрое�
 
 Ты можешь в любой момент проверить работоспособность всех слоев системы:
 
-1. **Воркер Gotenberg:** `http://localhost:3000/health` (должен вернуть JSON со статусом `up` для Chromium и LibreOffice).
-2. **Системный API (Next.js + БД + воркер):** `http://localhost:3001/api/health`
+1. **PostgreSQL:** `docker compose exec -T db pg_isready` должен подтвердить готовность базы.
+2. **MinIO:** `http://localhost:9000/minio/health/live` должен вернуть успешный ответ.
+3. **Воркер Gotenberg:** `http://localhost:3000/health` должен вернуть JSON со статусом `up` для Chromium и LibreOffice.
+4. **Системный API (Next.js + БД + воркер):** `http://localhost:3001/api/health`
 
 - Успешный ответ:
 
@@ -96,7 +98,7 @@ _(Данные базы не удалятся благодаря настрое�
 }
 ```
 
-3. **Визуальная проверка базы данных:**
+5. **Визуальная проверка базы данных:**
 
 ```bash
 npx prisma studio
