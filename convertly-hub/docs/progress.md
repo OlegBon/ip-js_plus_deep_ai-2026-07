@@ -2,6 +2,20 @@
 
 ## 2026-08-22
 
+- **Задача:** Добавить русскоязычные skills и правила для PostgreSQL и Prisma.
+- **Описание:**
+  - Созданы `database-migrations`, `postgres-patterns` и `prisma-patterns` для безопасных миграций, PostgreSQL-производительности и Prisma 7.
+  - Добавлено правило `.codex/rules/local-database.md` с маршрутизацией задач базы данных и ограничениями на изменяющие команды.
+  - `database-reviewer`, `AGENTS.md` и архитектурная документация связаны с новыми навыками.
+- **Измененные файлы:**
+  - `.codex/skills/database-migrations/SKILL.md`, `.codex/skills/postgres-patterns/SKILL.md`, `.codex/skills/prisma-patterns/SKILL.md`
+  - `.codex/skills/database-reviewer/SKILL.md`, `.codex/rules/local-database.md`
+  - `AGENTS.md`, `docs/architecture.md`, `docs/progress.md`
+- **Новые переменные окружения:**
+  - Нет
+
+## 2026-08-22
+
 - **Задача:** Добавить русскоязычный skill `database-reviewer` для PostgreSQL и Prisma.
 - **Описание:**
   - Создан локальный навык для ревью схемы, миграций, запросов, индексов, транзакций и производительности PostgreSQL.

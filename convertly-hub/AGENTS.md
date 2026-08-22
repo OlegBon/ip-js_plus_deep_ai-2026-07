@@ -14,6 +14,7 @@
 | [Глобальные правила](./.codex/rules/global-rules.md) | Для любой задачи. |
 | [Архитектура](./docs/architecture.md) | Изменяется структура приложения, API, интеграции или поток данных. |
 | [Стиль и данные](./.codex/rules/local-style-and-data.md) | TypeScript, модели данных, Prisma или API. |
+| [База данных](./.codex/rules/local-database.md) | Prisma-схема, миграции, SQL, PostgreSQL или доступ к данным. |
 | [Архитектура Next.js](./.codex/rules/local-architecture.md) | React-компоненты, App Router, состояние или получение данных. |
 | [React Hooks](./.codex/rules/local-react-hooks.md) | `useState`, `useEffect`, колбэки и другая клиентская логика. |
 | [Финансы](./.codex/rules/local-finance.md) | Денежные расчёты, транзакции и тарифы. |
@@ -48,6 +49,9 @@
 | API Response Auditor | Аудит ответов API. | `.codex/skills/api-response-auditor/SKILL.md` |
 | Security Review | Запрос на аудит безопасности или изменение чувствительного кода. | `.codex/skills/security-review/SKILL.md` |
 | Database Reviewer | Проектирование или ревью PostgreSQL/Prisma: схема, миграции, запросы, индексы и производительность. | `.codex/skills/database-reviewer/SKILL.md` |
+| Database Migrations | Безопасные миграции PostgreSQL и Prisma 7. | `.codex/skills/database-migrations/SKILL.md` |
+| PostgreSQL Patterns | SQL, индексы, транзакции и диагностика производительности PostgreSQL. | `.codex/skills/postgres-patterns/SKILL.md` |
+| Prisma Patterns | Prisma 7: схема, Prisma Client, отношения и транзакции. | `.codex/skills/prisma-patterns/SKILL.md` |
 | Prisma skills | Работа с Prisma CLI, клиентом, PostgreSQL или обновлением Prisma. | `.agents/skills/prisma-*/SKILL.md` |
 
 ## Проверка и документация
