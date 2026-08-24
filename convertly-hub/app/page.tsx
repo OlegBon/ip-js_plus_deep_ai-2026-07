@@ -1,6 +1,11 @@
 "use client";
 
 import FileDropzone from "@/components/core/FileDropzone";
+import {
+  DOCUMENT_FILE_ACCEPT,
+  IMAGE_FILE_ACCEPT,
+  MAX_UPLOAD_SIZE_LABEL,
+} from "@/lib/files/upload-policy";
 
 export default function Home() {
   // Placeholder for the actual upload logic
@@ -31,20 +36,14 @@ export default function Home() {
         <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
           <FileDropzone
             title="Image Converter"
-            description="Convert between JPG and PNG."
-            accept={{
-              'image/jpeg': ['.jpeg', '.jpg'],
-              'image/png': ['.png'],
-            }}
+            description={`JPG ↔ PNG · up to ${MAX_UPLOAD_SIZE_LABEL}`}
+            accept={IMAGE_FILE_ACCEPT}
             onUpload={handleUpload}
           />
           <FileDropzone
             title="Document Converter"
-            description="Convert between DOCX and PDF."
-            accept={{
-              'application/pdf': ['.pdf'],
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-            }}
+            description={`DOCX → PDF · PDF → DOCX planned · up to ${MAX_UPLOAD_SIZE_LABEL}`}
+            accept={DOCUMENT_FILE_ACCEPT}
             onUpload={handleUpload}
           />
         </div>
