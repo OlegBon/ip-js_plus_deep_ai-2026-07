@@ -1,20 +1,40 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
-  const handleSignInClick = () => {
-    toast.error('Sign-in will be available after credential verification is implemented.');
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    startTransition(async () => {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error('Invalid email or password.');
+        return;
+      }
+
+      router.replace('/dashboard');
+      router.refresh();
+    });
   };
 
   return (
-    <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
+    <form className="space-y-6" onSubmit={handleSubmit}>
       <div>
         <label htmlFor="email" className="text-text-primary block text-sm font-medium">
           Email
@@ -60,8 +80,8 @@ export function LoginForm() {
       </div>
 
       <div>
-        <Button type="button" onClick={handleSignInClick} className="w-full">
-          Sign In
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? 'Signing in...' : 'Sign In'}
         </Button>
       </div>
     </form>
