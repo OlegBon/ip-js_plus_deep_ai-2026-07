@@ -2,6 +2,16 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend - 7. Генерация API-ключей.
+- **Описание:**
+  - Добавлены NextAuth-защищённые маршруты списка, создания и отзыва собственных API-ключей: `GET`/`POST /api/account/api-keys` и `DELETE /api/account/api-keys/:apiKeyId`.
+  - Секрет формируется `crypto.randomBytes`, возвращается только в ответе создания с `Cache-Control: no-store`; PostgreSQL хранит исключительно SHA-256-хеш и безопасный префикс.
+  - Отзыв использует owner-scoped `updateMany` для атомарной защиты от отзыва чужого либо уже отозванного ключа; история конвертаций сохраняется.
+- **Измененные файлы:**
+  - `app/api/account/api-keys/*`, `lib/api/api-keys.ts`, `docs/architecture.md`, `docs/db-schema.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/START.md`, `docs/progress.md`, `docs/audits/*`
+- **Новые переменные окружения:**
+  - Нет.
+
 - **Задача:** Backend - 6. Управление приватностью результатов.
 - **Описание:**
   - Добавлена серверная развилка по `User.storeConversions`: при включённом хранении Core сохраняет результат в приватный user-scoped S3-ключ; при выключенном результат отдается из `POST /api/v1/convert` бинарным потоком и не записывается в S3.
