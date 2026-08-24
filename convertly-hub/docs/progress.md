@@ -2,6 +2,17 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend - 9. Логика для Админ-панели.
+- **Описание:**
+  - Добавлены server-side маршруты `GET /api/admin/users`, `PATCH /api/admin/users/:userId/status` и `DELETE /api/admin/api-keys/:apiKeyId`.
+  - Каждый маршрут сверяет актуальные `role=ADMIN` и `status=ACTIVE` в PostgreSQL. Поиск использует ограниченный `select`, cursor-pagination и параметры `query`/`limit`; статус нельзя изменить для собственной учётной записи.
+  - Блокировка пользователя мгновенно отключает его API-ключи через уже существующую проверку `User.status`; админский отзыв ключа выполняется атомарно и сохраняет историю конвертаций.
+- **Измененные файлы:**
+  - `app/api/admin/*`, `lib/admin/user-management.ts`, связанные тесты
+  - `docs/architecture.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/START.md`, `docs/progress.md`, `docs/audits/*`
+- **Новые переменные окружения:**
+  - Нет.
+
 - **Задача:** Backend - 8. Безопасность и валидация.
 - **Описание:**
   - Добавлен in-memory rate limiter на 30 запросов в минуту для каждого действующего API-ключа. Превышение возвращает `429 Too Many Requests` и `Retry-After`; до горизонтального масштабирования требуется общий Redis-совместимый backend.
