@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
 
@@ -9,15 +10,32 @@ export function RegisterForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (password !== confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
-    // Simulate registration logic
-    toast.success('Registration successful!');
+
+    startTransition(async () => {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const payload = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        toast.error(payload.error ?? 'Unable to create an account.');
+        return;
+      }
+
+      toast.success('Registration successful! Please sign in.');
+      router.push('/login');
+    });
   };
 
   return (
@@ -107,8 +125,8 @@ export function RegisterForm() {
       </div>
 
       <div>
-        <Button type="submit" className="w-full">
-          Register
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? 'Creating account...' : 'Register'}
         </Button>
       </div>
     </form>

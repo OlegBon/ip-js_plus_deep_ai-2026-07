@@ -1,16 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
-
-// 1. Создаем пул подключений к БД через стандартный драйвер
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// 2. Оборачиваем пул в адаптер Prisma
-const adapter = new PrismaPg(pool);
-
-// 3. Передаем адаптер при создании клиента
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {

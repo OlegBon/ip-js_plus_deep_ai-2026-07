@@ -8,15 +8,12 @@ test('главная страница предлагает оба направл
   await expect(page.getByText('Document Converter')).toBeVisible();
 });
 
-test('форма входа не создаёт демо-сессию до реализации проверки учётных данных', async ({ page }) => {
+test('страница входа отображает форму учётных данных', async ({ page }) => {
   await page.goto('/login');
 
-  await page.getByLabel('Email').fill('admin@example.com');
-  await page.getByLabel('Password').fill('password');
-  await page.getByRole('button', { name: 'Sign In' }).click();
-
-  await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByText('Login successful!')).toHaveCount(0);
+  await expect(page.getByLabel('Email')).toBeVisible();
+  await expect(page.getByLabel('Password')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
 });
 
 test('пользователь выбирает тариф и подтверждает имитацию оплаты', async ({ page }) => {

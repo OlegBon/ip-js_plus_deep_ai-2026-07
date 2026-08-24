@@ -4,22 +4,48 @@ import userEvent from '@testing-library/user-event';
 import { LoginForm } from '../LoginForm';
 
 jest.mock('@/lib/hooks/use-toast', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('next-auth/react', () => ({ signIn: jest.fn() }));
+jest.mock('next/navigation', () => ({ useRouter: jest.fn() }));
 const getMockToast = () => jest.requireMock('@/lib/hooks/use-toast').toast;
+const getMockSignIn = () => jest.requireMock('next-auth/react').signIn;
+const getMockUseRouter = () => jest.requireMock('next/navigation').useRouter;
 
 describe('LoginForm authentication flow', () => {
-  beforeEach(() => jest.clearAllMocks());
+  const router = { replace: jest.fn(), refresh: jest.fn() };
 
-  it('does not use demo credentials before server verification is implemented', async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getMockUseRouter().mockReturnValue(router);
+  });
+
+  it('shows a generic error for rejected credentials', async () => {
+    getMockSignIn().mockResolvedValue({ error: 'CredentialsSignin' });
     const user = userEvent.setup();
     render(<LoginForm />);
 
-    await user.type(screen.getByLabelText('Email'), 'admin@example.com');
-    await user.type(screen.getByLabelText('Password'), 'password');
+    await user.type(screen.getByLabelText('Email'), 'person@example.com');
+    await user.type(screen.getByLabelText('Password'), 'a-secure-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
-    expect(getMockToast().error).toHaveBeenCalledWith(
-      'Sign-in will be available after credential verification is implemented.',
-    );
-    expect(getMockToast().success).not.toHaveBeenCalled();
+    expect(getMockSignIn()).toHaveBeenCalledWith('credentials', {
+      email: 'person@example.com',
+      password: 'a-secure-password',
+      redirect: false,
+    });
+    expect(getMockToast().error).toHaveBeenCalledWith('Invalid email or password.');
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it('redirects to the dashboard after successful sign-in', async () => {
+    getMockSignIn().mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText('Email'), 'person@example.com');
+    await user.type(screen.getByLabelText('Password'), 'a-secure-password');
+    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+
+    expect(router.replace).toHaveBeenCalledWith('/dashboard');
+    expect(router.refresh).toHaveBeenCalled();
   });
 });
