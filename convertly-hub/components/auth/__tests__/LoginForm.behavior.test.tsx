@@ -9,18 +9,7 @@ const getMockToast = () => jest.requireMock('@/lib/hooks/use-toast').toast;
 describe('LoginForm authentication flow', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('reports invalid credentials', async () => {
-    const user = userEvent.setup();
-    render(<LoginForm />);
-
-    await user.type(screen.getByLabelText('Email'), 'person@example.com');
-    await user.type(screen.getByLabelText('Password'), 'wrong-password');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
-
-    expect(getMockToast().error).toHaveBeenCalledWith('Invalid email or password.');
-  });
-
-  it('confirms the supported demo credentials', async () => {
+  it('does not use demo credentials before server verification is implemented', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
@@ -28,6 +17,9 @@ describe('LoginForm authentication flow', () => {
     await user.type(screen.getByLabelText('Password'), 'password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
-    expect(getMockToast().success).toHaveBeenCalledWith('Login successful!');
+    expect(getMockToast().error).toHaveBeenCalledWith(
+      'Sign-in will be available after credential verification is implemented.',
+    );
+    expect(getMockToast().success).not.toHaveBeenCalled();
   });
 });

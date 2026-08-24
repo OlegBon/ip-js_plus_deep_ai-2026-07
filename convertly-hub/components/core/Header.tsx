@@ -3,24 +3,25 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
 import { Menu, X } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { toast } from '@/lib/hooks/use-toast';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const handleLogout = () => {
-    // Simulate logout logic
-    toast.success('You have been logged out.');
+  const handleLogout = async () => {
     if (isMobileMenuOpen) {
       toggleMobileMenu();
     }
+    await signOut({ callbackUrl: '/' });
   };
 
   const navLinks = [
@@ -54,15 +55,20 @@ const Header = () => {
           </nav>
           <div className="h-6 w-px bg-gray-200" />
           <div className="flex items-center space-x-4">
-            <Button asChild>
-              <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href="/register">Sign Up</Link>
-            </Button>
-            <Button variant="secondary" onClick={handleLogout}>
-              Log Out
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="secondary" onClick={handleLogout}>
+                Log Out
+              </Button>
+            ) : (
+              <>
+                <Button asChild>
+                  <Link href="/login">Log In</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/register">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <div className="md:hidden">
@@ -89,15 +95,20 @@ const Header = () => {
               </Link>
             ))}
             <div className="flex flex-col gap-4 pt-4">
-              <Button asChild>
-                <Link href="/login" onClick={toggleMobileMenu}>Log In</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href="/register" onClick={toggleMobileMenu}>Sign Up</Link>
-              </Button>
-              <Button variant="secondary" onClick={handleLogout}>
-                Log Out
-              </Button>
+              {isAuthenticated ? (
+                <Button variant="secondary" onClick={handleLogout}>
+                  Log Out
+                </Button>
+              ) : (
+                <>
+                  <Button asChild>
+                    <Link href="/login" onClick={toggleMobileMenu}>Log In</Link>
+                  </Button>
+                  <Button asChild variant="secondary">
+                    <Link href="/register" onClick={toggleMobileMenu}>Sign Up</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>

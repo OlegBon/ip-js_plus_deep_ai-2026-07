@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/core/Header";
 import Footer from "@/components/core/Footer";
 import { Toaster } from "@/components/ui/Toast";
+import { AuthSessionProvider } from "@/components/auth/AuthSessionProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,10 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${firaCode.variable}`}>
       <body className="bg-background text-text-primary flex min-h-screen flex-col antialiased">
-        <Header />
-        <main className="flex flex-grow flex-col">{children}</main>
-        <Footer />
-        <Toaster />
+        <AuthSessionProvider>
+          <Header />
+          <main className="flex flex-grow flex-col">{children}</main>
+          <Footer />
+          <Toaster />
+        </AuthSessionProvider>
       </body>
     </html>
   );

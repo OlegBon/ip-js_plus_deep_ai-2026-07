@@ -2,6 +2,18 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend‑1 — аутентификация пользователей и сессии NextAuth.js.
+- **Описание:** Добавлены обработчики NextAuth.js и JWT-сессии в HttpOnly cookie с `SameSite=Lax`, 8-часовым TTL и флагом `Secure` в production. Маршруты личного кабинета и администрирования проверяют сессию на сервере и перенаправляют неавторизованных пользователей на `/login`. Демо-вход удалён: реальная проверка пароля остаётся следующей backend-задачей. Проверки: `npx jest --runInBand` (11 suites, 24 tests), `npx tsc --noEmit` и 3 целевых Playwright-сценария — успешно.
+- **Измененные файлы:**
+  - `app/api/auth/[...nextauth]/route.ts`, `app/(dashboard)/layout.tsx`, `app/layout.tsx`
+  - `components/auth/AuthSessionProvider.tsx`, `components/auth/LoginForm.tsx`, `components/core/Header.tsx`
+  - `lib/auth/*`, `e2e/critical-flows.spec.ts`, `components/auth/__tests__/LoginForm.behavior.test.tsx`
+  - `docs/architecture.md`, `docs/work_plan.md`, `docs/progress.md`
+- **Новые переменные окружения:**
+  - Нет; используется существующая приватная `NEXTAUTH_SECRET`.
+
+## 2026-08-24
+
 - **Задача:** Аудит секретов и перенос конфигурации Docker в корневой `.env`.
 - **Описание:** Учётные данные PostgreSQL и MinIO удалены из `docker-compose.yml`; Compose получает их из переменных окружения. `.env` дополнен переменными локальной инфраструктуры и сессий, соответствующими Convertly Hub. Выполнен аудит исходников, Prisma и API-маршрута.
 - **Измененные файлы:**

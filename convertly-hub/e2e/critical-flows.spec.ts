@@ -8,14 +8,15 @@ test('главная страница предлагает оба направл
   await expect(page.getByText('Document Converter')).toBeVisible();
 });
 
-test('пользователь может войти с доступными демонстрационными данными', async ({ page }) => {
+test('форма входа не создаёт демо-сессию до реализации проверки учётных данных', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('admin@example.com');
   await page.getByLabel('Password').fill('password');
   await page.getByRole('button', { name: 'Sign In' }).click();
 
-  await expect(page.getByText('Login successful!')).toBeVisible();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByText('Login successful!')).toHaveCount(0);
 });
 
 test('пользователь выбирает тариф и подтверждает имитацию оплаты', async ({ page }) => {
@@ -33,34 +34,14 @@ test('пользователь выбирает тариф и подтвержд
   await expect(page.getByRole('heading', { name: 'Payment for Pro Plan' })).toBeHidden();
 });
 
-test('пользователь ищет и удаляет конверсию в личном кабинете', async ({ page }) => {
+test('неавторизированный пользователь перенаправляется из личного кабинета на вход', async ({ page }) => {
   await page.goto('/dashboard');
 
-  const search = page.getByPlaceholder('Search files...');
-  await search.fill('invoice');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await expect(page.getByText('invoice.pdf')).toBeVisible();
-  await expect(page.getByText('report.docx')).toBeHidden();
-
-  await page.locator('tbody input[type="checkbox"]').check();
-  await page.getByRole('button', { name: 'Delete', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Delete Conversions' })).toBeVisible();
-  await page.getByRole('button', { name: 'Confirm', exact: true }).click();
-
-  await expect(page.getByText('invoice.pdf')).toBeHidden();
-  await expect(page.getByText('1 item(s) have been deleted.')).toBeVisible();
+  await expect(page).toHaveURL(/\/login$/);
 });
 
-test('администратор ищет и удаляет пользователя после подтверждения', async ({ page }) => {
+test('неавторизированный пользователь перенаправляется из панели администратора на вход', async ({ page }) => {
   await page.goto('/management');
 
-  await page.getByPlaceholder('Search users...').fill('Jane');
-  await expect(page.getByText('Jane Smith')).toBeVisible();
-
-  await page.getByRole('row', { name: /Jane Smith/ }).getByRole('button').click();
-  await page.getByRole('button', { name: 'Delete', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Delete User' })).toBeVisible();
-  await page.getByRole('button', { name: 'Confirm', exact: true }).click();
-
-  await expect(page.getByText('Jane Smith')).toBeHidden();
+  await expect(page).toHaveURL(/\/login$/);
 });

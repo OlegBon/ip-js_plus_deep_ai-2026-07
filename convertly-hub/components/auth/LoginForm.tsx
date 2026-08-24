@@ -9,18 +9,12 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simulate login logic
-    if (email === 'admin@example.com' && password === 'password') {
-      toast.success('Login successful!');
-    } else {
-      toast.error('Invalid email or password.');
-    }
+  const handleSignInClick = () => {
+    toast.error('Sign-in will be available after credential verification is implemented.');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
       <div>
         <label htmlFor="email" className="text-text-primary block text-sm font-medium">
           Email
@@ -66,7 +60,7 @@ export function LoginForm() {
       </div>
 
       <div>
-        <Button type="submit" className="w-full">
+        <Button type="button" onClick={handleSignInClick} className="w-full">
           Sign In
         </Button>
       </div>
