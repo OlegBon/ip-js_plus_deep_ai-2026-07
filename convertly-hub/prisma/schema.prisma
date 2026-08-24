@@ -52,11 +52,24 @@ model User {
   telegramId                    String?   @unique
   telegramVerified              DateTime? @db.Timestamptz(3)
   telegramVerificationTokenHash String?   @unique
+  telegramVerificationExpires   DateTime? @db.Timestamptz(3)
 
   apiKeys     ApiKey[]
   conversions ConversionLog[]
 
   @@index([status])
+}
+
+model RoleChangeAudit {
+  id           String   @id @default(uuid())
+  actorUserId  String?
+  targetUserId String
+  previousRole UserRole
+  newRole      UserRole
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([targetUserId, createdAt])
+  @@index([actorUserId, createdAt])
 }
 
 model ApiKey {

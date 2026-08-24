@@ -5,6 +5,7 @@ import EditProfileModal from './EditProfileModal';
 import ConfirmationModal from '../core/ConfirmationModal';
 import { Button } from '../ui/Button';
 import { toast } from '@/lib/hooks/use-toast';
+import { TelegramLinkButton } from './TelegramLinkButton';
 
 const UserProfile = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -15,7 +16,7 @@ const UserProfile = () => {
     name: 'John Doe',
     email: 'john.doe@example.com',
     emailVerified: false,
-    telegramId: 'johndoe_tg',
+    telegramId: undefined,
     telegramVerified: false,
   };
 
@@ -108,12 +109,12 @@ const UserProfile = () => {
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                Not connected. Add your Telegram account by editing your profile.
+                Not connected. Use the secure Telegram link below to connect your account.
               </p>
             )}
           </div>
           <div className="flex gap-2 w-full md:w-auto">
-            {user.telegramId && !user.telegramVerified && (
+            {user.telegramId && !user.telegramVerified ? (
               <Button
                 onClick={() => handleSendConfirmation('telegram')}
                 variant="secondary"
@@ -121,6 +122,8 @@ const UserProfile = () => {
               >
                 Confirm Telegram
               </Button>
+            ) : (
+              <TelegramLinkButton />
             )}
           </div>
         </div>

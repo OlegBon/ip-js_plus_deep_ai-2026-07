@@ -2,6 +2,18 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend‑3 — RBAC и привязка Telegram.
+- **Описание:** Dashboard доступен всем авторизованным пользователям, а `/management` дополнительно требует `ADMIN` на сервере; клиентское меню скрывает недоступные ссылки. Подготовлены audit-модель и защищённый процесс назначения первого администратора. Добавлены одноразовые Telegram deep links с SHA-256-хешем, 15-минутным сроком действия и webhook-проверкой секретного заголовка. Миграция `20260824093000_rbac_telegram` подготовлена, но не применялась к БД.
+- **Измененные файлы:**
+  - `app/api/account/telegram/link/route.ts`, `app/api/telegram/webhook/route.ts`, `app/(dashboard)/management/layout.tsx`
+  - `lib/auth/admin.ts`, `lib/auth/authorization.ts`, `lib/telegram/linking.ts`, `scripts/seed-first-admin.mjs`
+  - `prisma/schema.prisma`, `prisma/migrations/20260824093000_rbac_telegram/migration.sql`, `.env`
+  - `components/core/Header.tsx`, `components/dashboard/TelegramLinkButton.tsx`, `components/dashboard/UserProfile.tsx`, тесты и документация
+- **Новые переменные окружения:**
+  - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`, `SEED_ADMIN_EMAIL`.
+
+## 2026-08-24
+
 - **Задача:** Уточнить следующий Backend‑этап в плане работ.
 - **Описание:** После завершённой логики регистрации и входа в Backend‑план добавлена задача по server-side RBAC и безопасной привязке Telegram: права `USER`/`ADMIN`, назначение первого администратора, аудит изменений роли, одноразовые токены и webhook-верификация Telegram.
 - **Измененные файлы:**
