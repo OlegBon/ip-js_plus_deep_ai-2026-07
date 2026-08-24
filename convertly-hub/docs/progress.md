@@ -2,6 +2,19 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend - 5. Ядро конвертации (Core).
+- **Описание:**
+  - Реализован Core-модуль: `sharp` конвертирует `JPG ↔ PNG`, а `DOCX → PDF` делегируется Gotenberg с таймаутом 30 секунд.
+  - `POST /api/v1/convert` запускает обработку после ответа `202`; журнал конвертаций проходит состояния `PENDING → PROCESSING → COMPLETED/FAILED` и сохраняет только метаданные результата.
+  - Добавлена проверка сигнатур JPG, PNG и DOCX до обработки, проверка PDF-ответа воркера и безопасное обобщённое сообщение при сбое. `PDF → DOCX` остаётся planned.
+- **Измененные файлы:**
+  - `app/api/v1/convert/route.ts`, `lib/core/conversion.ts`, `lib/core/conversion-job.ts`
+  - `docs/architecture.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/START.md`, `docs/progress.md`, `docs/audits/*`
+- **Новые файлы:**
+  - `lib/core/__tests__/conversion.test.ts`, `lib/core/__tests__/conversion-job.test.ts`
+- **Новые переменные окружения:**
+  - Необязательная `GOTENBERG_URL` (по умолчанию локальный адрес воркера).
+
 - **Задача:** Согласование политики форматов, размера файлов и стартовой документации перед Backend - 5.
 - **Описание:**
   - Зафиксирована единая политика загрузки: `JPG`, `PNG`, `DOCX`, `PDF`, не более 10 МБ; frontend фильтрует выбор файла, API повторяет проверки, а Core должен проверять сигнатуру файла.

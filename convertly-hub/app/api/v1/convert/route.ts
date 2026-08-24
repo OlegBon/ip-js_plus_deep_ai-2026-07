@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import {
   authenticateApiKey,
   createConversionRequest,
   isMultipartFormData,
 } from "@/lib/api/conversion-request";
+import { CoreConversionError, validateCoreConversion } from "@/lib/core/conversion";
+import { processConversionJob } from "@/lib/core/conversion-job";
 
 export const runtime = "nodejs";
 
@@ -30,6 +32,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Fields file and targetFormat are required." }, { status: 400 });
   }
 
+  const fileData = Buffer.from(await file.arrayBuffer());
+  try {
+    validateCoreConversion({
+      data: fileData,
+      sourceFileName: file.name,
+      sourceMimeType: file.type,
+      targetFormat,
+    });
+  } catch (error) {
+    if (error instanceof CoreConversionError) {
+      const status = error.code === "INVALID_FILE" ? 415 : 422;
+      return NextResponse.json({ error: error.message }, { status });
+    }
+    return NextResponse.json({ error: "Unable to validate source file." }, { status: 400 });
+  }
+
   const result = await createConversionRequest(principal, { file, targetFormat });
   if ("error" in result) {
     switch (result.error) {
@@ -41,6 +59,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unsupported target format." }, { status: 422 });
     }
   }
+
+  after(() =>
+    processConversionJob({
+      conversionId: result.conversion.id,
+      data: fileData,
+      sourceFileName: file.name,
+      sourceMimeType: file.type,
+      targetFormat,
+    }),
+  );
 
   return NextResponse.json(
     {

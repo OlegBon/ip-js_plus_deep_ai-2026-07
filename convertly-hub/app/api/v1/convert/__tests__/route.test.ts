@@ -2,15 +2,29 @@
 
 import { POST } from "../route";
 import { authenticateApiKey, createConversionRequest } from "@/lib/api/conversion-request";
+import { validateCoreConversion } from "@/lib/core/conversion";
+import { processConversionJob } from "@/lib/core/conversion-job";
+
+jest.mock("next/server", () => {
+  const actual = jest.requireActual("next/server");
+  return { ...actual, after: jest.fn() };
+});
 
 jest.mock("@/lib/api/conversion-request", () => ({
   authenticateApiKey: jest.fn(),
   createConversionRequest: jest.fn(),
   isMultipartFormData: (contentType: string | null) => contentType?.startsWith("multipart/form-data") ?? false,
 }));
+jest.mock("@/lib/core/conversion", () => ({
+  CoreConversionError: class CoreConversionError extends Error {},
+  validateCoreConversion: jest.fn(),
+}));
+jest.mock("@/lib/core/conversion-job", () => ({ processConversionJob: jest.fn() }));
 
 const mockedAuthenticateApiKey = jest.mocked(authenticateApiKey);
 const mockedCreateConversionRequest = jest.mocked(createConversionRequest);
+const mockedValidateCoreConversion = jest.mocked(validateCoreConversion);
+const mockedProcessConversionJob = jest.mocked(processConversionJob);
 
 describe("POST /api/v1/convert", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -50,7 +64,7 @@ describe("POST /api/v1/convert", () => {
     });
     const formData = new FormData();
     formData.append("file", new Blob(["image"], { type: "image/png" }), "image.png");
-    formData.append("targetFormat", "pdf");
+    formData.append("targetFormat", "png");
 
     const response = await POST(
       new Request("http://localhost/api/v1/convert", { method: "POST", body: formData }),
@@ -62,5 +76,7 @@ describe("POST /api/v1/convert", () => {
       status: "PENDING",
       createdAt: "2026-08-24T12:00:00.000Z",
     });
+    expect(mockedValidateCoreConversion).toHaveBeenCalled();
+    expect(mockedProcessConversionJob).not.toHaveBeenCalled();
   });
 });
