@@ -10,8 +10,9 @@ import { Button } from '../ui/Button';
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
+  const isAdmin = session?.user.role === 'ADMIN';
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -25,11 +26,13 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/management', label: 'Admin' },
+    { href: '/dashboard', label: 'Dashboard', requiresAuthentication: true },
+    { href: '/management', label: 'Admin', requiresAdmin: true },
     { href: '/pricing', label: 'Pricing' },
     { href: '/docs', label: 'Docs' },
-  ];
+  ].filter((link) =>
+    (!link.requiresAuthentication || isAuthenticated) && (!link.requiresAdmin || isAdmin),
+  );
 
   return (
     <header className="bg-white border-border sticky top-0 z-50 border-b">
