@@ -1,5 +1,15 @@
 # Журнал изменений проекта
 
+## 2026-08-24
+
+- **Задача:** Аудит секретов и перенос конфигурации Docker в корневой `.env`.
+- **Описание:** Учётные данные PostgreSQL и MinIO удалены из `docker-compose.yml`; Compose получает их из переменных окружения. `.env` дополнен переменными локальной инфраструктуры и сессий, соответствующими Convertly Hub. Выполнен аудит исходников, Prisma и API-маршрута.
+- **Измененные файлы:**
+  - `.env`, `docker-compose.yml`
+  - `docs/audits/security-audit-latest.md`, `docs/audits/security-audit-2026-08-24T08-35-01-368Z.md`, `docs/progress.md`
+- **Новые переменные окружения:**
+  - `NODE_ENV`, `APP_DOMAIN`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `MINIO_BUCKET`.
+
 ## 2026-08-22
 
 - **Задача:** Интегрировать сервисный слой S3-совместимого хранилища с MinIO.
