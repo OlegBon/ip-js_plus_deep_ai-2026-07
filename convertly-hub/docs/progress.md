@@ -2,6 +2,17 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend - 6. Управление приватностью результатов.
+- **Описание:**
+  - Добавлена серверная развилка по `User.storeConversions`: при включённом хранении Core сохраняет результат в приватный user-scoped S3-ключ; при выключенном результат отдается из `POST /api/v1/convert` бинарным потоком и не записывается в S3.
+  - Добавлен `GET /api/v1/conversions/:conversionId/download`: он проверяет Bearer API-ключ, принадлежность `ConversionLog` пользователю и потоково выдаёт только сохранённый результат. Публичные S3 URL не используются.
+  - Добавлены unit- и route-тесты режимов приватности, user-scoped ключей, отсутствия доступа к чужому результату и stream-ответов.
+- **Измененные файлы:**
+  - `app/api/v1/convert/route.ts`, `app/api/v1/conversions/[conversionId]/download/route.ts`, `lib/api/conversion-request.ts`, `lib/core/conversion-job.ts`, `lib/privacy/conversion-results.ts`
+  - `docs/architecture.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/START.md`, `docs/progress.md`, `docs/audits/*`
+- **Новые переменные окружения:**
+  - Нет.
+
 - **Задача:** Backend - 5. Ядро конвертации (Core).
 - **Описание:**
   - Реализован Core-модуль: `sharp` конвертирует `JPG ↔ PNG`, а `DOCX → PDF` делегируется Gotenberg с таймаутом 30 секунд.

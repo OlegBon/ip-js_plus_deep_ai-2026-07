@@ -60,15 +60,33 @@ export async function POST(request: Request) {
     }
   }
 
-  after(() =>
-    processConversionJob({
-      conversionId: result.conversion.id,
-      data: fileData,
-      sourceFileName: file.name,
-      sourceMimeType: file.type,
-      targetFormat,
-    }),
-  );
+  const job = {
+    conversionId: result.conversion.id,
+    data: fileData,
+    sourceFileName: file.name,
+    sourceMimeType: file.type,
+    targetFormat,
+    userId: principal.userId,
+    storeResult: principal.storeConversions,
+  };
+
+  if (!principal.storeConversions) {
+    const converted = await processConversionJob(job);
+    if (!converted) {
+      return NextResponse.json({ error: "Unable to convert the source file." }, { status: 422 });
+    }
+
+    return new Response(new Uint8Array(converted.data), {
+      status: 200,
+      headers: {
+        "Content-Type": converted.mimeType,
+        "Content-Disposition": contentDisposition(converted.fileName),
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
+  after(() => processConversionJob(job));
 
   return NextResponse.json(
     {
@@ -78,4 +96,8 @@ export async function POST(request: Request) {
     },
     { status: 202 },
   );
+}
+
+function contentDisposition(fileName: string) {
+  return `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }

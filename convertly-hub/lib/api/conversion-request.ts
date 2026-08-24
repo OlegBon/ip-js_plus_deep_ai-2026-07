@@ -9,6 +9,7 @@ import {
 type ApiPrincipal = {
   apiKeyId: string;
   userId: string;
+  storeConversions: boolean;
 };
 
 type CreateConversionInput = {
@@ -26,13 +27,17 @@ export async function authenticateApiKey(authorization: string | null): Promise<
       id: true,
       userId: true,
       revokedAt: true,
-      user: { select: { status: true } },
+      user: { select: { status: true, storeConversions: true } },
     },
   });
 
   if (!apiKey || apiKey.revokedAt || apiKey.user.status !== "ACTIVE") return null;
 
-  return { apiKeyId: apiKey.id, userId: apiKey.userId };
+  return {
+    apiKeyId: apiKey.id,
+    userId: apiKey.userId,
+    storeConversions: apiKey.user.storeConversions,
+  };
 }
 
 export async function createConversionRequest(principal: ApiPrincipal, input: CreateConversionInput) {
