@@ -2,6 +2,15 @@
 
 ## 2026-08-24
 
+- **Задача:** Аудит актуальности `docs/work_plan.md`.
+- **Описание:**
+  - Добавлен приоритетный обзор всех незавершённых пунктов до раздела Frontend: причины, путь выполнения и рекомендуемый этап для server-side reset/payment, `PDF → DOCX`, Redis limiter, оптимизации поиска admin, реальных backend integration/E2E и production deployment.
+  - Уточнены критерии статуса «выполнено» для Frontend и Backend. В разделе тестирования отдельно отмечено, что backend unit/route-тесты реализованы, а настоящие HTTP integration/E2E с PostgreSQL, MinIO и Gotenberg остаются отдельной задачей.
+- **Измененные файлы:**
+  - `docs/work_plan.md`, `docs/progress.md`
+- **Новые переменные окружения:**
+  - Нет.
+
 - **Задача:** Backend - 9. Логика для Админ-панели.
 - **Описание:**
   - Добавлены server-side маршруты `GET /api/admin/users`, `PATCH /api/admin/users/:userId/status` и `DELETE /api/admin/api-keys/:apiKeyId`.
