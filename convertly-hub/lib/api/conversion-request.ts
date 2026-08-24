@@ -17,6 +17,10 @@ type CreateConversionInput = {
   targetFormat: string;
 };
 
+type ConversionRequestValidation =
+  | { error: "UNSUPPORTED_TARGET_FORMAT" | "UNSUPPORTED_FILE" | "FILE_TOO_LARGE" }
+  | { targetFormat: string };
+
 export async function authenticateApiKey(authorization: string | null): Promise<ApiPrincipal | null> {
   const key = parseBearerToken(authorization);
   if (!key) return null;
@@ -41,16 +45,8 @@ export async function authenticateApiKey(authorization: string | null): Promise<
 }
 
 export async function createConversionRequest(principal: ApiPrincipal, input: CreateConversionInput) {
-  const targetFormat = input.targetFormat.trim().toLowerCase();
-  if (!SUPPORTED_TARGET_FORMATS.has(targetFormat)) {
-    return { error: "UNSUPPORTED_TARGET_FORMAT" as const };
-  }
-  if (!input.file.name || input.file.size === 0 || !SUPPORTED_SOURCE_MIME_TYPES.has(input.file.type)) {
-    return { error: "UNSUPPORTED_FILE" as const };
-  }
-  if (input.file.size > MAX_UPLOAD_SIZE_BYTES) {
-    return { error: "FILE_TOO_LARGE" as const };
-  }
+  const validation = validateConversionRequest(input);
+  if ("error" in validation) return validation;
 
   const conversion = await prisma.$transaction(async (transaction) => {
     const created = await transaction.conversionLog.create({
@@ -58,7 +54,7 @@ export async function createConversionRequest(principal: ApiPrincipal, input: Cr
         sourceFileName: sanitizeFileName(input.file.name),
         sourceMimeType: input.file.type,
         sourceSize: BigInt(input.file.size),
-        targetFormat,
+        targetFormat: validation.targetFormat,
         userId: principal.userId,
         apiKeyId: principal.apiKeyId,
       },
@@ -72,6 +68,20 @@ export async function createConversionRequest(principal: ApiPrincipal, input: Cr
   });
 
   return { conversion };
+}
+
+export function validateConversionRequest(input: CreateConversionInput): ConversionRequestValidation {
+  const targetFormat = input.targetFormat.trim().toLowerCase();
+  if (!SUPPORTED_TARGET_FORMATS.has(targetFormat)) {
+    return { error: "UNSUPPORTED_TARGET_FORMAT" };
+  }
+  if (!input.file.name || input.file.size === 0 || !SUPPORTED_SOURCE_MIME_TYPES.has(input.file.type)) {
+    return { error: "UNSUPPORTED_FILE" };
+  }
+  if (input.file.size > MAX_UPLOAD_SIZE_BYTES) {
+    return { error: "FILE_TOO_LARGE" };
+  }
+  return { targetFormat };
 }
 
 export function isMultipartFormData(contentType: string | null) {
