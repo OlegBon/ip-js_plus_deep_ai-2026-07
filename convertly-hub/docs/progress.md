@@ -2,6 +2,17 @@
 
 ## 2026-08-24
 
+- **Задача:** Backend - 8. Безопасность и валидация.
+- **Описание:**
+  - Добавлен in-memory rate limiter на 30 запросов в минуту для каждого действующего API-ключа. Превышение возвращает `429 Too Many Requests` и `Retry-After`; до горизонтального масштабирования требуется общий Redis-совместимый backend.
+  - Проверки размера, MIME и целевого формата вынесены до чтения файла в `Buffer`; API возвращает безопасные `413`, `415` и `422`, а Core дополнительно проверяет сигнатуры и не раскрывает ошибки воркеров.
+  - Добавлены unit- и route-тесты лимита, `429` и раннего отклонения oversized файла.
+- **Измененные файлы:**
+  - `app/api/v1/convert/route.ts`, `lib/api/rate-limit.ts`, `lib/api/conversion-request.ts`, связанные тесты
+  - `docs/architecture.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/START.md`, `docs/progress.md`, `docs/audits/*`
+- **Новые переменные окружения:**
+  - Нет.
+
 - **Задача:** Backend - 7. Генерация API-ключей.
 - **Описание:**
   - Добавлены NextAuth-защищённые маршруты списка, создания и отзыва собственных API-ключей: `GET`/`POST /api/account/api-keys` и `DELETE /api/account/api-keys/:apiKeyId`.
