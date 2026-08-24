@@ -5,7 +5,7 @@ const apiEndpoints = [
     id: 'convert-file',
     method: 'POST',
     path: '/api/v1/convert',
-    description: 'Converts a file from one format to another. The request should be a multipart/form-data POST.',
+    description: 'Queues a file conversion. The request should be a multipart/form-data POST; the file result will be available after processing.',
     parameters: [
       { name: 'file', type: 'file', description: 'The file to be converted.' },
       { name: 'targetFormat', type: 'string', description: 'The desired output format (e.g., "pdf", "jpg", "png").' },
@@ -38,15 +38,9 @@ fetch('http://localhost:3000/api/v1/convert', {
       },
     ],
     response: {
-      success: true,
-      data: {
-        fileId: 'c7a8b9d0-e1f2-g3h4-i5j6-k7l8m9n0o1p2',
-        originalName: 'document.docx',
-        newFormat: 'pdf',
-        size: 204800,
-        url: 'https://your-s3-bucket.s3.amazonaws.com/c7a8b9d0.../document.pdf',
-        expiresAt: '2026-08-12T23:59:59Z',
-      },
+      conversionId: 'c7a8b9d0-e1f2-g3h4-i5j6-k7l8m9n0o1p2',
+      status: 'PENDING',
+      createdAt: '2026-08-24T12:00:00.000Z',
     },
   },
 ];
@@ -108,7 +102,7 @@ export default function DocsPage() {
                 </div>
 
                 <div>
-                    <h4 className="text-base font-semibold text-gray-800">Success Response (200 OK)</h4>
+                    <h4 className="text-base font-semibold text-gray-800">Accepted Response (202 Accepted)</h4>
                     <pre className="mt-3 p-4 bg-gray-900 rounded-lg text-sm text-white overflow-x-auto">
                         <code>
                             {JSON.stringify(endpoint.response, null, 2)}
