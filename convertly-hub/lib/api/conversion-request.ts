@@ -1,14 +1,10 @@
 import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
-
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const SUPPORTED_MIME_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-]);
-const SUPPORTED_TARGET_FORMATS = new Set(["jpg", "png", "pdf"]);
+import {
+  MAX_UPLOAD_SIZE_BYTES,
+  SUPPORTED_SOURCE_MIME_TYPES,
+  SUPPORTED_TARGET_FORMATS,
+} from "@/lib/files/upload-policy";
 
 type ApiPrincipal = {
   apiKeyId: string;
@@ -44,10 +40,10 @@ export async function createConversionRequest(principal: ApiPrincipal, input: Cr
   if (!SUPPORTED_TARGET_FORMATS.has(targetFormat)) {
     return { error: "UNSUPPORTED_TARGET_FORMAT" as const };
   }
-  if (!input.file.name || input.file.size === 0 || !SUPPORTED_MIME_TYPES.has(input.file.type)) {
+  if (!input.file.name || input.file.size === 0 || !SUPPORTED_SOURCE_MIME_TYPES.has(input.file.type)) {
     return { error: "UNSUPPORTED_FILE" as const };
   }
-  if (input.file.size > MAX_FILE_SIZE_BYTES) {
+  if (input.file.size > MAX_UPLOAD_SIZE_BYTES) {
     return { error: "FILE_TOO_LARGE" as const };
   }
 

@@ -2,6 +2,17 @@
 
 ## 2026-08-24
 
+- **Задача:** Согласование политики форматов, размера файлов и стартовой документации перед Backend - 5.
+- **Описание:**
+  - Зафиксирована единая политика загрузки: `JPG`, `PNG`, `DOCX`, `PDF`, не более 10 МБ; frontend фильтрует выбор файла, API повторяет проверки, а Core должен проверять сигнатуру файла.
+  - Для Core подтверждены `JPG ↔ PNG` и `DOCX → PDF`. `PDF → DOCX` выделен как отдельное best-effort-направление, которое потребует специализированного движка и контроля качества.
+  - Актуальная инструкция запуска перенесена в `docs/START.md`; исторический черновик — в `docs/archive/START_.md`.
+- **Измененные файлы:**
+  - `components/core/FileDropzone.tsx`, `app/page.tsx`, `lib/files/upload-policy.ts`, `lib/api/conversion-request.ts`
+  - `docs/tech_saas.md`, `docs/work_plan.md`, `docs/architecture.md`, `docs/START.md`, `docs/progress.md`, `AGENTS.md`
+- **Новые переменные окружения:**
+  - Нет
+
 - **Задача:** Backend - 4. API для конвертации (`POST /api/v1/convert`).
 - **Описание:**
   - Добавлен защищённый Bearer API-маршрут, который принимает `multipart/form-data`, проверяет SHA-256-хеш активного неотозванного API-ключа и создаёт в транзакции запись `ConversionLog` со статусом `PENDING`.

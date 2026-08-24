@@ -2,19 +2,29 @@
 
 import { toast } from '@/lib/hooks/use-toast';
 import { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { File as FileIcon, UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
+import { useDropzone, type FileRejection } from 'react-dropzone';
+import { UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
+import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_LABEL } from '@/lib/files/upload-policy';
 
 interface FileDropzoneProps {
   title: string;
   description: string;
   accept: Record<string, string[]>;
   onUpload: (file: File) => Promise<void>;
+  maxSize?: number;
+  maxSizeLabel?: string;
 }
 
 type Status = 'idle' | 'uploading' | 'success' | 'error';
 
-const FileDropzone = ({ title, description, accept, onUpload }: FileDropzoneProps) => {
+const FileDropzone = ({
+  title,
+  description,
+  accept,
+  onUpload,
+  maxSize = MAX_UPLOAD_SIZE_BYTES,
+  maxSizeLabel = MAX_UPLOAD_SIZE_LABEL,
+}: FileDropzoneProps) => {
   const [status, setStatus] = useState<Status>('idle');
   const [progress, setProgress] = useState(0);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -55,9 +65,25 @@ const FileDropzone = ({ title, description, accept, onUpload }: FileDropzoneProp
     }
   }, [onUpload]);
 
+  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
+    const rejection = fileRejections[0];
+    if (!rejection) return;
+
+    const message = rejection.errors.some(({ code }) => code === 'file-too-large')
+      ? `File must be ${maxSizeLabel} or smaller.`
+      : 'Unsupported file type. Choose JPG, PNG, DOCX, or PDF.';
+
+    setFileName(rejection.file.name);
+    setStatus('error');
+    setErrorMessage(message);
+    toast.error(`${rejection.file.name} was not selected. ${message}`);
+  }, [maxSizeLabel]);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept,
+    maxSize,
     multiple: false,
   });
   

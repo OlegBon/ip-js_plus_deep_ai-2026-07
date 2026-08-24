@@ -70,7 +70,7 @@ npm run build
 npm run audit:api
 ```
 
-Для локальной инфраструктуры (PostgreSQL, MinIO, Gotenberg) используйте `docker compose up -d`; подробности — в [START.md](./START.md).
+Для локальной инфраструктуры (PostgreSQL, MinIO, Gotenberg) используйте `docker compose up -d`; подробности — в [docs/START.md](./docs/START.md).
 
 ## Архитектурные задачи
 
