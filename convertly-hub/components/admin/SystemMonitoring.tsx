@@ -1,40 +1,5 @@
 "use client";
-
-import React from 'react';
-import { Users, FileStack, AlertTriangle, Database } from 'lucide-react';
-
-const mockSystemStats = {
-  activeUsers: { value: 125, label: 'Active Users', icon: Users },
-  totalConversions: { value: 5432, label: 'Total Conversions', icon: FileStack },
-  errorRate: { value: '1.2%', label: 'Error Rate', icon: AlertTriangle },
-  dbStatus: { value: 'Healthy', label: 'Database Status', icon: Database },
-};
-
-const StatCard = ({ stat }: { stat: { value: string | number; label: string; icon: React.ElementType } }) => {
-  const Icon = stat.icon;
-  return (
-    <div className="p-6 bg-white rounded-lg shadow-md flex items-center space-x-4">
-      <div className="p-3 bg-indigo-100 rounded-full">
-        <Icon className="h-6 w-6 text-indigo-600" />
-      </div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-        <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-      </div>
-    </div>
-  );
-};
-
-
-const SystemMonitoring = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard stat={mockSystemStats.activeUsers} />
-      <StatCard stat={mockSystemStats.totalConversions} />
-      <StatCard stat={mockSystemStats.errorRate} />
-      <StatCard stat={mockSystemStats.dbStatus} />
-    </div>
-  );
-};
-
-export default SystemMonitoring;
+import { useEffect, useState } from "react";
+import { AlertTriangle, Database, FileStack, HardDrive, Users } from "lucide-react";
+type Metrics = { activeUsers: number; activeUsersWindowDays: number; totalConversions: number; failedConversions: number; errorRate: number; services: { database: "up" | "down"; gotenberg: "up" | "down"; storage: "up" | "down" } };
+export default function SystemMonitoring() { const [metrics, setMetrics] = useState<Metrics | null>(null); useEffect(() => { const controller = new AbortController(); fetch("/api/admin/metrics", { signal: controller.signal }).then(async (response) => response.ok ? response.json() : null).then(setMetrics).catch(() => setMetrics(null)); return () => controller.abort(); }, []); if (!metrics) return <div className="rounded-lg bg-white p-6 shadow-md">Unable to load system metrics.</div>; const cards = [{ value: metrics.activeUsers, label: `Active users (${metrics.activeUsersWindowDays} days)`, icon: Users }, { value: metrics.totalConversions, label: "Total conversions", icon: FileStack }, { value: `${metrics.errorRate}%`, label: `${metrics.failedConversions} failed conversions`, icon: AlertTriangle }, { value: metrics.services.database === "up" ? "Healthy" : "Unavailable", label: "Database status", icon: Database }]; return <><div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">{cards.map((card) => { const Icon = card.icon; return <div key={card.label} className="flex items-center space-x-4 rounded-lg bg-white p-6 shadow-md"><div className="rounded-full bg-indigo-100 p-3"><Icon className="h-6 w-6 text-indigo-600" /></div><div><p className="text-2xl font-bold text-gray-900">{card.value}</p><p className="text-sm font-medium text-gray-500">{card.label}</p></div></div>; })}</div><p className="mt-3 flex items-center gap-2 text-sm text-gray-500"><HardDrive size={16} /> Storage: {metrics.services.storage}; Gotenberg: {metrics.services.gotenberg}</p></>; }

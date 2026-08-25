@@ -80,6 +80,7 @@ const adminUserSelect = {
   plan: true,
   lastLoginAt: true,
   createdAt: true,
+  apiKeys: { where: { revokedAt: null }, select: { id: true, name: true, keyPrefix: true } },
 } as const;
 
 async function ensureActiveAdmin(userId: string) {
