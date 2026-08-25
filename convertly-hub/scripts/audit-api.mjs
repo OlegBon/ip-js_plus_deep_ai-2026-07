@@ -14,11 +14,26 @@ const ENDPOINTS = [
   { name: "Convertly Hub Health API", url: "http://localhost:3001/api/health", type: "convertly_health" },
   { name: "MinIO UI", url: "http://localhost:9001" },
   { name: "MinIO UI Login", url: "http://localhost:9001/login" },
+  { name: "NextAuth Session", url: "http://localhost:3001/api/auth/session", type: "expected_status", expectedStatus: 200 },
+  { name: "Account Profile (guest boundary)", url: "http://localhost:3001/api/account/profile", type: "expected_status", expectedStatus: 401 },
+  { name: "Account Billing (guest boundary)", url: "http://localhost:3001/api/account/billing", type: "expected_status", expectedStatus: 401 },
+  { name: "Account Conversions (guest boundary)", url: "http://localhost:3001/api/account/conversions", type: "expected_status", expectedStatus: 401 },
+  { name: "Account API Keys (guest boundary)", url: "http://localhost:3001/api/account/api-keys", type: "expected_status", expectedStatus: 401 },
+  { name: "Admin Users (guest boundary)", url: "http://localhost:3001/api/admin/users", type: "expected_status", expectedStatus: 401 },
+  { name: "Admin Metrics (guest boundary)", url: "http://localhost:3001/api/admin/metrics", type: "expected_status", expectedStatus: 401 },
 ];
 
 async function fetchEndpoint(endpoint) {
   try {
     const res = await fetch(endpoint.url, { cache: "no-store" });
+    if (endpoint.type === "expected_status") {
+      return {
+        success: res.status === endpoint.expectedStatus,
+        status: res.status === endpoint.expectedStatus
+          ? `✅ Ожидаемый HTTP ${res.status}`
+          : `❌ Ожидался HTTP ${endpoint.expectedStatus}, получен ${res.status}`,
+      };
+    }
     if (!res.ok) {
       return { success: false, status: `❌ Ошибка (HTTP ${res.status})` };
     }
@@ -44,8 +59,9 @@ function parseHealthDetails(type, data) {
         details.push(`  - LibreOffice: ${data.details.libreoffice?.status === 'up' ? '✅ up' : '❌ down'}`);
     } else if (type === 'convertly_health') {
         details.push(`  - Status: ${data.status === 'healthy' ? '✅ healthy' : `❌ ${data.status}`}`);
-        details.push(`  - Database: ${data.database === 'connected' ? '✅ connected' : `❌ ${data.database}`}`);
-        details.push(`  - Gotenberg Worker: ${data.gotenberg_worker === 'up' ? '✅ up' : `❌ ${data.gotenberg_worker}`}`);
+        details.push(`  - Database: ${data.database === 'up' ? '✅ up' : `❌ ${data.database}`}`);
+        details.push(`  - S3 Storage: ${data.storage === 'up' ? '✅ up' : `❌ ${data.storage}`}`);
+        details.push(`  - Gotenberg Worker: ${data.gotenberg === 'up' ? '✅ up' : `❌ ${data.gotenberg}`}`);
     }
     return details;
 }

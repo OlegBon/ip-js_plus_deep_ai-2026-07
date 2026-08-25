@@ -96,6 +96,6 @@ Dashboard и Admin UI ещё подключаются к реальным дан
 - `POST /api/guest/conversions` — потоковая гостевая конвертация с cookie-квотой и локальным IP limiter.
 - `GET /api/account/conversions/:conversionId/download` — session-защищённое скачивание сохранённого результата.
 - `POST /api/v1/convert` — конвертация по Bearer API-ключу для тарифов с API-доступом.
-- `GET /api/health` — проверка PostgreSQL и Gotenberg.
+- `GET /api/health` — безопасная проверка PostgreSQL, настроенного S3-бакета и Gotenberg: `200` при полном здоровье, `503` при деградации.
 
 Полная карта маршрутов и правила ответов находятся в [architecture.md](./docs/architecture.md).
