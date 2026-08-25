@@ -5,7 +5,7 @@ const apiEndpoints = [
     id: 'convert-file',
     method: 'POST',
     path: '/api/v1/convert',
-    description: 'Queues a file conversion. The request should be a multipart/form-data POST; the file result will be available after processing.',
+    description: 'Converts a file for an active API key on a Basic plan or higher. Stored results return 202 and are downloaded separately; without storage the file is streamed immediately with 200.',
     parameters: [
       { name: 'file', type: 'file', description: 'The file to be converted.' },
       { name: 'targetFormat', type: 'string', description: 'The desired output format (e.g., "pdf", "jpg", "png").' },
@@ -14,7 +14,7 @@ const apiEndpoints = [
       {
         language: 'curl',
         code: `curl -X POST \\
-  http://localhost:3000/api/v1/convert \\
+  http://localhost:3001/api/v1/convert \\
   -H 'Authorization: Bearer <YOUR_API_KEY>' \\
   -F 'file=@/path/to/your/file.docx' \\
   -F 'targetFormat=pdf'`,
@@ -25,7 +25,7 @@ const apiEndpoints = [
 formData.append('file', fileInput.files[0]);
 formData.append('targetFormat', 'pdf');
 
-fetch('http://localhost:3000/api/v1/convert', {
+fetch('http://localhost:3001/api/v1/convert', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer <YOUR_API_KEY>',
@@ -54,7 +54,10 @@ export default function DocsPage() {
             API Documentation
           </h2>
           <p className="mt-4 text-lg leading-8 text-gray-600">
-            Integrate Convertly Hub into your own applications with our simple API.
+            Integrate Convertly Hub into your own applications with the API-key protected conversion API.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-gray-600">
+            Supported directions: JPG to PNG, PNG to JPG, and DOCX to PDF. Files are limited by the active plan (up to 10 MB); PDF to DOCX is not available yet.
           </p>
         </div>
         <div className="mt-16 space-y-12">

@@ -1,6 +1,6 @@
 # Схема базы данных
 
-Документ описывает Prisma-схему Convertly Hub для PostgreSQL. Новая миграция `20260824093000_rbac_telegram` подготовлена для RBAC-аудита и срока жизни Telegram-токенов; перед использованием Telegram её необходимо применить командой `npx prisma migrate deploy`.
+Документ описывает Prisma-схему Convertly Hub для PostgreSQL. В репозитории есть миграции `20260824093000_rbac_telegram` для RBAC/Telegram и `20260825090000_subscription_quotas` для тарифов и квот. В новом окружении перед использованием Telegram, тарифов или конвертации примените все миграции командой `npx prisma migrate deploy`.
 
 ## Перечисления
 
