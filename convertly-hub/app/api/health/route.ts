@@ -1,28 +1,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getStorageService } from "@/lib/storage/s3";
 
 export async function GET() {
   try {
-    // Проверка БД
-    const userCount = await prisma.user.count();
-
-    // Проверка воркера Gotenberg
-    const gotenbergRes = await fetch("http://localhost:3000/health", {
+    await prisma.$queryRaw`SELECT 1`;
+    const gotenbergRes = await fetch(`${(process.env.GOTENBERG_URL ?? "http://localhost:3000").replace(/\/$/, "")}/health`, {
       cache: "no-store",
     });
-    const gotenbergStatus = gotenbergRes.ok ? "up" : "down";
+    if (!gotenbergRes.ok) throw new Error("Gotenberg unavailable");
+    await getStorageService().ensureBucket();
 
     return NextResponse.json(
       {
         status: "healthy",
-        database: "connected",
-        users_in_db: userCount,
-        gotenberg_worker: gotenbergStatus,
+        database: "up",
+        storage: "up",
+        gotenberg: "up",
       },
       { status: 200 },
     );
-  } catch (error) {
-    console.error("Health check failed:", error);
+  } catch {
     return NextResponse.json(
       {
         status: "error",
