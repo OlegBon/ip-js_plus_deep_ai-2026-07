@@ -2,31 +2,41 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorageService } from "@/lib/storage/s3";
 
-export async function GET() {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    const gotenbergRes = await fetch(`${(process.env.GOTENBERG_URL ?? "http://localhost:3000").replace(/\/$/, "")}/health`, {
-      cache: "no-store",
-    });
-    if (!gotenbergRes.ok) throw new Error("Gotenberg unavailable");
-    await getStorageService().ensureBucket();
+type ServiceStatus = "up" | "down";
 
-    return NextResponse.json(
-      {
-        status: "healthy",
-        database: "up",
-        storage: "up",
-        gotenberg: "up",
-      },
-      { status: 200 },
-    );
+async function checkService(check: () => Promise<unknown>): Promise<ServiceStatus> {
+  try {
+    await check();
+    return "up";
   } catch {
-    return NextResponse.json(
-      {
-        status: "error",
-        message: "One or more core services are unreachable",
-      },
-      { status: 500 },
-    );
+    return "down";
   }
+}
+
+export async function GET() {
+  const [database, storage, gotenberg] = await Promise.all([
+    checkService(() => prisma.$queryRaw`SELECT 1`),
+    checkService(() => getStorageService().ensureBucket()),
+    checkService(async () => {
+      const response = await fetch(`${(process.env.GOTENBERG_URL ?? "http://localhost:3000").replace(/\/$/, "")}/health`, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (!response.ok) throw new Error("Gotenberg health check failed");
+    }),
+  ]);
+  const isHealthy = [database, storage, gotenberg].every((service) => service === "up");
+
+  return NextResponse.json(
+    {
+      status: isHealthy ? "healthy" : "degraded",
+      database,
+      storage,
+      gotenberg,
+    },
+    {
+      status: isHealthy ? 200 : 503,
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
 }

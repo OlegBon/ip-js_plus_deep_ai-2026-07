@@ -29,7 +29,7 @@
 2. **`.env`** — переменные окружения и строка подключения к базе данных (`DATABASE_URL`, креды MinIO, `NEXTAUTH_SECRET`)[cite: 2].
 3. **`prisma.config.ts`** — конфигурационный файл Prisma 7 для связки схемы и пула подключений через драйвер `pg`[cite: 2].
 4. **`prisma/schema.prisma`** — модели данных базы (`User` и `ConversionLog`)[cite: 2].
-5. **`app/api/health/route.ts`** — комплексный системный API-эндпоинт для проверки связи с базой данных и воркером Gotenberg[cite: 2].
+5. **`app/api/health/route.ts`** — комплексный системный API-эндпоинт для проверки PostgreSQL, настроенного S3-бакета и воркера Gotenberg[cite: 2].
 6. **`package.json`** — манифест зависимостей (`@prisma/client`, `next-auth`, `@aws-sdk/client-s3`, `sharp`, `pg` и др.)[cite: 2].
 
 Для S3-сервиса задайте в `.env` приватные переменные `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY` и `MINIO_SECRET_KEY`. Не используйте для них префикс `NEXT_PUBLIC_`. Имя бакета задаётся `MINIO_BUCKET`; если переменная не указана, используется `convertly-files`.
@@ -163,6 +163,8 @@ _(Данные базы не удалятся благодаря настрое�
   "gotenberg": "up"
 }
 ```
+
+Если хотя бы один core-сервис недоступен, endpoint возвращает `503` и безопасный JSON со `status: "degraded"`; поля `database`, `storage` и `gotenberg` показывают только `up` или `down`, без ошибок, счётчиков и конфигурации. Для единой проверки локальных HTTP-контрактов выполните `npm run audit:api`: он также подтверждает гостевые границы session- и admin-защищённых `GET`-маршрутов из [карты API](./architecture.md#5-api-endpoints).
 
 5. **Визуальная проверка базы данных:**
 
