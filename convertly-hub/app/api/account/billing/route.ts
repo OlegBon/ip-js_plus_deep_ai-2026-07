@@ -15,7 +15,19 @@ export async function GET() {
 
   try {
     const billing = await getBillingOverview(userId);
-    return NextResponse.json(billing, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      {
+        ...billing,
+        usage: {
+          ...billing.usage,
+          storageBytes: {
+            used: billing.usage.storageBytes.used.toString(),
+            limit: billing.usage.storageBytes.limit.toString(),
+          },
+        },
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     if (error instanceof BillingUserNotFoundError) return unauthorized();
     return NextResponse.json({ error: "Unable to load billing information." }, { status: 503 });
