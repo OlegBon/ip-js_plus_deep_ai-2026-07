@@ -1,102 +1,31 @@
 "use client";
 
-import React from 'react';
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { formatBytes, formatPrice, getPlanDefinition } from "@/lib/billing/plans";
 
-// Mock data for the user's current plan and usage
-const userPlan = {
-  name: 'Pro',
-  priceMonthly: '$19',
-  features: [
-    '50 projects',
-    'Up to 10,000 tasks',
-    '100GB of storage',
-    'Priority email support',
-    'Advanced analytics',
-  ],
-  usage: {
-    tasks: {
-      used: 4250,
-      limit: 10000,
-    },
-    storage: {
-      used: 35.5,
-      limit: 100,
-      unit: 'GB',
-    },
-  },
+type Billing = {
+  activePlan: "FREE" | "BASIC" | "PRO" | "ENTERPRISE";
+  requestedPlan: "FREE" | "BASIC" | "PRO" | "ENTERPRISE" | null;
+  status: "ACTIVE" | "PENDING_DEMO";
+  usage: { conversions: { used: number; limit: number }; storageBytes: { used: string; limit: string } };
 };
 
-const UsageBar = ({ used, limit, unit }: { used: number, limit: number, unit?: string }) => {
-  const percentage = (used / limit) * 100;
-  return (
-    <div>
-      <div className="flex justify-between text-sm font-medium text-gray-600">
-        <span>{`${used.toLocaleString('en-US')} / ${limit.toLocaleString('en-US')}${unit ? ` ${unit}`: ''}`}</span>
-        <span>{percentage.toFixed(0)}%</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-        <div
-          className="bg-indigo-600 h-2.5 rounded-full"
-          style={{ width: `${percentage}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-};
+function UsageBar({ used, limit, label }: { used: number; limit: number; label: string }) {
+  const percentage = Math.min(100, limit === 0 ? 0 : (used / limit) * 100);
+  return <div><div className="flex justify-between text-sm font-medium text-gray-600"><span>{label}</span><span>{percentage.toFixed(0)}%</span></div><div className="mt-1 h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-indigo-600" style={{ width: `${percentage}%` }} /></div></div>;
+}
 
-const UserPlan = () => {
-  return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Plan Details */}
-        <div className="md:col-span-1">
-          <h3 id="tier-pro" className="text-lg font-semibold leading-7 text-gray-900">
-            {userPlan.name} Plan
-          </h3>
-          <p className="mt-2 flex items-baseline gap-x-2">
-            <span className="text-4xl font-bold tracking-tight text-gray-900">{userPlan.priceMonthly}</span>
-            <span className="text-base text-gray-500">/month</span>
-          </p>
-          <p className="mt-4 text-sm text-gray-600">Your current subscription.</p>
-           <a
-                href="/pricing"
-                className='mt-4 block rounded-md py-2 px-3 text-center text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-gray-700 bg-white border border-gray-300 shadow-sm hover:bg-gray-50'
-              >
-                Change Plan
-              </a>
-        </div>
-
-        {/* Usage and Limits */}
-        <div className="md:col-span-2 space-y-6">
-            <div>
-                <h4 className="text-base font-semibold text-gray-800 mb-2">Monthly Usage</h4>
-                 <div className="space-y-4">
-                    <div>
-                        <p className="text-sm font-medium text-gray-800">Tasks</p>
-                        <UsageBar used={userPlan.usage.tasks.used} limit={userPlan.usage.tasks.limit} />
-                    </div>
-                     <div>
-                        <p className="text-sm font-medium text-gray-800">Storage</p>
-                        <UsageBar used={userPlan.usage.storage.used} limit={userPlan.usage.storage.limit} unit={userPlan.usage.storage.unit} />
-                    </div>
-                </div>
-            </div>
-             <div>
-                <h4 className="text-base font-semibold text-gray-800 mb-2">Included Features</h4>
-                <ul role="list" className="space-y-3 text-sm leading-6 text-gray-600">
-                    {userPlan.features.map((feature) => (
-                    <li key={feature} className="flex gap-x-3">
-                        <CheckIcon className="h-6 w-5 flex-none" aria-hidden="true" />
-                        {feature}
-                    </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default UserPlan;
+export default function UserPlan() {
+  const [billing, setBilling] = useState<Billing | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/account/billing", { signal: controller.signal }).then(async (response) => response.ok ? response.json() : null).then(setBilling).catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+  if (!billing) return <div className="rounded-lg bg-white p-6 shadow-md">Loading plan…</div>;
+  const plan = getPlanDefinition(billing.activePlan);
+  const storageUsed = Number(billing.usage.storageBytes.used);
+  const storageLimit = Number(billing.usage.storageBytes.limit);
+  return <div className="rounded-lg bg-white p-6 shadow-md"><div className="grid grid-cols-1 gap-8 md:grid-cols-3"><div><h3 className="text-lg font-semibold text-gray-900">{plan.name} plan</h3><p className="mt-2 text-4xl font-bold">{formatPrice(plan.priceCents)}<span className="ml-2 text-base font-normal text-gray-500">/month</span></p><p className="mt-4 text-sm text-gray-600">{billing.status === "PENDING_DEMO" && billing.requestedPlan ? `${getPlanDefinition(billing.requestedPlan).name} selected — awaiting payment.` : "Active plan"}</p><Link href="/pricing" className="mt-4 block rounded-md border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50">Change plan</Link></div><div className="space-y-6 md:col-span-2"><UsageBar label={`${billing.usage.conversions.used.toLocaleString("en-US")} / ${billing.usage.conversions.limit.toLocaleString("en-US")} conversions this month`} used={billing.usage.conversions.used} limit={billing.usage.conversions.limit} /><UsageBar label={`${formatBytes(storageUsed)} / ${formatBytes(storageLimit)} stored results`} used={storageUsed} limit={storageLimit} /></div></div></div>;
+}

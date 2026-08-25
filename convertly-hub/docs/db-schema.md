@@ -8,7 +8,8 @@
 | --- | --- | --- |
 | `UserRole` | `USER`, `ADMIN` | Доступ к пользовательским и административным действиям. |
 | `UserStatus` | `ACTIVE`, `SUSPENDED` | Блокировка учётной записи без её удаления. |
-| `SubscriptionPlan` | `FREE`, `BASIC`, `PRO`, `ENTERPRISE` | Текущий тариф; биллинг будет добавлен отдельной задачей. |
+| `SubscriptionPlan` | `FREE`, `BASIC`, `PRO`, `ENTERPRISE` | Активный либо ожидающий тариф. |
+| `SubscriptionStatus` | `ACTIVE`, `PENDING_DEMO` | Активная подписка либо единственная ожидающая demo-заявка. |
 | `ConversionStatus` | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED` | Состояние обработки файла. |
 
 ## Модели
@@ -28,6 +29,11 @@
 | `storeConversions` | `Boolean` | Обязательная настройка хранения результатов, по умолчанию `true`. |
 | auth и Telegram-поля | `String?` / `DateTime?` | Хеши одноразовых токенов, сроки действия и даты подтверждения; хеши и Telegram ID уникальны. |
 | `apiKeys`, `conversions` | связи | Один пользователь имеет много API-ключей и записей конвертаций. |
+| `subscription` | связь `Subscription?` | One-to-one подписка; старые записи до миграции используют `plan` пользователя как fallback. |
+
+### `Subscription`
+
+`id` — первичный UUID; `userId` — обязательный уникальный внешний ключ на `User` с каскадным удалением. `activePlan` обязателен и имеет default `FREE`; `requestedPlan` необязателен и хранит последнюю смену; `status`, `createdAt` и `updatedAt` обязательны. Mock Checkout не сохраняет поля формы или платёжные данные.
 
 ### `ApiKey`
 
@@ -67,6 +73,8 @@
 | `apiKeyId` | `String?` | Необязательный внешний ключ на `ApiKey`; при удалении ключа ссылка становится `null`. |
 
 Индексы `@@index([userId, createdAt])`, `@@index([status, createdAt])` и `@@index([apiKeyId])` поддерживают историю пользователя, обработку очереди и аудит API-вызовов.
+
+Usage Dashboard считает успешные конвертации текущего месяца и сумму `resultSize` неистёкших строк с `storageKey`; обход S3 для каждого запроса не нужен. `expiresAt` фиксируется при завершении по активному на тот момент тарифу.
 
 ## Время и применение миграций
 

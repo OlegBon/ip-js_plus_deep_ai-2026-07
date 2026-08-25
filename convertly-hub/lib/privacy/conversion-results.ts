@@ -37,6 +37,7 @@ export async function downloadStoredConversion({ conversionId, userId }: Downloa
       userId,
       status: "COMPLETED",
       storageKey: { not: null },
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
     select: {
       storageKey: true,

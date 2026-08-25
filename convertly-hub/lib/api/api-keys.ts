@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { getActivePlanForUser } from "@/lib/billing/subscriptions";
+import { getPlanDefinition } from "@/lib/billing/plans";
 
 const API_KEY_PREFIX = "ch_live_";
 const DISPLAY_PREFIX_LENGTH = 16;
@@ -16,6 +18,7 @@ export type ApiKeyMetadata = {
 };
 
 export class ApiKeyUserNotFoundError extends Error {}
+export class ApiKeyPlanNotEligibleError extends Error {}
 
 export function normalizeApiKeyName(value: unknown) {
   if (value === undefined) return DEFAULT_API_KEY_NAME;
@@ -37,6 +40,8 @@ export async function listApiKeys(userId: string) {
 
 export async function createApiKey(userId: string, name: string) {
   await ensureActiveUser(userId);
+  const plan = await getActivePlanForUser(userId);
+  if (!getPlanDefinition(plan).apiAccess) throw new ApiKeyPlanNotEligibleError();
 
   const secret = `${API_KEY_PREFIX}${randomBytes(32).toString("base64url")}`;
   const apiKey = await prisma.apiKey.create({

@@ -1,15 +1,17 @@
 import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
 import {
-  MAX_UPLOAD_SIZE_BYTES,
   SUPPORTED_SOURCE_MIME_TYPES,
   SUPPORTED_TARGET_FORMATS,
 } from "@/lib/files/upload-policy";
+import { getPlanDefinition } from "@/lib/billing/plans";
+import type { SubscriptionPlan } from "@prisma/client";
 
 type ApiPrincipal = {
   apiKeyId: string;
   userId: string;
   storeConversions: boolean;
+  plan?: SubscriptionPlan;
 };
 
 type CreateConversionInput = {
@@ -21,6 +23,8 @@ type ConversionRequestValidation =
   | { error: "UNSUPPORTED_TARGET_FORMAT" | "UNSUPPORTED_FILE" | "FILE_TOO_LARGE" }
   | { targetFormat: string };
 
+export class ConversionQuotaExceededError extends Error {}
+
 export async function authenticateApiKey(authorization: string | null): Promise<ApiPrincipal | null> {
   const key = parseBearerToken(authorization);
   if (!key) return null;
@@ -31,7 +35,14 @@ export async function authenticateApiKey(authorization: string | null): Promise<
       id: true,
       userId: true,
       revokedAt: true,
-      user: { select: { status: true, storeConversions: true } },
+      user: {
+        select: {
+          status: true,
+          storeConversions: true,
+          plan: true,
+          subscription: { select: { activePlan: true } },
+        },
+      },
     },
   });
 
@@ -41,12 +52,20 @@ export async function authenticateApiKey(authorization: string | null): Promise<
     apiKeyId: apiKey.id,
     userId: apiKey.userId,
     storeConversions: apiKey.user.storeConversions,
+    plan: apiKey.user.subscription?.activePlan ?? apiKey.user.plan,
   };
 }
 
 export async function createConversionRequest(principal: ApiPrincipal, input: CreateConversionInput) {
-  const validation = validateConversionRequest(input);
+  const plan = getPlanDefinition(principal.plan ?? "FREE");
+  const validation = validateConversionRequest(input, plan.maxFileSizeBytes);
   if ("error" in validation) return validation;
+
+  const periodStart = startOfCurrentMonth();
+  const completedConversions = await prisma.conversionLog.count({
+    where: { userId: principal.userId, status: "COMPLETED", createdAt: { gte: periodStart } },
+  });
+  if (completedConversions >= plan.monthlyConversions) throw new ConversionQuotaExceededError();
 
   const conversion = await prisma.$transaction(async (transaction) => {
     const created = await transaction.conversionLog.create({
@@ -70,7 +89,7 @@ export async function createConversionRequest(principal: ApiPrincipal, input: Cr
   return { conversion };
 }
 
-export function validateConversionRequest(input: CreateConversionInput): ConversionRequestValidation {
+export function validateConversionRequest(input: CreateConversionInput, maxUploadSizeBytes = getPlanDefinition("FREE").maxFileSizeBytes): ConversionRequestValidation {
   const targetFormat = input.targetFormat.trim().toLowerCase();
   if (!SUPPORTED_TARGET_FORMATS.has(targetFormat)) {
     return { error: "UNSUPPORTED_TARGET_FORMAT" };
@@ -78,10 +97,15 @@ export function validateConversionRequest(input: CreateConversionInput): Convers
   if (!input.file.name || input.file.size === 0 || !SUPPORTED_SOURCE_MIME_TYPES.has(input.file.type)) {
     return { error: "UNSUPPORTED_FILE" };
   }
-  if (input.file.size > MAX_UPLOAD_SIZE_BYTES) {
+  if (input.file.size > maxUploadSizeBytes) {
     return { error: "FILE_TOO_LARGE" };
   }
   return { targetFormat };
+}
+
+function startOfCurrentMonth() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
 export function isMultipartFormData(contentType: string | null) {

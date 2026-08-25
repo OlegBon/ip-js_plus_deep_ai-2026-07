@@ -2,14 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { convertFile, type CoreConversionInput } from "@/lib/core/conversion";
 import { storeConversionResult } from "@/lib/privacy/conversion-results";
 import { getStorageService } from "@/lib/storage/s3";
+import { ensureStorageCapacity, StorageQuotaExceededError } from "@/lib/billing/subscriptions";
+import { getPlanDefinition } from "@/lib/billing/plans";
+import type { SubscriptionPlan } from "@prisma/client";
 
 type ProcessConversionJobInput = CoreConversionInput & {
   conversionId: string;
   storeResult: boolean;
   userId: string;
+  plan?: SubscriptionPlan;
 };
 
-export async function processConversionJob({ conversionId, ...input }: ProcessConversionJobInput) {
+export async function processConversionJob({ conversionId, plan = "FREE", ...input }: ProcessConversionJobInput) {
   const startedAt = new Date();
   const started = await prisma.conversionLog.updateMany({
     where: { id: conversionId, status: "PENDING" },
@@ -21,6 +25,7 @@ export async function processConversionJob({ conversionId, ...input }: ProcessCo
   try {
     const result = await convertFile(input);
     if (input.storeResult) {
+      await ensureStorageCapacity(input.userId, plan, BigInt(result.data.length));
       storageKey = await storeConversionResult({
         ...result,
         conversionId,
@@ -36,10 +41,11 @@ export async function processConversionJob({ conversionId, ...input }: ProcessCo
         resultSize: BigInt(result.data.length),
         storageKey,
         completedAt: new Date(),
+        expiresAt: storageKey ? expirationForPlan(plan) : null,
       },
     });
     return result;
-  } catch {
+  } catch (error) {
     if (storageKey) {
       try {
         await getStorageService().deleteFile(storageKey);
@@ -51,10 +57,21 @@ export async function processConversionJob({ conversionId, ...input }: ProcessCo
       where: { id: conversionId, status: "PROCESSING" },
       data: {
         status: "FAILED",
-        errorMessage: "Conversion failed. Check the source file and try again.",
+        errorMessage:
+          error instanceof StorageQuotaExceededError
+            ? "Storage limit reached for the active plan."
+            : "Conversion failed. Check the source file and try again.",
         completedAt: new Date(),
       },
     });
     return undefined;
   }
+}
+
+function expirationForPlan(plan: SubscriptionPlan) {
+  const retentionDays = getPlanDefinition(plan).retentionDays;
+  if (retentionDays === null) return null;
+  const expiresAt = new Date();
+  expiresAt.setUTCDate(expiresAt.getUTCDate() + retentionDays);
+  return expiresAt;
 }

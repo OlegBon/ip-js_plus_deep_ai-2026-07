@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { isSubscriptionPlan } from '@/lib/billing/plans';
 import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
 
@@ -33,8 +34,10 @@ export function RegisterForm() {
         return;
       }
 
+      const plan = new URLSearchParams(window.location.search).get('plan');
+      const callbackUrl = isSubscriptionPlan(plan) ? `/pricing?checkout=${plan}` : '/dashboard';
       toast.success('Registration successful! Please sign in.');
-      router.push('/login');
+      router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
     });
   };
 

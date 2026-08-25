@@ -1,5 +1,6 @@
 import { createApiKey, hashApiKey, normalizeApiKeyName, revokeApiKey } from "../api-keys";
 import { prisma } from "@/lib/prisma";
+import { getActivePlanForUser } from "@/lib/billing/subscriptions";
 
 jest.mock("crypto", () => ({
   createHash: jest.fn(() => ({ update: jest.fn(() => ({ digest: jest.fn(() => "key-hash") })) })),
@@ -8,13 +9,16 @@ jest.mock("crypto", () => ({
 jest.mock("@/lib/prisma", () => ({
   prisma: { user: { findUnique: jest.fn() }, apiKey: { create: jest.fn(), updateMany: jest.fn() } },
 }));
+jest.mock("@/lib/billing/subscriptions", () => ({ getActivePlanForUser: jest.fn() }));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: false });
+const mockedGetActivePlanForUser = jest.mocked(getActivePlanForUser);
 
 describe("API key service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ status: "ACTIVE" } as never);
+    mockedGetActivePlanForUser.mockResolvedValue("BASIC");
   });
 
   it("generates a secret once but stores only its SHA-256 hash", async () => {

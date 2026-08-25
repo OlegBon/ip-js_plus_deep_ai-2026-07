@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     apiKey: { findUnique: jest.fn() },
+    conversionLog: { count: jest.fn() },
     $transaction: jest.fn(),
   },
 }));
@@ -21,7 +22,10 @@ function makeFile(name = "image.png", type = "image/png", size = 4) {
 }
 
 describe("conversion request service", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedPrisma.conversionLog.count.mockResolvedValue(0);
+  });
 
   it("authenticates an active, non-revoked API key by its hash", async () => {
     mockedPrisma.apiKey.findUnique.mockResolvedValue({

@@ -64,6 +64,7 @@ export async function registerUser(input: RegisterUserInput): Promise<Registrati
         email,
         password: passwordHash,
         name: name || null,
+        subscription: { create: { activePlan: "FREE" } },
       },
       select: {
         id: true,

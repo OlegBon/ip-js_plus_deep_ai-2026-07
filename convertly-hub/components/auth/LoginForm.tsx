@@ -28,7 +28,8 @@ export function LoginForm() {
         return;
       }
 
-      router.replace('/dashboard');
+      const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
+      router.replace(callbackUrl?.startsWith('/') ? callbackUrl : '/dashboard');
       router.refresh();
     });
   };
