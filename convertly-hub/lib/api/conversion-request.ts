@@ -7,11 +7,11 @@ import {
 import { getPlanDefinition } from "@/lib/billing/plans";
 import type { SubscriptionPlan } from "@prisma/client";
 
-type ApiPrincipal = {
-  apiKeyId: string;
+export type ConversionPrincipal = {
   userId: string;
   storeConversions: boolean;
   plan?: SubscriptionPlan;
+  apiKeyId?: string;
 };
 
 type CreateConversionInput = {
@@ -25,7 +25,7 @@ type ConversionRequestValidation =
 
 export class ConversionQuotaExceededError extends Error {}
 
-export async function authenticateApiKey(authorization: string | null): Promise<ApiPrincipal | null> {
+export async function authenticateApiKey(authorization: string | null): Promise<ConversionPrincipal | null> {
   const key = parseBearerToken(authorization);
   if (!key) return null;
 
@@ -51,12 +51,30 @@ export async function authenticateApiKey(authorization: string | null): Promise<
   return {
     apiKeyId: apiKey.id,
     userId: apiKey.userId,
-    storeConversions: apiKey.user.storeConversions,
+    storeConversions: effectiveStoreConversions(apiKey.user.subscription?.activePlan ?? apiKey.user.plan, apiKey.user.storeConversions),
     plan: apiKey.user.subscription?.activePlan ?? apiKey.user.plan,
   };
 }
 
-export async function createConversionRequest(principal: ApiPrincipal, input: CreateConversionInput) {
+export async function getSessionConversionPrincipal(userId: string): Promise<ConversionPrincipal | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      status: true,
+      storeConversions: true,
+      plan: true,
+      subscription: { select: { activePlan: true } },
+    },
+  });
+
+  if (!user || user.status !== "ACTIVE") return null;
+
+  const plan = user.subscription?.activePlan ?? user.plan;
+  return { userId: user.id, plan, storeConversions: effectiveStoreConversions(plan, user.storeConversions) };
+}
+
+export async function createConversionRequest(principal: ConversionPrincipal, input: CreateConversionInput) {
   const plan = getPlanDefinition(principal.plan ?? "FREE");
   const validation = validateConversionRequest(input, plan.maxFileSizeBytes);
   if ("error" in validation) return validation;
@@ -79,14 +97,20 @@ export async function createConversionRequest(principal: ApiPrincipal, input: Cr
       },
       select: { id: true, status: true, createdAt: true },
     });
-    await transaction.apiKey.update({
-      where: { id: principal.apiKeyId },
-      data: { lastUsedAt: new Date() },
-    });
+    if (principal.apiKeyId) {
+      await transaction.apiKey.update({
+        where: { id: principal.apiKeyId },
+        data: { lastUsedAt: new Date() },
+      });
+    }
     return created;
   });
 
   return { conversion };
+}
+
+function effectiveStoreConversions(plan: SubscriptionPlan, storeConversions: boolean) {
+  return plan === "FREE" ? true : storeConversions;
 }
 
 export function validateConversionRequest(input: CreateConversionInput, maxUploadSizeBytes = getPlanDefinition("FREE").maxFileSizeBytes): ConversionRequestValidation {

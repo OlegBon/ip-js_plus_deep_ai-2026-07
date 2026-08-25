@@ -11,17 +11,21 @@ interface FileDropzoneProps {
   description: string;
   accept: Record<string, string[]>;
   onUpload: (file: File) => Promise<void>;
+  getSuccessMessage?: (file: File) => string;
   maxSize?: number;
   maxSizeLabel?: string;
 }
 
 type Status = 'idle' | 'uploading' | 'success' | 'error';
 
+const defaultSuccessMessage = (file: File) => `${file.name} uploaded successfully!`;
+
 const FileDropzone = ({
   title,
   description,
   accept,
   onUpload,
+  getSuccessMessage = defaultSuccessMessage,
   maxSize = MAX_UPLOAD_SIZE_BYTES,
   maxSizeLabel = MAX_UPLOAD_SIZE_LABEL,
 }: FileDropzoneProps) => {
@@ -29,6 +33,7 @@ const FileDropzone = ({
   const [progress, setProgress] = useState(0);
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -37,6 +42,7 @@ const FileDropzone = ({
     setFileName(file.name);
     setStatus('uploading');
     setErrorMessage(null);
+    setSuccessMessage(null);
     setProgress(0);
 
     // Simulate upload progress
@@ -54,7 +60,9 @@ const FileDropzone = ({
       await onUpload(file);
       setProgress(100);
       setStatus('success');
-      toast.success(`${file.name} uploaded successfully!`);
+      const message = getSuccessMessage(file);
+      setSuccessMessage(message);
+      toast.success(message);
     } catch (error) {
       setStatus('error');
       const message = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -63,7 +71,7 @@ const FileDropzone = ({
     } finally {
         clearInterval(interval);
     }
-  }, [onUpload]);
+  }, [getSuccessMessage, onUpload]);
 
   const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
     const rejection = fileRejections[0];
@@ -103,7 +111,7 @@ const FileDropzone = ({
         return (
             <div className="text-center">
                 <CheckCircle className="text-success mx-auto h-12 w-12" />
-                <p className="text-text-primary mt-2">{fileName} uploaded successfully!</p>
+                <p className="text-text-primary mt-2">{successMessage}</p>
             </div>
         );
         case 'error':
