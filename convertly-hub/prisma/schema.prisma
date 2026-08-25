@@ -67,6 +67,18 @@ model User {
   @@index([status])
 }
 
+model GuestConversionQuota {
+  id          String   @id @default(uuid())
+  visitorHash String
+  periodStart DateTime @db.Timestamptz(3)
+  imageCount  Int      @default(0)
+  documentCount Int    @default(0)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([visitorHash, periodStart])
+  @@index([periodStart])
+}
+
 model Subscription {
   id            String             @id @default(uuid())
   userId        String             @unique

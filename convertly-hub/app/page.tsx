@@ -23,6 +23,7 @@ function conversionSuccessMessage(file: File) {
 
 export default function Home() {
   const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   const handleUpload = useCallback(async (file: File) => {
     const target = conversionTargets[file.type];
@@ -32,15 +33,13 @@ export default function Home() {
     formData.set("file", file);
     formData.set("targetFormat", target.format);
 
-    const response = await fetch("/api/account/conversions", { method: "POST", body: formData });
+    const response = await fetch(status === "authenticated" ? "/api/account/conversions" : "/api/guest/conversions", { method: "POST", body: formData });
     if (!response.ok) throw new Error(await responseError(response));
 
     const resultResponse = response.status === 202 ? await waitForStoredResult(await conversionId(response)) : response;
     const blob = await resultResponse.blob();
     downloadResult(blob, resultFileName(file.name, target.extension));
-  }, []);
-
-  const isAuthenticated = status === "authenticated";
+  }, [status]);
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center p-4">
@@ -48,7 +47,7 @@ export default function Home() {
         <section className="mb-12 text-center">
           <h1 className="text-text-primary mb-2 text-4xl font-bold">Seamless File Conversion</h1>
           <p className="text-text-secondary mx-auto max-w-2xl text-lg">
-            Convert JPG, PNG, and DOCX files securely from your Convertly Hub account.
+            {isAuthenticated ? "Convert JPG, PNG, and DOCX files securely from your Convertly Hub account." : "Try Convertly without an account: 3 image and 2 document conversions per month. Files up to 1 MB; downloads stay only in this browser."}
           </p>
         </section>
 
@@ -71,22 +70,7 @@ export default function Home() {
               getSuccessMessage={conversionSuccessMessage}
             />
           </div>
-        ) : (
-          <div className="mx-auto max-w-xl rounded-xl border border-border bg-white p-8 text-center shadow-sm">
-            <h2 className="text-text-primary text-xl font-semibold">Sign in to convert files</h2>
-            <p className="text-text-secondary mt-3">
-              Every conversion belongs to an account, so your privacy preference and result history are applied safely.
-            </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <Button asChild>
-                <Link href="/login">Log In</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href="/register">Create free account</Link>
-              </Button>
-            </div>
-          </div>
-        )}
+        ) : <><div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2"><FileDropzone title="Image Converter" description="JPG ↔ PNG · up to 1 MB · 3 per month" accept={IMAGE_FILE_ACCEPT} onUpload={handleUpload} maxSize={1024 * 1024} maxSizeLabel="1 MB" getSuccessMessage={conversionSuccessMessage} /><FileDropzone title="Document Converter" description="DOCX → PDF · up to 1 MB · 2 per month" accept={BROWSER_DOCUMENT_FILE_ACCEPT} onUpload={handleUpload} maxSize={1024 * 1024} maxSizeLabel="1 MB" getSuccessMessage={conversionSuccessMessage} /></div><div className="mt-8 text-center"><Button asChild variant="secondary"><Link href="/register">Create a free account for more conversions</Link></Button></div></>}
       </div>
     </div>
   );
