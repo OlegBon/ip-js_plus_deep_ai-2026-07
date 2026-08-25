@@ -1,185 +1,40 @@
-'use client';
-import React, { useState } from 'react';
-import Link from 'next/link';
-import EditProfileModal from './EditProfileModal';
-import ConfirmationModal from '../core/ConfirmationModal';
-import { Button } from '../ui/Button';
-import { toast } from '@/lib/hooks/use-toast';
-import { TelegramLinkButton } from './TelegramLinkButton';
+"use client";
 
-const UserProfile = () => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { TelegramLinkButton } from "./TelegramLinkButton";
+import { toast } from "@/lib/hooks/use-toast";
 
-  // Mock user data - unverified
-  const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    emailVerified: false,
-    telegramId: undefined,
-    telegramVerified: false,
-  };
+type Profile = { name: string | null; email: string; emailVerified: boolean; telegramId: string | null; telegramVerified: boolean };
 
-  // Mock user data - verified
-  /*
-  const user = {
-    name: 'Jane Doe',
-    email: 'jane.doe@example.com',
-    emailVerified: true,
-    telegramId: 'janedoe_tg',
-    telegramVerified: true,
-  };
-  */
+export default function UserProfile() {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [name, setName] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleOpenEditModal = () => setIsEditModalOpen(true);
-  const handleCloseEditModal = () => setIsEditModalOpen(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/account/profile", { signal: controller.signal })
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((result: Profile | null) => { setProfile(result); setName(result?.name ?? ""); })
+      .catch(() => setProfile(null));
+    return () => controller.abort();
+  }, []);
 
-  const handleOpenConfirmModal = () => setIsConfirmModalOpen(true);
-  const handleCloseConfirmModal = () => setIsConfirmModalOpen(false);
+  async function handleSaveName() {
+    const response = await fetch("/api/account/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+    const result = (await response.json()) as Profile | { error?: string };
+    if (!response.ok || !("email" in result)) { toast.error("error" in result ? result.error ?? "Unable to update profile." : "Unable to update profile."); return; }
+    setProfile(result);
+    setName(result.name ?? "");
+    setIsEditing(false);
+    toast.success("Profile updated.");
+  }
 
-  const handleDeleteAccount = () => {
-    console.log('Account deletion confirmed.');
-    toast.success('Your account deletion request has been submitted.');
-    handleCloseConfirmModal();
-  };
-
-  const handleSaveProfile = (updatedUser: any) => {
-    console.log('Profile updated:', updatedUser);
-    toast.success('Your profile has been updated.');
-    handleCloseEditModal();
-  };
-
-  const handleSendConfirmation = (type: 'email' | 'telegram') => {
-    // TODO: Implement actual confirmation sending logic
-    toast.success(`A new confirmation link has been sent to your ${type}.`);
-  };
-
-  return (
-    <>
-      <div className="p-6 bg-white rounded-lg shadow-md space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="w-full">
-            <p className="text-lg font-semibold">{user.name}</p>
-            <div className="flex items-center gap-2">
-              <p className="text-gray-600">{user.email}</p>
-              {user.emailVerified ? (
-                <span className="text-xs bg-green-100 text-green-800 font-medium px-2.5 py-0.5 rounded-full">
-                  Verified
-                </span>
-              ) : (
-                <span className="text-xs bg-yellow-100 text-yellow-800 font-medium px-2.5 py-0.5 rounded-full">
-                  Unverified
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            {!user.emailVerified && (
-              <Button
-                onClick={() => handleSendConfirmation('email')}
-                variant="secondary"
-                className="w-full md:w-[150px]"
-              >
-                Confirm Email
-              </Button>
-            )}
-            <Button onClick={handleOpenEditModal} className="w-full md:w-[150px]">
-              Edit
-            </Button>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200"></div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="w-full">
-            <p className="text-lg font-semibold">Telegram Account</p>
-            {user.telegramId ? (
-              <div className="flex items-center gap-2">
-                <p className="text-gray-600">@{user.telegramId}</p>
-                {user.telegramVerified ? (
-                  <span className="text-xs bg-green-100 text-green-800 font-medium px-2.5 py-0.5 rounded-full">
-                    Verified
-                  </span>
-                ) : (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 font-medium px-2.5 py-0.5 rounded-full">
-                    Unverified
-                  </span>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Not connected. Use the secure Telegram link below to connect your account.
-              </p>
-            )}
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            {user.telegramId && !user.telegramVerified ? (
-              <Button
-                onClick={() => handleSendConfirmation('telegram')}
-                variant="secondary"
-                className="w-full md:w-[150px] whitespace-nowrap"
-              >
-                Confirm Telegram
-              </Button>
-            ) : (
-              <TelegramLinkButton />
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200"></div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="w-full">
-            <p className="text-lg font-semibold">Reset Password</p>
-            <p className="text-sm text-gray-500">Change your password.</p>
-          </div>
-          <div className="text-sm flex items-center">
-            <Link
-              href="/password-reset"
-              className="text-accent hover:text-accent-hover font-medium whitespace-nowrap"
-            >
-              Forgot your password?
-            </Link>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200"></div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="w-full">
-            <p className="text-lg font-semibold">Delete Account</p>
-            <p className="text-sm text-gray-500">
-              Note: Account deletion will be handled by an administrator.
-            </p>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <Button
-              onClick={handleOpenConfirmModal}
-              variant="secondary"
-              className="w-full md:w-[150px]"
-            >
-              Delete Account
-            </Button>
-          </div>
-        </div>
-      </div>
-      <EditProfileModal
-        isOpen={isEditModalOpen}
-        onClose={handleCloseEditModal}
-        onSave={handleSaveProfile}
-        user={user}
-      />
-      <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={handleCloseConfirmModal}
-        onConfirm={handleDeleteAccount}
-        title="Delete Account"
-        message="Are you sure you want to delete your account? This action cannot be undone."
-      />
-    </>
-  );
-};
-
-export default UserProfile;
+  if (!profile) return <div className="rounded-lg bg-white p-6 shadow-md">Loading profile…</div>;
+  return <div className="space-y-6 rounded-lg bg-white p-6 shadow-md">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center"><div><p className="text-lg font-semibold">{profile.name || "Unnamed user"}</p><p className="text-gray-600">{profile.email}</p><p className="mt-1 text-xs text-gray-500">Email verification will be available with password recovery.</p></div><Button variant="secondary" onClick={() => setIsEditing((value) => !value)}>{isEditing ? "Cancel" : "Edit name"}</Button></div>
+    {isEditing && <div className="flex flex-col gap-3 sm:flex-row"><input aria-label="Display name" value={name} maxLength={80} onChange={(event) => setName(event.target.value)} className="w-full rounded border border-gray-300 px-3 py-2" /><Button onClick={handleSaveName}>Save</Button></div>}
+    <div className="border-t border-gray-200 pt-6"><div className="flex flex-col justify-between gap-4 md:flex-row md:items-center"><div><p className="text-lg font-semibold">Telegram Account</p><p className="text-sm text-gray-500">{profile.telegramId && profile.telegramVerified ? "Connected and verified." : "Connect Telegram with a one-time secure link."}</p></div>{profile.telegramId && profile.telegramVerified ? <span className="text-sm font-medium text-green-700">Connected</span> : <TelegramLinkButton />}</div></div>
+  </div>;
+}

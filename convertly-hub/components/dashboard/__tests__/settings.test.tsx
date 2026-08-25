@@ -12,18 +12,9 @@ describe('dashboard settings', () => {
     jest.clearAllMocks();
   });
 
-  it('copies and regenerates the API key', async () => {
-    const user = userEvent.setup();
-    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.123456789);
+  it('does not render API-key controls when the plan cannot use the API', async () => {
     render(<ApiKeyManager />);
-
-    await user.click(screen.getByRole('button', { name: 'Copy API Key' }));
-    expect(getMockToast().success).toHaveBeenCalledWith('API Key copied to clipboard!');
-
-    await user.click(screen.getByRole('button', { name: 'Regenerate API Key' }));
-    expect(getMockToast().success).toHaveBeenLastCalledWith('API Key regenerated!');
-    expect(screen.getByRole('textbox')).not.toHaveValue('ch_xxxxxx_xxxxxxxxxxxxxxxxxxxx');
-    randomSpy.mockRestore();
+    expect(await screen.findByText('API access is available from the Basic plan.')).toBeInTheDocument();
   });
 
   it('changes file-storage preference and reports the new state', async () => {
