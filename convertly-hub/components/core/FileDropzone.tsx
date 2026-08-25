@@ -14,6 +14,7 @@ interface FileDropzoneProps {
   getSuccessMessage?: (file: File) => string;
   maxSize?: number;
   maxSizeLabel?: string;
+  disabled?: boolean;
 }
 
 type Status = 'idle' | 'uploading' | 'success' | 'error';
@@ -28,6 +29,7 @@ const FileDropzone = ({
   getSuccessMessage = defaultSuccessMessage,
   maxSize = MAX_UPLOAD_SIZE_BYTES,
   maxSizeLabel = MAX_UPLOAD_SIZE_LABEL,
+  disabled = false,
 }: FileDropzoneProps) => {
   const [status, setStatus] = useState<Status>('idle');
   const [progress, setProgress] = useState(0);
@@ -93,6 +95,7 @@ const FileDropzone = ({
     accept,
     maxSize,
     multiple: false,
+    disabled,
   });
   
   const renderContent = () => {
@@ -138,7 +141,8 @@ const FileDropzone = ({
   return (
     <div
       {...getRootProps()}
-      className={`cursor-pointer rounded-lg border-2 border-dashed p-8 transition-colors
+      aria-disabled={disabled}
+      className={`${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} rounded-lg border-2 border-dashed p-8 transition-colors
         ${isDragActive ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'}
         ${status === 'success' && 'border-success'}
         ${status === 'error' && 'border-error'}`}

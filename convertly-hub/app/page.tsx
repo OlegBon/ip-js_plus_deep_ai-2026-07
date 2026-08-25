@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import FileDropzone from "@/components/core/FileDropzone";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +24,10 @@ function conversionSuccessMessage(file: File) {
 export default function Home() {
   const { status } = useSession();
   const isAuthenticated = status === "authenticated";
+  const [guestQuota, setGuestQuota] = useState({ image: 3, document: 2 });
+  const [guestDownload, setGuestDownload] = useState<{ blob: Blob; fileName: string; expiresAt: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { if (!guestDownload) return; const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, [guestDownload]);
 
   const handleUpload = useCallback(async (file: File) => {
     const target = conversionTargets[file.type];
@@ -38,8 +42,10 @@ export default function Home() {
 
     const resultResponse = response.status === 202 ? await waitForStoredResult(await conversionId(response)) : response;
     const blob = await resultResponse.blob();
-    downloadResult(blob, resultFileName(file.name, target.extension));
-  }, [status]);
+    const fileName = resultFileName(file.name, target.extension); downloadResult(blob, fileName);
+    if (!isAuthenticated) { setGuestQuota({ image: Number(resultResponse.headers.get("X-Guest-Image-Remaining") ?? guestQuota.image), document: Number(resultResponse.headers.get("X-Guest-Document-Remaining") ?? guestQuota.document) }); setGuestDownload({ blob, fileName, expiresAt: Date.now() + 10 * 60 * 1000 }); }
+  }, [guestQuota, isAuthenticated, status]);
+  const guestDownloadAvailable = guestDownload && guestDownload.expiresAt > now;
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center p-4">
@@ -70,7 +76,7 @@ export default function Home() {
               getSuccessMessage={conversionSuccessMessage}
             />
           </div>
-        ) : <><div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2"><FileDropzone title="Image Converter" description="JPG ↔ PNG · up to 1 MB · 3 per month" accept={IMAGE_FILE_ACCEPT} onUpload={handleUpload} maxSize={1024 * 1024} maxSizeLabel="1 MB" getSuccessMessage={conversionSuccessMessage} /><FileDropzone title="Document Converter" description="DOCX → PDF · up to 1 MB · 2 per month" accept={BROWSER_DOCUMENT_FILE_ACCEPT} onUpload={handleUpload} maxSize={1024 * 1024} maxSizeLabel="1 MB" getSuccessMessage={conversionSuccessMessage} /></div><div className="mt-8 text-center"><Button asChild variant="secondary"><Link href="/register">Create a free account for more conversions</Link></Button></div></>}
+        ) : <><div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2"><FileDropzone title="Image Converter" description={guestQuota.image > 0 ? `JPG ↔ PNG · up to 1 MB · ${guestQuota.image} left this month` : "Monthly image conversion limit reached."} accept={IMAGE_FILE_ACCEPT} onUpload={handleUpload} disabled={guestQuota.image === 0} maxSize={1024 * 1024} maxSizeLabel="1 MB" getSuccessMessage={conversionSuccessMessage} /><FileDropzone title="Document Converter" description={guestQuota.document > 0 ? `DOCX → PDF · up to 1 MB · ${guestQuota.document} left this month` : "Monthly document conversion limit reached."} accept={BROWSER_DOCUMENT_FILE_ACCEPT} onUpload={handleUpload} disabled={guestQuota.document === 0} maxSize={1024 * 1024} maxSizeLabel="1 MB" getSuccessMessage={conversionSuccessMessage} /></div>{guestDownloadAvailable && <div className="mx-auto mt-6 max-w-xl rounded-lg border border-border bg-white p-4 text-center"><p className="text-sm text-text-secondary">{guestDownload.fileName} is available in this browser for {Math.ceil((guestDownload.expiresAt - now) / 60_000)} minutes.</p><Button className="mt-3" variant="outline" onClick={() => downloadResult(guestDownload.blob, guestDownload.fileName)}>Download again</Button></div>}<div className="mt-8 text-center"><Button asChild variant="secondary"><Link href="/register">Create a free account for more conversions</Link></Button></div></>}
       </div>
     </div>
   );
