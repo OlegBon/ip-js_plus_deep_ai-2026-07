@@ -27,7 +27,7 @@
 | `status` | `UserStatus` | Обязательное, по умолчанию `ACTIVE`; индекс для административной фильтрации. |
 | `plan` | `SubscriptionPlan` | Обязательное, по умолчанию `FREE`. |
 | `storeConversions` | `Boolean` | Обязательная настройка хранения результатов, по умолчанию `true`. |
-| auth и Telegram-поля | `String?` / `DateTime?` | Хеши одноразовых токенов, сроки действия и даты подтверждения; хеши и Telegram ID уникальны. |
+| auth и Telegram-поля | `String?` / `DateTime?` | Хеши одноразовых токенов, сроки действия и даты подтверждения; `emailVerificationExpires` и `passwordResetExpires` дают email-ссылкам TTL 30 минут, хеши и Telegram ID уникальны. |
 | `apiKeys`, `conversions` | связи | Один пользователь имеет много API-ключей и записей конвертаций. |
 | `subscription` | связь `Subscription?` | One-to-one подписка; старые записи до миграции используют `plan` пользователя как fallback. |
 

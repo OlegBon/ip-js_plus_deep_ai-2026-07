@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +18,7 @@ import { toast } from '@/lib/hooks/use-toast';
 export default function ResetPasswordConfirmPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPending, startTransition] = useTransition();
   const params = useParams();
   const token = params.token;
 
@@ -27,9 +28,23 @@ export default function ResetPasswordConfirmPage() {
       toast.error("Passwords don't match.");
       return;
     }
-    // TODO: Implement actual password reset logic
-    console.log(`Password reset for token: ${token} with new password.`);
-    toast.success('Your password has been reset successfully!');
+    if (password.length < 12 || password.length > 128) {
+      toast.error('Use a password from 12 to 128 characters.');
+      return;
+    }
+    startTransition(async () => {
+      const response = await fetch('/api/auth/password-reset/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password, confirmPassword }),
+      });
+      const payload = (await response.json()) as { error?: string; message?: string };
+      if (!response.ok) {
+        toast.error(payload.error ?? 'Unable to reset password.');
+        return;
+      }
+      toast.success(payload.message ?? 'Your password has been reset successfully!');
+    });
   };
 
   return (
@@ -70,8 +85,8 @@ export default function ResetPasswordConfirmPage() {
                   placeholder="••••••••"
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Reset Password
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? 'Resetting…' : 'Reset Password'}
               </Button>
             </form>
             <div className="mt-4 text-center text-sm">

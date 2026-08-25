@@ -11,6 +11,7 @@
 - **База данных:** PostgreSQL (в Docker)
 - **Файловое хранилище:** MinIO (S3-совместимое объектное хранилище)
 - **Движок конвертации:** Gotenberg (Chromium + LibreOffice в изолированном контейнере)
+- **Почта в локальной разработке:** MailHog; в production — настраиваемый SMTP-провайдер
 - **Контейнеризация:** Docker Compose
 
 ---
@@ -38,7 +39,7 @@ cd convertly-hub
 npm install
 ```
 
-2. Поднимите инфраструктуру (PostgreSQL, MinIO, Gotenberg) через Docker:
+2. Поднимите инфраструктуру (PostgreSQL, MinIO, Gotenberg, MailHog) через Docker:
 
 ```bash
 docker compose up -d
@@ -70,7 +71,7 @@ npm run dev
 
 ## ⚠️ Текущий статус
 
-Реализованы аутентификация через HttpOnly-сессию, роли `USER`/`ADMIN`, API-ключи, Telegram linking, тарифные квоты и Mock Checkout, приватное хранение в MinIO и доступные Core-конвертации. Главная страница работает только для авторизованного пользователя: она отправляет файл через сессию и скачивает результат без передачи API-ключа в браузер.
+Реализованы аутентификация через HttpOnly-сессию, восстановление пароля и подтверждение email через одноразовые ссылки, роли `USER`/`ADMIN`, API-ключи, Telegram linking, тарифные квоты и Mock Checkout, приватное хранение в MinIO и доступные Core-конвертации. Главная страница работает только для авторизованного пользователя: она отправляет файл через сессию и скачивает результат без передачи API-ключа в браузер.
 
 Dashboard и Admin UI ещё подключаются к реальным данным отдельными задачами; реальные платежи, `PDF → DOCX`, распределённый rate limiter, production deployment и интеграционные E2E остаются в [плане работ](./docs/work_plan.md).
 
@@ -89,6 +90,8 @@ Dashboard и Admin UI ещё подключаются к реальным дан
 ## 📌 Основные эндпоинты
 
 - `POST /api/auth/register` — регистрация с bcrypt-хешированием пароля.
+- `POST /api/auth/password-reset/request` и `POST /api/auth/password-reset/confirm` — одноразовое восстановление пароля.
+- `POST /api/account/email-verification` — отправка ссылки для подтверждения email в текущую сессию.
 - `POST /api/account/conversions` — browser-конвертация для активной NextAuth-сессии.
 - `GET /api/account/conversions/:conversionId/download` — session-защищённое скачивание сохранённого результата.
 - `POST /api/v1/convert` — конвертация по Bearer API-ключу для тарифов с API-доступом.

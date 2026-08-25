@@ -17,6 +17,7 @@
   - Web UI (Панель управления): `http://localhost:9001`
 - **PostgreSQL (реляционная БД):** `localhost:5432`.
 - **Prisma Studio (визуальная админка БД):** `http://localhost:5555` (запускается вручную).
+- **MailHog (локальный SMTP и inbox):** SMTP `localhost:1025`, inbox `http://localhost:8025`.
 
 ---
 
@@ -34,6 +35,12 @@
 Для S3-сервиса задайте в `.env` приватные переменные `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY` и `MINIO_SECRET_KEY`. Не используйте для них префикс `NEXT_PUBLIC_`. Имя бакета задаётся `MINIO_BUCKET`; если переменная не указана, используется `convertly-files`.
 
 Core использует `GOTENBERG_URL` для адреса воркера документов; если переменная не задана, в локальной среде используется `http://localhost:3000`. Значение не является секретом.
+
+### Локальная почта и production SMTP
+
+Для password reset и подтверждения email Docker запускает MailHog без учётных данных. Добавьте в корневой `.env` `APP_URL=http://localhost:3001`, `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_FROM="Convertly Hub <no-reply@convertly.local>"` и `SMTP_SECURE=false`. Письма появляются в `http://localhost:8025`.
+
+В production замените `APP_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`; при необходимости добавьте приватные `SMTP_USER`, `SMTP_PASSWORD` и `SMTP_SECURE=true`. Эти значения остаются только в `.env`.
 
 ### Режим приватности результатов
 
@@ -143,6 +150,7 @@ _(Данные базы не удалятся благодаря настрое�
 1. **PostgreSQL:** `docker compose exec -T db pg_isready` должен подтвердить готовность базы.
 2. **MinIO:** `http://localhost:9000/minio/health/live` должен вернуть успешный ответ.
 3. **Воркер Gotenberg:** `http://localhost:3000/health` должен вернуть JSON со статусом `up` для Chromium и LibreOffice.
+4. **MailHog:** `http://localhost:8025` открывает локальный inbox; после запроса восстановления в нём появляется письмо со ссылкой.
 4. **Системный API (Next.js + БД + воркер):** `http://localhost:3001/api/health`
 
 - Успешный ответ:
