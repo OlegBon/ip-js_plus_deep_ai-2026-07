@@ -87,114 +87,52 @@ services:
 
 ```plaintext
 /
-├── 📂 app/                  # Основная папка Next.js App Router
-│   ├── 📂 (auth)/           # Группа маршрутов для аутентификации
-│   │   ├── 📂 login/
-│   │   │   └── page.tsx     # Страница входа
-│   │   ├── 📂 register/
-│   │   │   └── page.tsx     # Страница регистрации
-│   │   └── 📂 password-reset/
-│   │       ├── page.tsx     # Страница запроса на сброс пароля
-│   │       └── 📂 [token]/
-│   │           └── page.tsx # Страница установки нового пароля
-│   ├── 📂 (dashboard)/      # Группа маршрутов личного кабинета (защищена NextAuth-сессией)
-│   │   ├── 📂 dashboard/
-│   │   │   └── page.tsx     # Страница личного кабинета
-│   │   ├── 📂 management/
-│   │   │   └── page.tsx     # Страница панели администратора
-│   │   └── layout.tsx       # Макет для личного кабинета
-│   ├── 📂 api/
-│   │   ├── 📂 account/      # Session-защищённые настройки, ключи и browser-конвертации
-│   │   ├── 📂 admin/        # API поиска пользователей, статусов и отзыва ключей для ADMIN
-│   │   ├── 📂 auth/
-│   │   │   ├── 📂 [...nextauth]/ # Обработчики NextAuth.js
-│   │   │   └── 📂 register/      # Регистрация пользователя
-│   │   ├── 📂 health/       # Проверка состояния инфраструктуры
-│   │   ├── 📂 telegram/     # Webhook привязки Telegram
-│   │   └── 📂 v1/           # Конвертация и авторизованное скачивание результатов
-│   ├── 📂 pricing/          # Маршрут для страницы с тарифами
-│   │   └── page.tsx         # Страница с тарифами
-│   ├── 📂 docs/            # Маршрут для страницы с документацией API
-│   │   └── page.tsx         # Страница с документацией API
-│   ├── layout.tsx           # Корневой макет
-│   ├── page.tsx             # Главная страница
-│   └── not-found.tsx        # Страница 404
-│
-├── 📂 components/           # Переиспользуемые React-компоненты (UI)
-│   ├── 📂 auth/             # Компоненты, связанные с аутентификацией
-│   │   ├── LoginForm.tsx    # Форма входа
-│   │   ├── RegisterForm.tsx # Форма регистрации
-│   │   └── 📂 __tests__/    # Component-тесты форм
-│   ├── 📂 core/             # Ключевые компоненты (Header, Footer, FileDropzone, модальные окна)
-│   │   ├── ConfirmationModal.tsx # Модальное окно подтверждения (например, для удаления)
-│   │   ├── Header.tsx       # Основной компонент заголовка с навигацией и ссылками аутентификации, недавно рефакторингованный для улучшения UX
-│   │   ├── Footer.tsx
-│   │   └── FileDropzone.tsx
-│   │   └── 📂 __tests__/    # Тесты загрузки файлов
-│   ├── 📂 dashboard/        # Компоненты для личного кабинета
-│   │   ├── UserProfile.tsx
-│   │   ├── UserPlan.tsx
-│   │   ├── ApiKeyManager.tsx
-│   │   ├── PrivacySettings.tsx
-│   │   └── ConversionHistory.tsx # История конвертаций с поиском, сортировкой и пагинацией
-│   │   └── 📂 __tests__/    # Тесты настроек кабинета
-│   ├── 📂 admin/            # Компоненты для панели администратора
-│   │   ├── EditUserModal.tsx    # Модальное окно для редактирования пользователя
-│   │   ├── SystemMonitoring.tsx
-│   │   └── UserManagement.tsx # Управление пользователями с редактированием, удалением, сортировкой и пагинацией
-│   │   └── 📂 __tests__/    # Тесты управления пользователями
-│   ├── 📂 pricing/          # Компоненты для страницы с тарифами
-│   │   └── PaymentModal.tsx   # Модальное окно для оплаты
-│   │   └── 📂 __tests__/      # Тесты платежного UI
-│   └── 📂 ui/               # Базовые, переиспользуемые UI-компоненты
-│       ├── Button.tsx       # Универсальная кнопка с вариантами
-│       ├── Card.tsx         # Компонент карточки
-│       ├── Input.tsx        # Поле ввода
-│       ├── Label.tsx        # Метка для поля ввода
-│       ├── Modal.tsx        # Генерируемое модальное окно
-│       ├── Pagination.tsx   # Компонент пагинации
-│       ├── Search.tsx       # Компонент поиска с debounce
-│       └── Toast.tsx        # Компонент для уведомлений (toasts)
-│       └── 📂 __tests__/    # Тесты базовых UI-компонентов
-│
-├── 📂 components/**/__tests__/# Тесты размещены рядом с соответствующими компонентами
-│
-├── 📂 e2e/                  # Критические пользовательские сценарии Playwright
-├── playwright.config.ts      # Конфигурация E2E-тестов и локального web-сервера
-│
-├── 📂 docs/                 # Техническая и эксплуатационная документация
-│   ├── START.md             # Актуальная инструкция запуска
-│   └── 📂 archive/          # Исторические черновики документации
-│
-├── 📂 lib/                  # Вспомогательные модули
-│   ├── 📂 api/              # Проверка API-ключа и создание задач конвертации
-│   ├── 📂 auth/             # Конфигурация NextAuth.js и серверное чтение сессии
-│   ├── 📂 core/             # Конвертация файлов и фоновая обработка заданий
-│   ├── 📂 privacy/          # Выбор режима хранения и выдача результатов
-│   ├── 📂 hooks/            # React-хуки (например, use-toast)
-│   └── 📂 storage/          # Серверный S3-сервис и его unit-тесты
-│
-├── 📂 prisma/               # Файлы Prisma ORM (схема, миграции)
-│
-├── 📂 public/               # Статические файлы (изображения, иконки)
-│
-├── 📂 .codex/               # Локальные правила и skills для Codex
-│   ├── 📂 rules/local-database.md   # Правила работы с PostgreSQL и Prisma
-│   └── 📂 skills/                   # Локальные skills Codex
-│       ├── database-reviewer/       # Ревью PostgreSQL и Prisma
-│       ├── database-migrations/     # Безопасные миграции
-│       ├── postgres-patterns/       # SQL и производительность PostgreSQL
-│       └── prisma-patterns/         # Схема и Prisma Client
-│
-├── .env                     # Приватные переменные окружения (ключи, доступы)
-├── .prettierrc              # Конфигурация Prettier
-├── .prettierignore          # Файлы, игнорируемые Prettier
-├── docker-compose.yml       # Конфигурация локальной среды
-├── eslint.config.mjs        # Конфигурация ESLint
-├── tailwind.config.ts       # Конфигурация Tailwind CSS
-├── postcss.config.mjs       # Конфигурация PostCSS
-├── next.config.ts           # Конфигурация Next.js
-└── package.json             # Зависимости и скрипты
+├── app/                              # Next.js App Router
+│   ├── (auth)/                       # /login, /register, /password-reset[/token]
+│   ├── (dashboard)/                  # Защищённые /dashboard и /management
+│   │   ├── layout.tsx                # Проверка сессии Dashboard
+│   │   └── management/layout.tsx     # Дополнительная server-side проверка ADMIN
+│   ├── api/
+│   │   ├── account/                  # Сессия: billing, preferences, Telegram, ключи, конвертации/скачивание
+│   │   ├── admin/                    # Только ADMIN: пользователи и API-ключи
+│   │   ├── auth/                     # NextAuth handlers и регистрация
+│   │   ├── telegram/webhook/          # Webhook привязки Telegram
+│   │   ├── v1/                       # Public API: конвертация и скачивание по API-ключу
+│   │   └── health/                   # Состояние PostgreSQL и Gotenberg
+│   ├── docs/, pricing/               # Публичные страницы API-документации и тарифов
+│   ├── layout.tsx, page.tsx          # Корневой layout и browser-конвертация
+│   └── not-found.tsx, globals.css
+├── components/
+│   ├── auth/                         # AuthSessionProvider и формы входа/регистрации
+│   ├── core/                         # Header, Footer, FileDropzone, confirmation UI
+│   ├── dashboard/                    # Профиль, тариф, ключи, privacy, Telegram, история
+│   ├── admin/                        # UserManagement, SystemMonitoring, EditUserModal
+│   ├── pricing/                      # PaymentModal для Mock Checkout
+│   ├── ui/                           # Базовые Button, Card, Input, Modal, Toast и др.
+│   └── **/__tests__/                 # Component-тесты рядом с компонентами
+├── lib/
+│   ├── admin/                        # Поиск пользователей и административные действия
+│   ├── api/                          # API-ключи, request-конвертации, rate limit
+│   ├── auth/                         # NextAuth, пользователи, server-side authorization
+│   ├── billing/                      # Планы, квоты и Mock Checkout
+│   ├── core/                         # Валидация сигнатур, sharp/Gotenberg и жизненный цикл job
+│   ├── files/                        # Единая политика upload MIME/размеров
+│   ├── privacy/, storage/            # Правила хранения и S3/MinIO-клиент
+│   ├── telegram/                     # Одноразовые Telegram link-токены и webhook-логика
+│   ├── hooks/                        # Клиентские UI-хуки
+│   └── prisma.ts                     # Prisma Client через PostgreSQL adapter
+├── prisma/
+│   ├── schema.prisma                 # Модели и перечисления
+│   └── migrations/                   # Отслеживаемые SQL-миграции
+├── scripts/                          # API audit и назначение первого администратора
+├── e2e/ + playwright.config.ts       # Playwright-сценарии и конфигурация
+├── docs/                             # Architecture, START, DB schema, audits, план и журнал
+├── public/                           # Статические файлы
+├── types/next-auth.d.ts              # Расширение типов user и JWT-сессии NextAuth
+├── .codex/, AGENTS.md                # Локальные правила работы с проектом
+├── .env                              # Только локальные секреты, не попадает в Git
+├── docker-compose.yml                # PostgreSQL, MinIO и Gotenberg
+└── package.json                      # Команды и зависимости
 ```
 
 ---

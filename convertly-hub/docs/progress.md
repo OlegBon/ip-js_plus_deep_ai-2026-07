@@ -6,6 +6,7 @@
 - **Описание:**
   - `README.md`, `architecture.md` и `START.md` обновлены: аутентификация, API-ключи, роли, Telegram, тарифные квоты, browser-конвертация, приватное S3-хранение и доступные направления конвертации описаны как реализованные.
   - Актуализированы схема БД, E2E-план и публичная страница `/docs`; добавлены session-защищённые browser-маршруты и фактические ограничения API.
+  - Раздел «Структура папок проекта» в `architecture.md` заново сверён с репозиторием: в нём отражены account/admin API, billing, файлы/приватность/S3, Telegram, scripts, migrations и расположение тестов.
 - **Измененные файлы:**
   - `README.md`, `docs/architecture.md`, `docs/START.md`, `docs/db-schema.md`, `docs/e2e_test_plan.md`, `docs/progress.md`, `app/docs/page.tsx`.
 - **Новые переменные окружения:**
