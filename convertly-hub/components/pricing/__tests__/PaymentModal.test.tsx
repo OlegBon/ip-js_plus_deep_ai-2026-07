@@ -4,21 +4,17 @@ import userEvent from '@testing-library/user-event';
 import PaymentModal from '../PaymentModal';
 
 describe('PaymentModal', () => {
-  const tier = { name: 'Pro', priceMonthly: '$19' };
+  const plan = { id: 'PRO', name: 'Pro', priceCents: 1900, monthlyConversions: 2000, maxFileSizeBytes: 1, storageBytes: BigInt(1), retentionDays: 30, apiAccess: true, support: 'Email', description: 'Test' } as const;
 
-  it('is hidden without a selected tier and closes when payment succeeds', async () => {
+  it('validates demo fields and sends no payment-card data', async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => undefined);
-    const { rerender } = render(<PaymentModal isOpen onClose={onClose} tier={null} />);
-    expect(screen.queryByText(/Payment for/)).not.toBeInTheDocument();
-
-    rerender(<PaymentModal isOpen onClose={onClose} tier={tier} />);
-    expect(screen.getByRole('heading', { name: 'Payment for Pro Plan' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Proceed to Payment' }));
-
-    expect(alertSpy).toHaveBeenCalledWith('Payment for Pro plan successful!');
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    render(<PaymentModal isOpen onClose={onClose} plan={plan} />);
+    await user.type(screen.getByLabelText('Billing name'), 'Alex');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Save demo request' }));
+    expect(global.fetch).toHaveBeenCalledWith('/api/account/billing', expect.objectContaining({ method: 'POST' }));
     expect(onClose).toHaveBeenCalledTimes(1);
-    alertSpy.mockRestore();
   });
 });

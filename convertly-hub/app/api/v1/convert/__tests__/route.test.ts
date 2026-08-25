@@ -50,7 +50,7 @@ describe("POST /api/v1/convert", () => {
   });
 
   it("requires multipart/form-data", async () => {
-    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true });
+    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true, plan: "BASIC" });
 
     const response = await POST(
       new Request("http://localhost/api/v1/convert", {
@@ -65,7 +65,7 @@ describe("POST /api/v1/convert", () => {
   });
 
   it("returns 429 with Retry-After when the API-key limit is exceeded", async () => {
-    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true });
+    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true, plan: "BASIC" });
     mockedConsumeApiKeyRateLimit.mockReturnValue({ allowed: false, remaining: 0, retryAfterSeconds: 42 });
 
     const response = await POST(new Request("http://localhost/api/v1/convert", { method: "POST" }));
@@ -76,7 +76,7 @@ describe("POST /api/v1/convert", () => {
   });
 
   it("rejects an oversized file before Core reads it", async () => {
-    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true });
+    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true, plan: "BASIC" });
     mockedValidateConversionRequest.mockReturnValue({ error: "FILE_TOO_LARGE" });
     const formData = new FormData();
     formData.append("file", new Blob(["too large"], { type: "image/png" }), "image.png");
@@ -91,7 +91,7 @@ describe("POST /api/v1/convert", () => {
   });
 
   it("queues a validated conversion with 202", async () => {
-    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true });
+    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true, plan: "BASIC" });
     mockedCreateConversionRequest.mockResolvedValue({
       conversion: {
         id: "conversion-1",
@@ -119,7 +119,7 @@ describe("POST /api/v1/convert", () => {
   });
 
   it("streams the converted file and skips S3 when storage is disabled", async () => {
-    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: false });
+    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: false, plan: "BASIC" });
     mockedCreateConversionRequest.mockResolvedValue({
       conversion: { id: "conversion-1", status: "PENDING", createdAt: new Date("2026-08-24T12:00:00.000Z") },
     });

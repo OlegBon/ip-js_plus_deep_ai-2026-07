@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth/session";
 import {
   ApiKeyUserNotFoundError,
+  ApiKeyPlanNotEligibleError,
   createApiKey,
   listApiKeys,
   normalizeApiKeyName,
@@ -18,6 +19,9 @@ export async function GET() {
     return NextResponse.json({ apiKeys }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof ApiKeyUserNotFoundError) return unauthorized();
+    if (error instanceof ApiKeyPlanNotEligibleError) {
+      return NextResponse.json({ error: "API keys require a Basic plan or higher." }, { status: 403 });
+    }
     return NextResponse.json({ error: "Unable to list API keys." }, { status: 503 });
   }
 }

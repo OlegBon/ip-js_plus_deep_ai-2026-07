@@ -219,6 +219,8 @@ services:
 
 - **Backend ↔ Хранилище S3:** `lib/storage/s3.ts` инкапсулирует проверку бакета, загрузку, скачивание и удаление объектов через AWS SDK v3. При `storeConversions=true` готовый файл кладётся по user-scoped ключу; публичные URL не создаются. `GET /api/v1/conversions/:conversionId/download` сначала проверяет API-ключ и принадлежность результата пользователю, затем передаёт объект потоком. При `storeConversions=false` S3 не вызывается, а `POST /api/v1/convert` возвращает файл напрямую с `Cache-Control: no-store`.
 
+- **Тарифы и Mock Checkout:** `lib/billing/plans.ts` задаёт лимиты конвертаций, размер файла, storage, retention, API и поддержку. `Subscription` отделяет активный тариф от одной заменяемой заявки `PENDING_DEMO`; demo-форма не принимает и не хранит реквизиты и не выдаёт платные права. Free хранит результат 24 часа, а API Keys и File Storage остаются недоступными. Usage берётся из PostgreSQL, а `expiresAt` выводится в истории и блокирует просроченное скачивание.
+
 - **Backend ↔ Ядро:**
   - Легкие задачи: `JPG ↔ PNG` выполняются библиотекой `sharp` в серверном процессе.
   - Тяжелые задачи: `DOCX → PDF` отправляются с таймаутом 30 секунд на маршрут Gotenberg `/forms/libreoffice/convert`.

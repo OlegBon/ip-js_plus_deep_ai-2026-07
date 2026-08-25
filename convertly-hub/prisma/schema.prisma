@@ -23,6 +23,11 @@ enum SubscriptionPlan {
   ENTERPRISE
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  PENDING_DEMO
+}
+
 enum ConversionStatus {
   PENDING
   PROCESSING
@@ -56,8 +61,21 @@ model User {
 
   apiKeys     ApiKey[]
   conversions ConversionLog[]
+  subscription Subscription?
 
   @@index([status])
+}
+
+model Subscription {
+  id            String             @id @default(uuid())
+  userId        String             @unique
+  activePlan    SubscriptionPlan   @default(FREE)
+  requestedPlan SubscriptionPlan?
+  status        SubscriptionStatus @default(ACTIVE)
+  createdAt     DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime           @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RoleChangeAudit {

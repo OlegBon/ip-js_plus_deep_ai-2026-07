@@ -2,6 +2,7 @@ import { processConversionJob } from "../conversion-job";
 import { convertFile } from "../conversion";
 import { storeConversionResult } from "@/lib/privacy/conversion-results";
 import { prisma } from "@/lib/prisma";
+import { ensureStorageCapacity } from "@/lib/billing/subscriptions";
 
 jest.mock("@/lib/core/conversion", () => ({ convertFile: jest.fn() }));
 jest.mock("@/lib/privacy/conversion-results", () => ({ storeConversionResult: jest.fn() }));
@@ -9,10 +10,12 @@ jest.mock("@/lib/storage/s3", () => ({ getStorageService: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({
   prisma: { conversionLog: { updateMany: jest.fn(), update: jest.fn() } },
 }));
+jest.mock("@/lib/billing/subscriptions", () => ({ ensureStorageCapacity: jest.fn(), StorageQuotaExceededError: class StorageQuotaExceededError extends Error {} }));
 
 const mockedConvertFile = jest.mocked(convertFile);
 const mockedStoreConversionResult = jest.mocked(storeConversionResult);
 const mockedPrisma = jest.mocked(prisma, { shallow: false });
+const mockedEnsureStorageCapacity = jest.mocked(ensureStorageCapacity);
 const job = {
   conversionId: "conversion-1",
   data: Buffer.from([0xff, 0xd8, 0xff]),
@@ -24,7 +27,7 @@ const job = {
 };
 
 describe("conversion job", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => { jest.clearAllMocks(); mockedEnsureStorageCapacity.mockResolvedValue(undefined); });
 
   it("marks a pending conversion completed after Core returns a result", async () => {
     mockedPrisma.conversionLog.updateMany.mockResolvedValue({ count: 1 } as never);

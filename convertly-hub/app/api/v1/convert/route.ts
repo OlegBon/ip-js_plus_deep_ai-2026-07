@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import {
   authenticateApiKey,
+  ConversionQuotaExceededError,
   createConversionRequest,
   isMultipartFormData,
   validateConversionRequest,
@@ -8,6 +9,7 @@ import {
 import { CoreConversionError, validateCoreConversion } from "@/lib/core/conversion";
 import { processConversionJob } from "@/lib/core/conversion-job";
 import { consumeApiKeyRateLimit } from "@/lib/api/rate-limit";
+import { getPlanDefinition } from "@/lib/billing/plans";
 
 export const runtime = "nodejs";
 
@@ -15,6 +17,10 @@ export async function POST(request: Request) {
   const principal = await authenticateApiKey(request.headers.get("authorization"));
   if (!principal) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  if (!getPlanDefinition(principal.plan ?? "FREE").apiAccess) {
+    return NextResponse.json({ error: "API access requires a Basic plan or higher." }, { status: 403 });
   }
 
   const rateLimit = consumeApiKeyRateLimit(principal.apiKeyId);
@@ -63,7 +69,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unable to validate source file." }, { status: 400 });
   }
 
-  const result = await createConversionRequest(principal, { file, targetFormat: requestValidation.targetFormat });
+  let result;
+  try {
+    result = await createConversionRequest(principal, { file, targetFormat: requestValidation.targetFormat });
+  } catch (error) {
+    if (error instanceof ConversionQuotaExceededError) {
+      return NextResponse.json({ error: "Monthly conversion limit reached for the active plan." }, { status: 429 });
+    }
+    return NextResponse.json({ error: "Unable to create conversion request." }, { status: 503 });
+  }
   if ("error" in result) {
     return conversionValidationError(result.error);
   }
@@ -76,6 +90,7 @@ export async function POST(request: Request) {
     targetFormat: requestValidation.targetFormat,
     userId: principal.userId,
     storeResult: principal.storeConversions,
+    plan: principal.plan ?? "FREE",
   };
 
   if (!principal.storeConversions) {
@@ -113,7 +128,7 @@ function contentDisposition(fileName: string) {
 function conversionValidationError(error: "FILE_TOO_LARGE" | "UNSUPPORTED_FILE" | "UNSUPPORTED_TARGET_FORMAT") {
   switch (error) {
     case "FILE_TOO_LARGE":
-      return NextResponse.json({ error: "File exceeds the 10 MB limit." }, { status: 413 });
+      return NextResponse.json({ error: "File exceeds the active plan limit." }, { status: 413 });
     case "UNSUPPORTED_FILE":
       return NextResponse.json({ error: "Unsupported source file." }, { status: 415 });
     case "UNSUPPORTED_TARGET_FORMAT":

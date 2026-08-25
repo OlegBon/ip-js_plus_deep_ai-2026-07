@@ -55,6 +55,6 @@ describe('RegisterForm', () => {
       }),
     });
     expect(getMockToast().success).toHaveBeenCalledWith('Registration successful! Please sign in.');
-    expect(router.push).toHaveBeenCalledWith('/login');
+    expect(router.push).toHaveBeenCalledWith('/login?callbackUrl=%2Fdashboard');
   });
 });
