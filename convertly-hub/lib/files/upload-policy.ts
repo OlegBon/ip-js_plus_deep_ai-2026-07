@@ -11,6 +11,10 @@ export const DOCUMENT_FILE_ACCEPT: Record<string, string[]> = {
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
 };
 
+export const BROWSER_DOCUMENT_FILE_ACCEPT: Record<string, string[]> = {
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+};
+
 export const SUPPORTED_SOURCE_MIME_TYPES = new Set([
   ...Object.keys(IMAGE_FILE_ACCEPT),
   ...Object.keys(DOCUMENT_FILE_ACCEPT),
