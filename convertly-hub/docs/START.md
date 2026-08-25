@@ -151,16 +151,16 @@ _(Данные базы не удалятся благодаря настрое�
 2. **MinIO:** `http://localhost:9000/minio/health/live` должен вернуть успешный ответ.
 3. **Воркер Gotenberg:** `http://localhost:3000/health` должен вернуть JSON со статусом `up` для Chromium и LibreOffice.
 4. **MailHog:** `http://localhost:8025` открывает локальный inbox; после запроса восстановления в нём появляется письмо со ссылкой.
-4. **Системный API (Next.js + БД + воркер):** `http://localhost:3001/api/health`
+5. **Системный API (Next.js + БД + S3 + воркер):** `http://localhost:3001/api/health`
 
 - Успешный ответ:
 
 ```json
 {
   "status": "healthy",
-  "database": "connected",
-  "users_in_db": 0,
-  "gotenberg_worker": "up"
+  "database": "up",
+  "storage": "up",
+  "gotenberg": "up"
 }
 ```
 
