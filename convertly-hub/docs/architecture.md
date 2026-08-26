@@ -95,10 +95,10 @@ services:
 │   ├── api/
 │   │   ├── account/                  # Сессия: billing, preferences, Telegram, ключи, конвертации/скачивание
 │   │   ├── admin/                    # Только ADMIN: пользователи и API-ключи
-│   │   ├── auth/                     # NextAuth handlers и регистрация
+│   │   ├── auth/, guest/             # NextAuth/регистрация и потоковая гостевая конвертация
 │   │   ├── telegram/webhook/          # Webhook привязки Telegram
 │   │   ├── v1/                       # Public API: конвертация и скачивание по API-ключу
-│   │   └── health/                   # Состояние PostgreSQL и Gotenberg
+│   │   └── health/                   # Состояние PostgreSQL, S3 и Gotenberg
 │   ├── docs/, pricing/               # Публичные страницы API-документации и тарифов
 │   ├── layout.tsx, page.tsx          # Корневой layout и browser-конвертация
 │   └── not-found.tsx, globals.css
@@ -130,7 +130,7 @@ services:
 ├── public/                           # Статические файлы
 ├── types/next-auth.d.ts              # Расширение типов user и JWT-сессии NextAuth
 ├── .codex/, AGENTS.md                # Локальные правила работы с проектом
-├── .env                              # Только локальные секреты, не попадает в Git
+├── .env, .env.example                # Локальные секреты и безопасный шаблон без секретов
 ├── docker-compose.yml                # PostgreSQL, MinIO и Gotenberg
 └── package.json                      # Команды и зависимости
 ```

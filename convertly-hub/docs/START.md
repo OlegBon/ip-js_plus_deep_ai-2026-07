@@ -2,7 +2,7 @@
 
 > **Статус на 25 августа 2026:** Docker Compose, Prisma, NextAuth, RBAC, Telegram linking, Core-конвертация, тарифные квоты и управление приватностью результатов проверены локально. Browser-конвертация доступна после входа через `/`; API-ключ в браузер не передаётся.
 
-Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**.
+Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**. Для воспроизводимого локального запуска используйте [local-start.md](./local-start.md): в нём есть preflight Docker, `.env.example`, миграции, проверка, первый администратор и диагностика.
 
 ---
 
@@ -38,9 +38,9 @@ Core использует `GOTENBERG_URL` для адреса воркера д�
 
 ### Локальная почта и production SMTP
 
-Для password reset и подтверждения email Docker запускает MailHog без учётных данных. Добавьте в корневой `.env` `APP_URL=http://localhost:3001`, `SMTP_HOST=localhost`, `SMTP_PORT=1025`, `SMTP_FROM="Convertly Hub <no-reply@convertly.local>"` и `SMTP_SECURE=false`. Письма появляются в `http://localhost:8025`.
+Для password reset и подтверждения email Docker запускает MailHog без учётных данных. `NEXTAUTH_URL=http://localhost:3001` — единый публичный origin и для NextAuth, и для ссылок в письмах; локальные SMTP-параметры указаны в [`.env.example`](../.env.example). Письма появляются в `http://localhost:8025`.
 
-В production замените `APP_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`; при необходимости добавьте приватные `SMTP_USER`, `SMTP_PASSWORD` и `SMTP_SECURE=true`. Эти значения остаются только в `.env`.
+В production замените `NEXTAUTH_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`; при необходимости добавьте приватные `SMTP_USER`, `SMTP_PASSWORD` и `SMTP_SECURE=true`. Эти значения остаются только в `.env`.
 
 ### Режим приватности результатов
 
