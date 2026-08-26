@@ -2,6 +2,12 @@
 
 ## 2026-08-26
 
+- **Задача:** План стабилизации после повторного аудита MVP.
+- **Описание:** В `work_plan.md` добавлены приоритетные задачи: сначала устранение расхождений guest UX, атомарность квот, E2E/documentation regressions и все ESLint errors; затем контролируемое обновление production-зависимостей с известными audit findings. Реальные backend integration/E2E сдвинуты на следующий приоритет.
+- **Проверки аудита:** Jest — 38 suites / 104 tests; production build и Prisma validate успешны; Playwright — 4/5 из-за устаревшего Mock Checkout test; `npm audit --omit=dev` — 5 findings.
+
+## 2026-08-26
+
 - **Задача:** Локальный старт и актуальная документация.
 - **Описание:** Добавлен безопасный `.env.example` и канонический `docs/local-start.md` с полным путём от preflight Docker до первого администратора. `NEXTAUTH_URL` стал единым публичным origin для NextAuth и email-ссылок; внутренние Docker-адреса отделены от домена приложения. README, START, architecture, публичная API-страница и work plan синхронизированы.
 - **Проверки:** полный Jest (38 suites / 104 tests) и `npx tsc --noEmit` выполнены успешно. ESLint обнаружил 7 существующих ошибок вне изменённых файлов; новая API-документация ошибок не добавляет. Повторный production build после правок остановлен внешней блокировкой OneDrive в `.next` (`EPERM` при удалении старого build-артефакта), без диагностированной ошибки исходного кода. Docker/Prisma live-проверка отложена: на момент аудита Docker Desktop не запущен.
