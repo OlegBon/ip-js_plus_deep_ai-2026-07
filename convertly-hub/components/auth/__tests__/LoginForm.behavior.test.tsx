@@ -48,4 +48,16 @@ describe('LoginForm authentication flow', () => {
     expect(router.replace).toHaveBeenCalledWith('/dashboard');
     expect(router.refresh).toHaveBeenCalled();
   });
+
+  it('lets the user reveal and hide the password', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    const password = screen.getByLabelText('Password');
+    expect(password).toHaveAttribute('type', 'password');
+    await user.click(screen.getByRole('button', { name: 'Show Password' }));
+    expect(password).toHaveAttribute('type', 'text');
+    await user.click(screen.getByRole('button', { name: 'Hide Password' }));
+    expect(password).toHaveAttribute('type', 'password');
+  });
 });

@@ -72,15 +72,15 @@ docker compose up -d
 docker compose ps
 npx prisma migrate deploy
 npx prisma generate
-npm run dev -- --port 3001
+npx next dev -p 3001
 ```
 
 Ожидаемые сервисы в `docker compose ps`: `db`, `minio`, `gotenberg` и `mailhog`. Без них приложение может открыть часть UI, но миграции, health-check, хранилище, `DOCX → PDF` или email-сценарии будут недоступны.
 
-Оставьте последний процесс запущенным и откройте `http://localhost:3001`. Если npm в текущей оболочке передаёт аргумент `--port` как npm-config, используйте эквивалентную команду:
+Оставьте последний процесс запущенным и откройте `http://localhost:3001`. В некоторых оболочках рабочей альтернативой также будет:
 
 ```powershell
-npx next dev -p 3001
+npm run dev -- --port 3001
 ```
 
 `migrate deploy` применяет только отслеживаемые миграции и подходит для нового/существующего локального окружения. Для изменения Prisma-схемы разработчик создаёт отдельную миграцию через `npx prisma migrate dev --name <name>`; не используйте `migrate reset` для рабочей базы с данными.
@@ -96,15 +96,24 @@ npx prisma migrate status
 
 В браузере или через HTTP должны быть доступны:
 
-- MinIO liveness: `http://localhost:9000/minio/health/live`;
-- MinIO Console: `http://localhost:9001`;
+- MinIO liveness: `http://localhost:9000/minio/health/live` — в браузере допустима пустая страница: признак готовности — HTTP `200`. Альтернативный endpoint на `http://localhost:9001/minio/health/live` также возвращает `200`;
+- MinIO Console: `http://localhost:9001` — входной экран `http://localhost:9001/login` является ожидаемым поведением;
 - Gotenberg: `http://localhost:3000/health` — `up` для Chromium и LibreOffice;
 - MailHog inbox: `http://localhost:8025`.
 
 ### Приложение и API
 
 1. Откройте `http://localhost:3001` и убедитесь, что видны guest-конвертация, вход и регистрация.
-2. Откройте `http://localhost:3001/api/health`. Полностью здоровый ответ имеет HTTP `200` и поля `database`, `storage`, `gotenberg` со значением `up`.
+2. Откройте `http://localhost:3001/api/health`. Полностью здоровый ответ имеет HTTP `200`:
+
+```json
+{
+  "status": "healthy",
+  "database": "up",
+  "storage": "up",
+  "gotenberg": "up"
+}
+```
 3. Выполните единый локальный HTTP-аудит:
 
 ```powershell
@@ -113,7 +122,7 @@ npm run audit:api
 
 Он сохраняет актуальный отчёт в `docs/audits/api-audit-latest.md` и проверяет инфраструктуру, health API, NextAuth session и неавторизованные границы account/admin API.
 
-4. Зарегистрируйте пользователя, войдите и проверьте browser-конвертацию `JPG ↔ PNG` либо `DOCX → PDF`. Для теста reset/email verification запросите письмо и откройте его в MailHog.
+4. Зарегистрируйте пользователя: приложение автоматически отправит одноразовое verification-письмо в MailHog. Откройте новую ссылку на `http://localhost:3001/...`; Dashboard остаётся безопасным способом повторной отправки. Затем войдите и проверьте browser-конвертацию `JPG ↔ PNG` либо `DOCX → PDF`.
 
 ## 5. Первый администратор
 

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { toast } from '@/lib/hooks/use-toast';
 import { Button } from '../ui/Button';
+import { PasswordField } from './PasswordField';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -54,23 +55,7 @@ export function LoginForm() {
         </div>
       </div>
 
-      <div>
-        <label htmlFor="password" className="text-text-primary block text-sm font-medium">
-          Password
-        </label>
-        <div className="mt-1">
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border-border bg-background text-text-primary focus:border-accent focus:ring-accent block w-full rounded-md px-3 py-2 shadow-sm"
-          />
-        </div>
-      </div>
+      <PasswordField id="password" label="Password" value={password} autoComplete="current-password" onChange={setPassword} />
 
       <div className="flex items-center justify-end">
         <div className="text-sm">

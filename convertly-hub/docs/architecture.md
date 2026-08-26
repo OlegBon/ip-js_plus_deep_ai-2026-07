@@ -234,7 +234,7 @@ services:
   2. Для существующего пользователя сохраняется только SHA-256-хеш одноразового токена на 30 минут; ссылка доставляется через SMTP (локально — MailHog). Локальный limiter допускает три запроса на email в час.
   3. `/password-reset/[token]` вызывает `POST /api/auth/password-reset/confirm`; новый bcrypt-хеш сохраняется, а токен удаляется.
 - **Подтверждение почты и Telegram:**
-  1. Не подтверждённый пользователь в Dashboard запрашивает email-ссылку через `POST /api/account/email-verification`; хеш токена и TTL 30 минут сохраняются в `User`.
+  1. После успешной регистрации сервер автоматически создаёт и отправляет email-ссылку; если локальный SMTP временно недоступен, аккаунт остаётся созданным, а Dashboard позволяет безопасно запросить новую ссылку через `POST /api/account/email-verification`. Хеш токена и TTL 30 минут сохраняются в `User`.
   2. `/email-verification/[token]` подтверждает токен через `POST /api/auth/email-verification/confirm`, ставит `emailVerified` и удаляет токен.
   3. Telegram использует независимую одноразовую webhook-привязку (`POST /api/account/telegram/link` и `POST /api/telegram/webhook`).
 

@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt";
 import type { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isPasswordValid, PASSWORD_MIN_LENGTH } from "@/lib/auth/password-policy";
 
 const PASSWORD_SALT_ROUNDS = 12;
-const MINIMUM_PASSWORD_LENGTH = 12;
 const DUMMY_PASSWORD_HASH = "$2b$12$6HlhQPi20LT0i9mx0qVbcuQfF7R4q9s15Nb65.V4Tyr2GKUbStGwu";
 
 type CredentialsInput = {
@@ -34,16 +34,12 @@ function isValidEmail(email: string) {
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function isValidPassword(password: string) {
-  return password.length >= MINIMUM_PASSWORD_LENGTH && password.length <= 128;
-}
-
 export async function registerUser(input: RegisterUserInput): Promise<RegistrationResult> {
   const email = typeof input?.email === "string" ? normalizeEmail(input.email) : "";
   const password = typeof input?.password === "string" ? input.password : "";
   const name = typeof input.name === "string" ? input.name.trim() : "";
 
-  if (!isValidEmail(email) || !isValidPassword(password) || name.length > 100) {
+  if (!isValidEmail(email) || !isPasswordValid(password) || name.length > 100) {
     return { error: "INVALID_INPUT" };
   }
 
@@ -127,5 +123,5 @@ function isUniqueConstraintError(error: unknown) {
 }
 
 export const passwordRequirements = {
-  minLength: MINIMUM_PASSWORD_LENGTH,
+  minLength: PASSWORD_MIN_LENGTH,
 };
