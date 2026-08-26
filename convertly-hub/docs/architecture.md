@@ -69,11 +69,16 @@ services:
   gotenberg:
     image: gotenberg/gotenberg:8
     # ... (воркер для конвертации документов)
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    # ... (локальный SMTP и inbox для auth-писем)
 ```
 
 - **`db` (PostgreSQL):** База данных для хранения информации о пользователях, файлах и истории операций.
 - **`minio` (MinIO):** S3-совместимое хранилище для загружаемых файлов. Предоставляет веб-интерфейс для удобного просмотра.
 - **`gotenberg`:** Воркер для выполнения "тяжелых" конвертаций (например, DOCX в PDF).
+- **`mailhog`:** Локальная SMTP-песочница и inbox для проверки писем восстановления пароля и подтверждения email.
 
 Основное **Next.js приложение** запускается **локально на хост-машине** (через `npm run dev`) и подключается к этим сервисам через `localhost` и соответствующие порты, указанные в `docker-compose.yml`.
 
@@ -131,7 +136,7 @@ services:
 ├── types/next-auth.d.ts              # Расширение типов user и JWT-сессии NextAuth
 ├── .codex/, AGENTS.md                # Локальные правила работы с проектом
 ├── .env, .env.example                # Локальные секреты и безопасный шаблон без секретов
-├── docker-compose.yml                # PostgreSQL, MinIO и Gotenberg
+├── docker-compose.yml                # PostgreSQL, MinIO, Gotenberg и MailHog
 └── package.json                      # Команды и зависимости
 ```
 
