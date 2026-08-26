@@ -16,19 +16,12 @@ test('страница входа отображает форму учётных
   await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
 });
 
-test('пользователь выбирает тариф и подтверждает имитацию оплаты', async ({ page }) => {
+test('неавторизированный пользователь выбирает тариф и переходит к регистрации', async ({ page }) => {
   await page.goto('/pricing');
 
-  await page.getByRole('button', { name: 'Get started' }).nth(2).click();
-  await expect(page.getByRole('heading', { name: 'Payment for Pro Plan' })).toBeVisible();
+  await page.getByRole('button', { name: 'Choose plan' }).nth(1).click();
 
-  page.once('dialog', async (dialog) => {
-    expect(dialog.message()).toBe('Payment for Pro plan successful!');
-    await dialog.accept();
-  });
-  await page.getByRole('button', { name: 'Proceed to Payment' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Payment for Pro Plan' })).toBeHidden();
+  await expect(page).toHaveURL(/\/register\?plan=PRO$/);
 });
 
 test('неавторизированный пользователь перенаправляется из личного кабинета на вход', async ({ page }) => {

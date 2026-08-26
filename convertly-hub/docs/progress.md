@@ -2,6 +2,13 @@
 
 ## 2026-08-26
 
+- **Задача:** Стабилизация локального MVP: квоты, регрессии и качество кода.
+- **Описание:** Добавлен `GET /api/guest/conversions` для гидратации фактической гостевой квоты после reload. Guest-квота теперь резервируется атомарным `updateMany`; пользовательские месячные слоты и storage резервируются короткими PostgreSQL advisory-lock транзакциями. Добавлена миграция `20260826120000_quota_reservations`; S3/Gotenberg остаются вне транзакций. Исправлены устаревший Playwright flow, Markdown-ссылки и все прежние ESLint errors.
+- **Проверки:** `npx prisma format`, `npx prisma generate`, `npx tsc --noEmit`, полный Jest (39 suites / 106 tests), ESLint, Playwright (5/5) и production build выполнены успешно.
+- **Новые переменные окружения:** Нет.
+
+## 2026-08-26
+
 - **Задача:** План стабилизации после повторного аудита MVP.
 - **Описание:** В `work_plan.md` добавлены приоритетные задачи: сначала устранение расхождений guest UX, атомарность квот, E2E/documentation regressions и все ESLint errors; затем контролируемое обновление production-зависимостей с известными audit findings. Реальные backend integration/E2E сдвинуты на следующий приоритет.
 - **Проверки аудита:** Jest — 38 suites / 104 tests; production build и Prisma validate успешны; Playwright — 4/5 из-за устаревшего Mock Checkout test; `npm audit --omit=dev` — 5 findings.

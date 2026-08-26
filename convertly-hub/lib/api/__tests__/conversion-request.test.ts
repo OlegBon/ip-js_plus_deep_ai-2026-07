@@ -69,7 +69,9 @@ describe("conversion request service", () => {
 
   it("creates a pending conversion and updates API-key use time atomically", async () => {
     const transaction = {
+      $executeRaw: jest.fn().mockResolvedValue(1),
       conversionLog: {
+        count: jest.fn().mockResolvedValue(0),
         create: jest.fn().mockResolvedValue({
           id: "conversion-1",
           status: "PENDING",
@@ -94,6 +96,9 @@ describe("conversion request service", () => {
         data: expect.objectContaining({ sourceFileName: ".._image.png", targetFormat: "pdf" }),
       }),
     );
+    expect(transaction.conversionLog.count).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ status: { in: ["PENDING", "PROCESSING", "COMPLETED"] } }),
+    }));
     expect(transaction.apiKey.update).toHaveBeenCalledWith({
       where: { id: "key-1" },
       data: { lastUsedAt: expect.any(Date) },

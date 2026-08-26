@@ -1,6 +1,7 @@
 import type { SubscriptionPlan } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getPlanDefinition, isSubscriptionPlan } from "@/lib/billing/plans";
+import { lockUserQuota } from "@/lib/billing/quota-lock";
 
 export class BillingUserNotFoundError extends Error {}
 export class InvalidMockCheckoutError extends Error {}
@@ -37,7 +38,7 @@ export async function getBillingOverview(userId: string): Promise<BillingOvervie
       where: { userId, status: "COMPLETED", createdAt: { gte: periodStart } },
     }),
     prisma.conversionLog.aggregate({
-      where: { userId, storageKey: { not: null }, expiresAt: { gt: now } },
+      where: { userId, storageKey: { not: null }, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
       _sum: { resultSize: true },
     }),
   ]);
@@ -86,15 +87,31 @@ export async function getActivePlanForUser(userId: string) {
   return user.subscription?.activePlan ?? user.plan;
 }
 
-export async function ensureStorageCapacity(userId: string, plan: SubscriptionPlan, resultSize: bigint) {
+export async function reserveStorageCapacity(userId: string, plan: SubscriptionPlan, conversionId: string, resultSize: bigint) {
   const quota = getPlanDefinition(plan).storageBytes;
   const now = new Date();
-  const storage = await prisma.conversionLog.aggregate({
-    where: { userId, storageKey: { not: null }, expiresAt: { gt: now } },
-    _sum: { resultSize: true },
+  await prisma.$transaction(async (transaction) => {
+    await lockUserQuota(transaction, userId);
+    const [storage, reservations] = await Promise.all([
+      transaction.conversionLog.aggregate({
+        where: { userId, storageKey: { not: null }, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+        _sum: { resultSize: true },
+      }),
+      transaction.conversionLog.aggregate({
+        where: { userId, status: "PROCESSING", storageReservationBytes: { not: null } },
+        _sum: { storageReservationBytes: true },
+      }),
+    ]);
+    const used = storage._sum.resultSize ?? BigInt(0);
+    const reserved = reservations._sum.storageReservationBytes ?? BigInt(0);
+    if (used + reserved + resultSize > quota) throw new StorageQuotaExceededError();
+
+    const claimed = await transaction.conversionLog.updateMany({
+      where: { id: conversionId, userId, status: "PROCESSING", storageReservationBytes: null },
+      data: { storageReservationBytes: resultSize },
+    });
+    if (claimed.count !== 1) throw new Error("Conversion is not available for storage reservation.");
   });
-  const used = storage._sum.resultSize ?? BigInt(0);
-  if (used + resultSize > quota) throw new StorageQuotaExceededError();
 }
 
 export async function updateStoragePreference(userId: string, storeConversions: boolean) {

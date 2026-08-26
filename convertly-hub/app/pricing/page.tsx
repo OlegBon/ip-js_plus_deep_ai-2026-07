@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -26,9 +26,9 @@ function PricingContent() {
   const [selectedPlan, setSelectedPlan] = useState<PlanDefinition | null>(null);
   const checkoutPlan = searchParams.get("checkout");
 
-  useEffect(() => {
-    if (status === "authenticated" && isSubscriptionPlan(checkoutPlan)) setSelectedPlan(getPlanDefinition(checkoutPlan));
-  }, [checkoutPlan, status]);
+  const requestedPlan = status === "authenticated" && isSubscriptionPlan(checkoutPlan)
+    ? getPlanDefinition(checkoutPlan)
+    : null;
 
   const handlePlanSelection = (plan: PlanDefinition) => {
     if (status !== "authenticated") {
@@ -70,7 +70,7 @@ function PricingContent() {
           </div>
         </div>
       </div>
-      <PaymentModal isOpen={selectedPlan !== null} onClose={closeModal} plan={selectedPlan} />
+      <PaymentModal isOpen={selectedPlan !== null || requestedPlan !== null} onClose={closeModal} plan={selectedPlan ?? requestedPlan} />
     </>
   );
 }

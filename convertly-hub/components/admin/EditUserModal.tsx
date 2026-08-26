@@ -8,7 +8,7 @@ interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: { id: number; name: string; email: string; role: string; } | null;
-  onSave: (user: any) => void;
+  onSave: (user: { id: number; name: string; email: string; role: string }) => void;
 }
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, onSave }) => {
