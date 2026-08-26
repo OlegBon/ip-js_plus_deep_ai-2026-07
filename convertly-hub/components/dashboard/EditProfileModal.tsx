@@ -1,104 +1,56 @@
-"use client";
-import React from 'react';
+'use client';
+
+import { FormEvent, useState } from 'react';
 import Modal from '../ui/Modal';
 import { Button } from '../ui/Button';
 
-interface EditProfileModalProps {
+type EditProfileModalProps = {
   isOpen: boolean;
+  name: string;
   onClose: () => void;
-  onSave: (user: { name: string; email: string; telegramId: string }) => void;
-  user: {
-    name: string;
-    email: string;
-    telegramId?: string;
+  onSave: (name: string) => Promise<void>;
+};
+
+export default function EditProfileModal({ isOpen, name, onClose, onSave }: EditProfileModalProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextName = String(new FormData(event.currentTarget).get('name') ?? '').trim();
+    setIsSaving(true);
+    try {
+      await onSave(nextName);
+    } finally {
+      setIsSaving(false);
+    }
   }
-}
-
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, onSave, user }) => {
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const updatedUser = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      telegramId: formData.get('telegramId') as string,
-    };
-    onSave(updatedUser);
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Profile">
-      <form className="pt-4" onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="name">
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit profile">
+      <form className="space-y-6 pt-4" onSubmit={handleSubmit}>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-gray-700" htmlFor="profile-name">
             Name
           </label>
           <input
-            type="text"
-            id="name"
+            id="profile-name"
             name="name"
-            defaultValue={user.name}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="email">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            defaultValue={user.email}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="telegramId">
-            Telegram ID
-          </label>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">@</span>
-            <input
-              type="text"
-              id="telegramId"
-              name="telegramId"
-              defaultValue={user.telegramId}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pl-7"
-              placeholder="your_telegram_handle"
-            />
-          </div>
-        </div>
-        <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="password">
-            New Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Enter new password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text"
+            defaultValue={name}
+            minLength={1}
+            maxLength={80}
+            required
+            autoComplete="name"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="flex items-center justify-end gap-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onClose}
-          >
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-          >
-            Save Changes
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? 'Saving…' : 'Save changes'}
           </Button>
         </div>
       </form>
     </Modal>
   );
-};
-
-export default EditProfileModal;
+}
