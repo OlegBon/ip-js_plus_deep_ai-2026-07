@@ -10,7 +10,7 @@ import { toast } from '@/lib/hooks/use-toast';
 import { clsx } from 'clsx';
 
 export default function PasswordResetPage() {
-  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -18,8 +18,13 @@ export default function PasswordResetPage() {
   const validate = (value: string) => {
     const trimmedValue = value.trim();
     if (!trimmedValue) {
-      return 'Email is required.';
+      return 'Email or Telegram handle is required.';
     }
+
+    if (trimmedValue.startsWith('@'))
+      return /^@[a-zA-Z0-9_]{5,32}$/.test(trimmedValue)
+        ? ''
+        : 'Enter a valid Telegram handle (for example, @username; 5–32 letters, numbers, or underscores).';
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedValue)) {
@@ -30,37 +35,46 @@ export default function PasswordResetPage() {
   };
 
   const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEmail = e.target.value;
-    setEmail(newEmail);
+    const newContact = e.target.value;
+    setContact(newContact);
     if (error) {
-      setError(validate(newEmail));
+      setError(validate(newContact));
     }
   };
 
   const handleBlur = () => {
-    setError(validate(email));
+    setError(validate(contact));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const validationError = validate(email);
+    const validationError = validate(contact);
     if (validationError) {
       setError(validationError);
       return;
     }
 
+    if (contact.trim().startsWith('@')) {
+      toast.error(
+        'Telegram password recovery is not available yet. Use the verified email address for this account.',
+      );
+      return;
+    }
     startTransition(async () => {
       const response = await fetch('/api/auth/password-reset/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: contact }),
       });
       const payload = (await response.json()) as { error?: string; message?: string };
       if (!response.ok) {
         toast.error(payload.error ?? 'Unable to request a password reset.');
         return;
       }
-      toast.success(payload.message ?? 'If an account with that email exists, a password reset link has been sent.');
+      toast.success(
+        payload.message ??
+          'If an account with that email exists, a password reset link has been sent.',
+      );
     });
   };
 
@@ -75,30 +89,36 @@ export default function PasswordResetPage() {
               Forgot Your Password?
             </CardTitle>
             <CardDescription>
-              Enter your email address and we&apos;ll send you a one-time link to reset your password.
+              Enter your email address and we&apos;ll send you a one-time link to reset your
+              password. Telegram handles are validated here, but Telegram password recovery is not
+              available yet.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="contact">Email or Telegram</Label>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="contact"
+                  name="contact"
+                  type="text"
                   autoComplete="email"
                   required
-                  value={email}
+                  value={contact}
                   onChange={handleContactChange}
                   onBlur={handleBlur}
-                  placeholder="name@example.com"
+                  placeholder="name@example.com or @telegram_handle"
                   className={clsx({
                     'border-red-500 focus-visible:ring-red-500': isInvalid,
                   })}
                 />
                 {isInvalid && <p className="text-sm text-red-600 mt-1">{error}</p>}
               </div>
-              <Button type="submit" className="w-full" disabled={!email || isInvalid || isPending}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!contact || isInvalid || isPending}
+              >
                 {isPending ? 'Sending…' : 'Send Reset Link'}
               </Button>
             </form>
