@@ -14,7 +14,7 @@ const apiEndpoints = [
       {
         language: 'curl',
         code: `curl -X POST \\
-  http://localhost:3001/api/v1/convert \\
+  https://your-convertly-domain.example/api/v1/convert \\
   -H 'Authorization: Bearer <YOUR_API_KEY>' \\
   -F 'file=@/path/to/your/file.docx' \\
   -F 'targetFormat=pdf'`,
@@ -25,15 +25,26 @@ const apiEndpoints = [
 formData.append('file', fileInput.files[0]);
 formData.append('targetFormat', 'pdf');
 
-fetch('http://localhost:3001/api/v1/convert', {
+fetch('/api/v1/convert', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer <YOUR_API_KEY>',
   },
   body: formData,
 })
-.then(response => response.json())
-.then(data => console.log(data))
+.then(async (response) => {
+  if (!response.ok) throw new Error('Conversion request failed');
+  if (response.status === 202) return response.json();
+
+  const file = await response.blob();
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'converted-file';
+  link.click();
+  URL.revokeObjectURL(url);
+})
+.then(data => { if (data) console.log(data); })
 .catch(error => console.error('Error:', error));`,
       },
     ],

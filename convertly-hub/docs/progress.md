@@ -1,5 +1,12 @@
 # Журнал изменений проекта
 
+## 2026-08-26
+
+- **Задача:** Локальный старт и актуальная документация.
+- **Описание:** Добавлен безопасный `.env.example` и канонический `docs/local-start.md` с полным путём от preflight Docker до первого администратора. `NEXTAUTH_URL` стал единым публичным origin для NextAuth и email-ссылок; внутренние Docker-адреса отделены от домена приложения. README, START, architecture, публичная API-страница и work plan синхронизированы.
+- **Проверки:** полный Jest (38 suites / 104 tests) и `npx tsc --noEmit` выполнены успешно. ESLint обнаружил 7 существующих ошибок вне изменённых файлов; новая API-документация ошибок не добавляет. Повторный production build после правок остановлен внешней блокировкой OneDrive в `.next` (`EPERM` при удалении старого build-артефакта), без диагностированной ошибки исходного кода. Docker/Prisma live-проверка отложена: на момент аудита Docker Desktop не запущен.
+- **Новые переменные окружения:** Нет; добавлен только документированный безопасный шаблон `.env.example`.
+
 ## 2026-08-25
 
 - **Задача:** Актуализация API-аудита и системного health-check.
@@ -51,7 +58,7 @@
 - **Измененные файлы:**
   - Prisma-схема и миграция, `lib/auth/recovery.ts`, SMTP-mailer, auth/account API, формы reset/email verification, `docker-compose.yml` и документация.
 - **Новые переменные окружения:**
-  - `APP_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_SECURE`; для production при необходимости `SMTP_USER`, `SMTP_PASSWORD`.
+  - `NEXTAUTH_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_SECURE`; для production при необходимости `SMTP_USER`, `SMTP_PASSWORD`.
 
 ## 2026-08-25
 
@@ -309,7 +316,7 @@
   - `.env`, `docker-compose.yml`
   - `docs/audits/security-audit-latest.md`, `docs/audits/security-audit-2026-08-24T08-35-01-368Z.md`, `docs/progress.md`
 - **Новые переменные окружения:**
-  - `NODE_ENV`, `APP_DOMAIN`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `MINIO_BUCKET`.
+  - `NODE_ENV`, `NEXTAUTH_URL`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `MINIO_BUCKET`.
 
 ## 2026-08-22
 

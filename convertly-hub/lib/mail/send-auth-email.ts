@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 
 function appUrl() {
-  return (process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3001").replace(/\/$/, "");
+  return (process.env.NEXTAUTH_URL ?? "http://localhost:3001").replace(/\/$/, "");
 }
 
 function createTransport() {
