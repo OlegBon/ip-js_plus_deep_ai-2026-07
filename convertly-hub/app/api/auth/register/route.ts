@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { registerUser } from "@/lib/auth/users";
+import { createEmailVerification } from "@/lib/auth/recovery";
+import { sendEmailVerification } from "@/lib/mail/send-auth-email";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -21,7 +23,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: registrationErrorMessage(result.error) }, { status });
   }
 
-  return NextResponse.json({ user: result.user }, { status: 201 });
+  let emailVerificationSent = false;
+  try {
+    const verification = await createEmailVerification(result.user.id);
+    await sendEmailVerification(verification.email, verification.token);
+    emailVerificationSent = true;
+  } catch {
+    // Registration remains successful if local SMTP is temporarily unavailable.
+    // The authenticated Dashboard can safely issue a replacement one-time link.
+  }
+
+  return NextResponse.json({ user: result.user, emailVerificationSent }, { status: 201 });
 }
 
 function isRegistrationBody(value: unknown): value is { email?: string; password?: string; name?: string } {

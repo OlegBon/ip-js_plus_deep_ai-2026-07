@@ -34,7 +34,7 @@ describe('RegisterForm', () => {
   it('creates an account through the registration API when the passwords match', async () => {
     jest.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ user: { id: 'user-1' } }),
+      json: async () => ({ user: { id: 'user-1' }, emailVerificationSent: true }),
     } as Response);
     const user = userEvent.setup();
     render(<RegisterForm />);
@@ -54,7 +54,18 @@ describe('RegisterForm', () => {
         password: 'a-secure-password',
       }),
     });
-    expect(getMockToast().success).toHaveBeenCalledWith('Registration successful! Please sign in.');
+    expect(getMockToast().success).toHaveBeenCalledWith('Registration successful! Check your email to verify your account.');
     expect(router.push).toHaveBeenCalledWith('/login?callbackUrl=%2Fdashboard');
+  });
+
+  it('shows password requirements and supports revealing both password fields', async () => {
+    const user = userEvent.setup();
+    render(<RegisterForm />);
+
+    expect(screen.getByText('Use 12–128 characters.')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Show Password' }));
+    expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'text');
+    await user.click(screen.getByRole('button', { name: 'Show Confirm Password' }));
+    expect(screen.getByLabelText('Confirm Password')).toHaveAttribute('type', 'text');
   });
 });
