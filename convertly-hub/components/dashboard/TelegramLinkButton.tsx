@@ -23,6 +23,7 @@ export function TelegramLinkButton({ label = 'Connect Telegram' }: { label?: str
 
   return (
     <Button
+      variant="secondary"
       onClick={handleLinkTelegram}
       disabled={isPending}
       className="w-full md:w-[150px] whitespace-nowrap"

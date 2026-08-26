@@ -130,7 +130,7 @@ export default function UserProfile() {
           </div>
           <Link
             href="/password-reset"
-            className="text-sm font-medium text-accent hover:text-accent-hover"
+            className="whitespace-nowrap text-sm font-medium text-accent hover:text-accent-hover"
           >
             Forgot your password?
           </Link>
