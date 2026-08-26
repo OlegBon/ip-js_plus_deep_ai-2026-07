@@ -139,4 +139,4 @@ npm run audit:api
 npx prisma studio
 ```
 
-Подробная карта маршрутов находится в [architecture.md](./docs/architecture.md#5-api-endpoints), а границы будущих реальных integration/E2E-проверок — в [e2e_test_plan.md](./docs/e2e_test_plan.md).
+Подробная карта маршрутов находится в [architecture.md](./architecture.md#5-api-endpoints), а границы будущих реальных integration/E2E-проверок — в [e2e_test_plan.md](./e2e_test_plan.md).

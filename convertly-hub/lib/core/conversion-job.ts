@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { convertFile, type CoreConversionInput } from "@/lib/core/conversion";
 import { storeConversionResult } from "@/lib/privacy/conversion-results";
 import { getStorageService } from "@/lib/storage/s3";
-import { ensureStorageCapacity, StorageQuotaExceededError } from "@/lib/billing/subscriptions";
+import { reserveStorageCapacity, StorageQuotaExceededError } from "@/lib/billing/subscriptions";
 import { getPlanDefinition } from "@/lib/billing/plans";
 import type { SubscriptionPlan } from "@prisma/client";
 
@@ -25,7 +25,7 @@ export async function processConversionJob({ conversionId, plan = "FREE", ...inp
   try {
     const result = await convertFile(input);
     if (input.storeResult) {
-      await ensureStorageCapacity(input.userId, plan, BigInt(result.data.length));
+      await reserveStorageCapacity(input.userId, plan, conversionId, BigInt(result.data.length));
       storageKey = await storeConversionResult({
         ...result,
         conversionId,
@@ -39,6 +39,7 @@ export async function processConversionJob({ conversionId, plan = "FREE", ...inp
         resultFileName: result.fileName,
         resultMimeType: result.mimeType,
         resultSize: BigInt(result.data.length),
+        storageReservationBytes: null,
         storageKey,
         completedAt: new Date(),
         expiresAt: storageKey ? expirationForPlan(plan) : null,
@@ -57,6 +58,7 @@ export async function processConversionJob({ conversionId, plan = "FREE", ...inp
       where: { id: conversionId, status: "PROCESSING" },
       data: {
         status: "FAILED",
+        storageReservationBytes: null,
         errorMessage:
           error instanceof StorageQuotaExceededError
             ? "Storage limit reached for the active plan."

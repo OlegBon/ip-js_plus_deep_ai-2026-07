@@ -60,20 +60,20 @@ model User {
   telegramVerificationTokenHash String?   @unique
   telegramVerificationExpires   DateTime? @db.Timestamptz(3)
 
-  apiKeys     ApiKey[]
-  conversions ConversionLog[]
+  apiKeys      ApiKey[]
+  conversions  ConversionLog[]
   subscription Subscription?
 
   @@index([status])
 }
 
 model GuestConversionQuota {
-  id          String   @id @default(uuid())
-  visitorHash String
-  periodStart DateTime @db.Timestamptz(3)
-  imageCount  Int      @default(0)
-  documentCount Int    @default(0)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  id            String   @id @default(uuid())
+  visitorHash   String
+  periodStart   DateTime @db.Timestamptz(3)
+  imageCount    Int      @default(0)
+  documentCount Int      @default(0)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
 
   @@unique([visitorHash, periodStart])
   @@index([periodStart])
@@ -129,15 +129,16 @@ model ConversionLog {
   targetFormat   String
   status         ConversionStatus @default(PENDING)
 
-  resultFileName String?
-  resultMimeType String?
-  resultSize     BigInt?
-  storageKey     String?   @unique
-  errorMessage   String?
-  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
-  startedAt      DateTime? @db.Timestamptz(3)
-  completedAt    DateTime? @db.Timestamptz(3)
-  expiresAt      DateTime? @db.Timestamptz(3)
+  resultFileName          String?
+  resultMimeType          String?
+  resultSize              BigInt?
+  storageReservationBytes BigInt?
+  storageKey              String?   @unique
+  errorMessage            String?
+  createdAt               DateTime  @default(now()) @db.Timestamptz(3)
+  startedAt               DateTime? @db.Timestamptz(3)
+  completedAt             DateTime? @db.Timestamptz(3)
+  expiresAt               DateTime? @db.Timestamptz(3)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -146,6 +147,7 @@ model ConversionLog {
   apiKey   ApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+  @@index([userId, expiresAt])
   @@index([status, createdAt])
   @@index([apiKeyId])
 }

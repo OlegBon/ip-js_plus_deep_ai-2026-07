@@ -5,6 +5,7 @@ import {
   SUPPORTED_TARGET_FORMATS,
 } from "@/lib/files/upload-policy";
 import { getPlanDefinition } from "@/lib/billing/plans";
+import { lockUserQuota } from "@/lib/billing/quota-lock";
 import type { SubscriptionPlan } from "@prisma/client";
 
 export type ConversionPrincipal = {
@@ -79,13 +80,20 @@ export async function createConversionRequest(principal: ConversionPrincipal, in
   const validation = validateConversionRequest(input, plan.maxFileSizeBytes);
   if ("error" in validation) return validation;
 
-  const periodStart = startOfCurrentMonth();
-  const completedConversions = await prisma.conversionLog.count({
-    where: { userId: principal.userId, status: "COMPLETED", createdAt: { gte: periodStart } },
-  });
-  if (completedConversions >= plan.monthlyConversions) throw new ConversionQuotaExceededError();
-
   const conversion = await prisma.$transaction(async (transaction) => {
+    await lockUserQuota(transaction, principal.userId);
+
+    // Pending and processing jobs reserve their monthly slot. Failed jobs do
+    // not consume a slot, while concurrent requests cannot pass this check.
+    const reservedConversions = await transaction.conversionLog.count({
+      where: {
+        userId: principal.userId,
+        status: { in: ["PENDING", "PROCESSING", "COMPLETED"] },
+        createdAt: { gte: startOfCurrentMonth() },
+      },
+    });
+    if (reservedConversions >= plan.monthlyConversions) throw new ConversionQuotaExceededError();
+
     const created = await transaction.conversionLog.create({
       data: {
         sourceFileName: sanitizeFileName(input.file.name),

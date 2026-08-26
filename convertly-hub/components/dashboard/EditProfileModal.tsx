@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (user: any) => void;
+  onSave: (user: { name: string; email: string; telegramId: string }) => void;
   user: {
     name: string;
     email: string;

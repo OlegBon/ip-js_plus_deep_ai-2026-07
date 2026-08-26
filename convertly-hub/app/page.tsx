@@ -26,7 +26,16 @@ export default function Home() {
   const isAuthenticated = status === "authenticated";
   const [guestQuota, setGuestQuota] = useState({ image: 3, document: 2 });
   const [guestDownload, setGuestDownload] = useState<{ blob: Blob; fileName: string; expiresAt: number } | null>(null);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (isAuthenticated) return;
+    const controller = new AbortController();
+    fetch("/api/guest/conversions", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => response.ok ? response.json() as Promise<{ remainingImage: number; remainingDocument: number }> : null)
+      .then((quota) => { if (quota) setGuestQuota({ image: quota.remainingImage, document: quota.remainingDocument }); })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [isAuthenticated]);
   useEffect(() => { if (!guestDownload) return; const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, [guestDownload]);
 
   const handleUpload = useCallback(async (file: File) => {
@@ -43,7 +52,7 @@ export default function Home() {
     const resultResponse = response.status === 202 ? await waitForStoredResult(await conversionId(response)) : response;
     const blob = await resultResponse.blob();
     const fileName = resultFileName(file.name, target.extension); downloadResult(blob, fileName);
-    if (!isAuthenticated) { setGuestQuota({ image: Number(resultResponse.headers.get("X-Guest-Image-Remaining") ?? guestQuota.image), document: Number(resultResponse.headers.get("X-Guest-Document-Remaining") ?? guestQuota.document) }); setGuestDownload({ blob, fileName, expiresAt: Date.now() + 10 * 60 * 1000 }); }
+    if (!isAuthenticated) { const expiresAt = Date.now() + 10 * 60 * 1000; setGuestQuota({ image: Number(resultResponse.headers.get("X-Guest-Image-Remaining") ?? guestQuota.image), document: Number(resultResponse.headers.get("X-Guest-Document-Remaining") ?? guestQuota.document) }); setNow(Date.now()); setGuestDownload({ blob, fileName, expiresAt }); }
   }, [guestQuota, isAuthenticated, status]);
   const guestDownloadAvailable = guestDownload && guestDownload.expiresAt > now;
 

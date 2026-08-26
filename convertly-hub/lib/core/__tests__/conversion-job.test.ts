@@ -2,7 +2,7 @@ import { processConversionJob } from "../conversion-job";
 import { convertFile } from "../conversion";
 import { storeConversionResult } from "@/lib/privacy/conversion-results";
 import { prisma } from "@/lib/prisma";
-import { ensureStorageCapacity } from "@/lib/billing/subscriptions";
+import { reserveStorageCapacity } from "@/lib/billing/subscriptions";
 
 jest.mock("@/lib/core/conversion", () => ({ convertFile: jest.fn() }));
 jest.mock("@/lib/privacy/conversion-results", () => ({ storeConversionResult: jest.fn() }));
@@ -10,12 +10,12 @@ jest.mock("@/lib/storage/s3", () => ({ getStorageService: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({
   prisma: { conversionLog: { updateMany: jest.fn(), update: jest.fn() } },
 }));
-jest.mock("@/lib/billing/subscriptions", () => ({ ensureStorageCapacity: jest.fn(), StorageQuotaExceededError: class StorageQuotaExceededError extends Error {} }));
+jest.mock("@/lib/billing/subscriptions", () => ({ reserveStorageCapacity: jest.fn(), StorageQuotaExceededError: class StorageQuotaExceededError extends Error {} }));
 
 const mockedConvertFile = jest.mocked(convertFile);
 const mockedStoreConversionResult = jest.mocked(storeConversionResult);
 const mockedPrisma = jest.mocked(prisma, { shallow: false });
-const mockedEnsureStorageCapacity = jest.mocked(ensureStorageCapacity);
+const mockedReserveStorageCapacity = jest.mocked(reserveStorageCapacity);
 const job = {
   conversionId: "conversion-1",
   data: Buffer.from([0xff, 0xd8, 0xff]),
@@ -27,7 +27,7 @@ const job = {
 };
 
 describe("conversion job", () => {
-  beforeEach(() => { jest.clearAllMocks(); mockedEnsureStorageCapacity.mockResolvedValue(undefined); });
+  beforeEach(() => { jest.clearAllMocks(); mockedReserveStorageCapacity.mockResolvedValue(undefined); });
 
   it("marks a pending conversion completed after Core returns a result", async () => {
     mockedPrisma.conversionLog.updateMany.mockResolvedValue({ count: 1 } as never);
@@ -83,6 +83,8 @@ describe("conversion job", () => {
     mockedPrisma.conversionLog.update.mockResolvedValue({} as never);
 
     await processConversionJob({ ...job, storeResult: true });
+
+    expect(mockedReserveStorageCapacity).toHaveBeenCalledWith("user-1", "FREE", "conversion-1", BigInt(3));
 
     expect(mockedStoreConversionResult).toHaveBeenCalledWith(
       expect.objectContaining({ conversionId: "conversion-1", userId: "user-1" }),
