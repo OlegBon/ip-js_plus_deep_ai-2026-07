@@ -22,19 +22,34 @@ docker compose version
 
 ## 2. Настройка `.env`
 
-1. Создайте приватный файл из шаблона:
+1. Если `.env` ещё нет, создайте приватный файл из шаблона:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-2. Замените в `.env` все значения-заглушки для `NEXTAUTH_SECRET`, паролей PostgreSQL и MinIO. Секрет сессии удобно сгенерировать так:
+2. Если `.env` уже существует, **не перезаписывайте его**. Сверьте его с `.env.example` и добавьте отсутствующий локальный блок:
+
+```dotenv
+# Document conversion worker
+GOTENBERG_URL=http://localhost:3000
+
+# Local MailHog for password reset and email verification
+SMTP_HOST=localhost
+SMTP_PORT=1025
+SMTP_FROM="Convertly Hub <no-reply@convertly.local>"
+SMTP_SECURE=false
+```
+
+Эти пять значений нужны соответственно для `DOCX → PDF` и для локальной доставки reset/verification-писем в MailHog. Они не заменяют существующие секреты и не требуют production SMTP-учётных данных.
+
+3. Замените в `.env` все значения-заглушки для `NEXTAUTH_SECRET`, паролей PostgreSQL и MinIO. Секрет сессии удобно сгенерировать так:
 
 ```powershell
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
-3. Не добавляйте `.env` в Git. Он уже игнорируется; в репозиторий попадает только `.env.example` без реальных секретов.
+4. Не добавляйте `.env` в Git. Он уже игнорируется; в репозиторий попадает только `.env.example` без реальных секретов.
 
 ### Один публичный адрес
 
@@ -48,6 +63,8 @@ NEXTAUTH_URL=https://convertly.example
 
 ## 3. Первый запуск
 
+Docker Desktop и Docker Compose — разные состояния: запущенный Docker Desktop означает, что доступен Docker Engine, но контейнеры Convertly Hub ещё могут быть остановлены. Для полного локального запуска (БД, S3, DOCX → PDF и MailHog) обязательно выполните `docker compose up -d` и убедитесь, что все четыре сервиса имеют статус `running`.
+
 Из корня `convertly-hub` выполните:
 
 ```powershell
@@ -57,6 +74,8 @@ npx prisma migrate deploy
 npx prisma generate
 npm run dev -- --port 3001
 ```
+
+Ожидаемые сервисы в `docker compose ps`: `db`, `minio`, `gotenberg` и `mailhog`. Без них приложение может открыть часть UI, но миграции, health-check, хранилище, `DOCX → PDF` или email-сценарии будут недоступны.
 
 Оставьте последний процесс запущенным и откройте `http://localhost:3001`. Если npm в текущей оболочке передаёт аргумент `--port` как npm-config, используйте эквивалентную команду:
 
