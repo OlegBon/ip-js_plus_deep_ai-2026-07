@@ -5,10 +5,15 @@ const apiEndpoints = [
     id: 'convert-file',
     method: 'POST',
     path: '/api/v1/convert',
-    description: 'Converts a file for an active API key on a Basic plan or higher. Stored results return 202 and are downloaded separately; without storage the file is streamed immediately with 200.',
+    description:
+      'Converts a file for an active API key on a Basic plan or higher. The active plan determines the maximum file size. Stored results return 202 and are downloaded separately; without storage the file is streamed immediately with 200.',
     parameters: [
       { name: 'file', type: 'file', description: 'The file to be converted.' },
-      { name: 'targetFormat', type: 'string', description: 'The desired output format (e.g., "pdf", "jpg", "png").' },
+      {
+        name: 'targetFormat',
+        type: 'string',
+        description: 'The desired output format (e.g., "pdf", "jpg", "png").',
+      },
     ],
     examples: [
       {
@@ -65,10 +70,13 @@ export default function DocsPage() {
             API Documentation
           </h2>
           <p className="mt-4 text-lg leading-8 text-gray-600">
-            Integrate Convertly Hub into your own applications with the API-key protected conversion API.
+            Integrate Convertly Hub into your own applications with the API-key protected conversion
+            API.
           </p>
           <p className="mt-3 text-sm leading-6 text-gray-600">
-            Supported directions: JPG to PNG, PNG to JPG, and DOCX to PDF. Files are limited by the active plan (up to 10 MB); PDF to DOCX is not available yet.
+            Supported directions: JPG to PNG, PNG to JPG, and DOCX to PDF. File size is limited by
+            the active plan; PDF to DOCX is not available yet. Each API key is limited to 30
+            conversion requests per minute.
           </p>
         </div>
         <div className="mt-16 space-y-12">
@@ -76,11 +84,15 @@ export default function DocsPage() {
             <div key={endpoint.id} className="overflow-hidden rounded-2xl bg-white shadow-lg">
               <div className="bg-gray-800 p-4 sm:p-6">
                 <h3 className="text-lg font-semibold leading-7 text-white">
-                  <span className={
-                    "text-sm font-semibold " +
-                    (endpoint.method === 'POST' ? 'text-white' : 'text-green-400') +
-                    " mr-2"
-                  }>{endpoint.method}</span>
+                  <span
+                    className={
+                      'text-sm font-semibold ' +
+                      (endpoint.method === 'POST' ? 'text-white' : 'text-green-400') +
+                      ' mr-2'
+                    }
+                  >
+                    {endpoint.method}
+                  </span>
                   <span className="font-mono">{endpoint.path}</span>
                 </h3>
                 <p className="mt-2 text-sm text-gray-300">{endpoint.description}</p>
@@ -104,11 +116,11 @@ export default function DocsPage() {
                   <div className="mt-3 space-y-4">
                     {endpoint.examples.map((example) => (
                       <div key={example.language}>
-                        <p className="text-sm font-medium text-gray-600 capitalize mb-1">{example.language}</p>
+                        <p className="text-sm font-medium text-gray-600 capitalize mb-1">
+                          {example.language}
+                        </p>
                         <pre className="p-4 bg-gray-900 rounded-lg text-sm text-white overflow-x-auto">
-                          <code>
-                            {example.code}
-                          </code>
+                          <code>{example.code}</code>
                         </pre>
                       </div>
                     ))}
@@ -116,14 +128,46 @@ export default function DocsPage() {
                 </div>
 
                 <div>
-                    <h4 className="text-base font-semibold text-gray-800">Accepted Response (202 Accepted)</h4>
-                    <pre className="mt-3 p-4 bg-gray-900 rounded-lg text-sm text-white overflow-x-auto">
-                        <code>
-                            {JSON.stringify(endpoint.response, null, 2)}
-                        </code>
-                    </pre>
+                  <h4 className="text-base font-semibold text-gray-800">
+                    Stored result response (202 Accepted)
+                  </h4>
+                  <pre className="mt-3 p-4 bg-gray-900 rounded-lg text-sm text-white overflow-x-auto">
+                    <code>{JSON.stringify(endpoint.response, null, 2)}</code>
+                  </pre>
                 </div>
 
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <h4 className="text-base font-semibold text-gray-800">
+                    Downloading a stored result
+                  </h4>
+                  <p className="mt-2 text-sm text-gray-600">
+                    When File Storage is enabled in the account, use the returned conversionId with
+                    the same API key. Do not use curl -i when writing the binary response to a file,
+                    because it adds HTTP headers to the downloaded file.
+                  </p>
+                  <pre className="mt-3 overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-white">
+                    <code>{`curl \\
+  -H 'Authorization: Bearer <YOUR_API_KEY>' \\
+  -o converted-file.jpg \\
+  https://your-convertly-domain.example/api/v1/conversions/<CONVERSION_ID>/download`}</code>
+                  </pre>
+                  <p className="mt-3 text-sm text-gray-600">
+                    The download endpoint returns 200 with the binary file, 401 for an invalid key,
+                    404 when the stored result is not available yet or no longer exists, and 503 for
+                    a storage failure. Retry a newly created stored conversion with a short backoff.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <h4 className="text-base font-semibold text-gray-800">Storage modes</h4>
+                  <p className="mt-2 text-sm text-gray-600">
+                    File Storage is an account preference, not a multipart parameter. With it
+                    enabled, POST returns 202 and the result is private in storage. With it
+                    disabled, POST returns 200 and streams the binary result directly with
+                    Cache-Control: no-store; no later download endpoint is available for that
+                    conversion.
+                  </p>
+                </div>
               </div>
             </div>
           ))}
