@@ -72,7 +72,7 @@ export default function UserProfile() {
           </div>
           <div className="flex gap-2">
             {needsEmailConfirmation && (
-              <Button variant="secondary" onClick={verify} disabled={sending}>
+              <Button variant="secondary" onClick={verify} disabled={sending} className="w-full whitespace-nowrap md:w-[150px]">
                 {sending
                   ? 'Sending…'
                   : profile.pendingEmail
@@ -80,7 +80,7 @@ export default function UserProfile() {
                     : 'Confirm email'}
               </Button>
             )}
-            <Button onClick={() => setEdit(true)}>Edit</Button>
+            <Button onClick={() => setEdit(true)} className="w-full md:w-[150px]">Edit</Button>
           </div>
         </div>
         <div className="border-t" />
@@ -119,12 +119,13 @@ export default function UserProfile() {
               Note: Account deletion will be handled by an administrator.
             </p>
           </div>
-          <Button variant="secondary" onClick={() => setRemove(true)}>
+          <Button variant="secondary" onClick={() => setRemove(true)} className="w-full md:w-[150px]">
             Delete Account
           </Button>
         </div>
       </div>
       <EditProfileModal
+        key={`${profile.name ?? ''}:${profile.email}:${profile.pendingEmail ?? ''}`}
         isOpen={edit}
         name={profile.name ?? ''}
         email={profile.email}
