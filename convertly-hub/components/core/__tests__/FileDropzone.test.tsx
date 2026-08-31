@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FileDropzone from '../FileDropzone';
 
@@ -45,6 +45,7 @@ jest.mock('react-dropzone', () => ({
 
 describe('FileDropzone', () => {
   beforeEach(() => jest.clearAllMocks());
+  afterEach(() => jest.useRealTimers());
 
   it('uploads a selected file and shows the success state', async () => {
     const user = userEvent.setup();
@@ -117,6 +118,59 @@ describe('FileDropzone', () => {
 
     completeUpload?.();
     expect(await screen.findByText('first.png uploaded successfully!')).toBeInTheDocument();
+  });
+
+  it('returns to the upload state five seconds after a successful conversion', async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    render(
+      <FileDropzone
+        title="Images"
+        description="PNG only"
+        accept={{ 'image/png': ['.png'] }}
+        onUpload={jest.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    await user.upload(
+      screen.getByLabelText('Choose a file'),
+      new File(['content'], 'photo.png', { type: 'image/png' }),
+    );
+
+    expect(await screen.findByText('photo.png uploaded successfully!')).toBeInTheDocument();
+    expect(screen.getByLabelText('Choose a file')).toBeDisabled();
+
+    act(() => jest.advanceTimersByTime(5_000));
+
+    expect(screen.getByText('Images')).toBeInTheDocument();
+    expect(screen.getByLabelText('Choose a file')).not.toBeDisabled();
+  });
+
+  it('links to Dashboard instead of converting again when a matching result is available', async () => {
+    const user = userEvent.setup();
+    render(
+      <FileDropzone
+        title="Images"
+        description="PNG only"
+        accept={{ 'image/png': ['.png'] }}
+        onUpload={jest.fn().mockResolvedValue({ kind: 'already-available' })}
+      />,
+    );
+
+    await user.upload(
+      screen.getByLabelText('Choose a file'),
+      new File(['content'], 'photo.png', { type: 'image/png' }),
+    );
+
+    expect(
+      await screen.findByText(
+        'A matching conversion is already available in your Conversion History.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Dashboard' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
   });
 
   it('rejects files over the configured size before upload', async () => {
