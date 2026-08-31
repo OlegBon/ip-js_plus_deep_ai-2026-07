@@ -13,6 +13,7 @@ type PasswordFieldProps = {
   minLength?: number;
   maxLength?: number;
   required?: boolean;
+  hasError?: boolean;
 };
 
 export function PasswordField({
@@ -25,6 +26,7 @@ export function PasswordField({
   minLength,
   maxLength,
   required = true,
+  hasError = false,
 }: PasswordFieldProps) {
   const [isVisible, setIsVisible] = useState(false);
   const toggleLabel = isVisible ? `Hide ${label}` : `Show ${label}`;
@@ -41,12 +43,13 @@ export function PasswordField({
           type={isVisible ? 'text' : 'password'}
           autoComplete={autoComplete}
           required={required}
+          aria-invalid={hasError || undefined}
           value={value}
           aria-describedby={describedBy}
           minLength={minLength}
           maxLength={maxLength}
           onChange={(event) => onChange(event.target.value)}
-          className="border-border bg-background text-text-primary focus:border-accent focus:ring-accent block w-full rounded-md px-3 py-2 pr-11 shadow-sm"
+          className={`border-border bg-background text-text-primary focus:border-accent focus:ring-accent block w-full rounded-md px-3 py-2 pr-11 shadow-sm ${hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
         />
         <button
           type="button"

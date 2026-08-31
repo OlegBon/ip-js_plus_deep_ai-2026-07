@@ -26,12 +26,14 @@ export default function EditProfileModal({
     [currentPassword, setCurrentPassword] = useState(''),
     [password, setPassword] = useState(''),
     [confirmPassword, setConfirmPassword] = useState(''),
-    [isSaving, setIsSaving] = useState(false);
+    [isSaving, setIsSaving] = useState(false),
+    [isCurrentPasswordMissing, setIsCurrentPasswordMissing] = useState(false);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const isEmailChanging = nextEmail.trim().toLowerCase() !== email;
     const isPasswordChanging = Boolean(password || confirmPassword);
     if ((isEmailChanging || isPasswordChanging) && !currentPassword) {
+      setIsCurrentPasswordMissing(true);
       toast.error('Enter your current password to change email or password.');
       return;
     }
@@ -58,6 +60,7 @@ export default function EditProfileModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit profile">
       <form className="space-y-5 pt-4" onSubmit={submit}>
+        <p className="text-sm text-gray-500">For security, enter your current password before changing your email or password.</p>
         <label className="block text-sm font-semibold">
           Name
           <input
@@ -96,9 +99,11 @@ export default function EditProfileModal({
             label="Current Password"
             value={currentPassword}
             autoComplete="current-password"
-            onChange={setCurrentPassword}
+            onChange={(value) => { setCurrentPassword(value); setIsCurrentPasswordMissing(false); }}
             required={false}
+            hasError={isCurrentPasswordMissing}
           />
+          {isCurrentPasswordMissing && <p className="text-sm text-red-600">Current password is required for this change.</p>}
           <p className="text-xs text-gray-500">Required to change email or password.</p>
           <PasswordField
             id="new-password"
