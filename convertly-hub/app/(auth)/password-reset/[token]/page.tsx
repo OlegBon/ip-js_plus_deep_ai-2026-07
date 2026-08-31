@@ -11,8 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
+import { PasswordField } from '@/components/auth/PasswordField';
 import { toast } from '@/lib/hooks/use-toast';
 
 export default function ResetPasswordConfirmPage() {
@@ -61,30 +60,8 @@ export default function ResetPasswordConfirmPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
+              <PasswordField id="password" label="New Password" value={password} autoComplete="new-password" onChange={setPassword} minLength={12} maxLength={128} />
+              <PasswordField id="confirmPassword" label="Confirm New Password" value={confirmPassword} autoComplete="new-password" onChange={setConfirmPassword} minLength={12} maxLength={128} />
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? 'Resetting…' : 'Reset Password'}
               </Button>
