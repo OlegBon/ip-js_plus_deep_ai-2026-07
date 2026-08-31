@@ -960,3 +960,14 @@
   - `docs/audits/api-audit-latest.md` (обновлен)
 - **Новые переменные окружения:**
   - Нет
+
+# 2026-08-31
+
+- **Задача:** Сохранение отчёта Web Performance и дополнение локального skill.
+- **Изменённые файлы:** `.codex/skills/web-performance/SKILL.md`,
+  `docs/audits/web-performance-audit-2026-08-31T16-44-57-000Z.md`,
+  `docs/audits/web-performance-audit-latest.md`.
+- **Результат:** skill содержит триггеры, примеры вызова, порядок воспроизводимого
+  аудита и обязательное создание актуальной и timestamp-копии отчёта.
+- **Проверки:** локальные HTTP- и Playwright-измерения, `GET /api/health` — healthy.
+- **Переменные окружения:** не добавлялись.
