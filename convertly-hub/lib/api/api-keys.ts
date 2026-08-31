@@ -1,11 +1,11 @@
-import { createHash, randomBytes } from "crypto";
-import { prisma } from "@/lib/prisma";
-import { getActivePlanForUser } from "@/lib/billing/subscriptions";
-import { getPlanDefinition } from "@/lib/billing/plans";
+import { createHash, randomBytes } from 'crypto';
+import { prisma } from '@/lib/prisma';
+import { getActivePlanForUser } from '@/lib/billing/subscriptions';
+import { getPlanDefinition } from '@/lib/billing/plans';
 
-const API_KEY_PREFIX = "ch_live_";
+const API_KEY_PREFIX = 'ch_live_';
 const DISPLAY_PREFIX_LENGTH = 16;
-const DEFAULT_API_KEY_NAME = "Default";
+const DEFAULT_API_KEY_NAME = 'Default';
 const MAX_API_KEY_NAME_LENGTH = 64;
 
 export type ApiKeyMetadata = {
@@ -22,7 +22,7 @@ export class ApiKeyPlanNotEligibleError extends Error {}
 
 export function normalizeApiKeyName(value: unknown) {
   if (value === undefined) return DEFAULT_API_KEY_NAME;
-  if (typeof value !== "string") return null;
+  if (typeof value !== 'string') return null;
 
   const name = value.trim();
   if (!name || name.length > MAX_API_KEY_NAME_LENGTH) return null;
@@ -32,9 +32,9 @@ export function normalizeApiKeyName(value: unknown) {
 export async function listApiKeys(userId: string) {
   await ensureActiveUser(userId);
   return prisma.apiKey.findMany({
-    where: { userId },
+    where: { userId, revokedAt: null },
     select: apiKeyMetadataSelect,
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
   });
 }
 
@@ -43,7 +43,7 @@ export async function createApiKey(userId: string, name: string) {
   const plan = await getActivePlanForUser(userId);
   if (!getPlanDefinition(plan).apiAccess) throw new ApiKeyPlanNotEligibleError();
 
-  const secret = `${API_KEY_PREFIX}${randomBytes(32).toString("base64url")}`;
+  const secret = `${API_KEY_PREFIX}${randomBytes(32).toString('base64url')}`;
   const apiKey = await prisma.apiKey.create({
     data: {
       userId,
@@ -69,7 +69,7 @@ export async function revokeApiKey(userId: string, apiKeyId: string) {
 }
 
 export function hashApiKey(secret: string) {
-  return createHash("sha256").update(secret).digest("hex");
+  return createHash('sha256').update(secret).digest('hex');
 }
 
 const apiKeyMetadataSelect = {
@@ -86,7 +86,7 @@ async function ensureActiveUser(userId: string) {
     where: { id: userId },
     select: { status: true },
   });
-  if (!user || user.status !== "ACTIVE") {
+  if (!user || user.status !== 'ACTIVE') {
     throw new ApiKeyUserNotFoundError();
   }
 }

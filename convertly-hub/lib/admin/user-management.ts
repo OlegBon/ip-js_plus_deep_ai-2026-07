@@ -59,7 +59,10 @@ export async function listAdminUsers(
   const hasNextPage = users.length > options.limit;
   const page = hasNextPage ? users.slice(0, options.limit) : users;
   return {
-    users: page,
+    users: page.map(({ subscription, ...user }) => ({
+      ...user,
+      plan: subscription?.activePlan ?? user.plan,
+    })),
     nextCursor: hasNextPage ? (page.at(-1)?.id ?? null) : null,
     total,
   };
@@ -97,6 +100,7 @@ const adminUserSelect = {
   role: true,
   status: true,
   plan: true,
+  subscription: { select: { activePlan: true } },
   lastLoginAt: true,
   createdAt: true,
   apiKeys: { where: { revokedAt: null }, select: { id: true, name: true, keyPrefix: true } },
