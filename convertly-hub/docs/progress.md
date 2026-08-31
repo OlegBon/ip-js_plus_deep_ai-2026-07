@@ -2,6 +2,13 @@
 
 ## 2026-08-31
 
+- **Задача:** GitHub Actions CI для Convertly Hub.
+- **Описание:** Добавлен root-level workflow `.github/workflows/ci.yml`, который срабатывает при push в любую ветку, если изменены `convertly-hub/**` или сам workflow. Все шаги выполняются из `convertly-hub`; другие проекты в репозитории не устанавливают зависимости и не запускают проверки. CI выполняет ESLint, TypeScript, полный Jest и Playwright Chromium в отдельном job; для Prisma/маршрутов поднят изолированный PostgreSQL и применяются миграции. При E2E-ошибке сохраняются Playwright artifacts. Playwright web server использует прямую надёжную команду `npx next dev`, а не npm-передачу флагов.
+- **Проверки:** Prettier YAML, TypeScript, целевые Jest-тесты и Playwright critical flows выполнены успешно. Локальный production build остановлен внешним sandbox-ограничением доступа к `fonts.googleapis.com` для `next/font`; GitHub runner выполняет build с обычным сетевым доступом.
+- **Новые переменные окружения:** Нет; CI использует только тестовые значения, заданные в workflow.
+
+## 2026-08-31
+
 - **Задача:** Синхронизация API-ключей и активного тарифа в Dashboard/Admin.
 - **Описание:** `GET /api/account/api-keys` возвращает только активные ключи (`revokedAt: null`), поэтому отзыв из Admin сразу исчезает и из кабинета владельца. User Management отображает `Subscription.activePlan`, а `User.plan` использует только как fallback для legacy-записей без Subscription. В план добавлена отдельная выполнимая задача на admin-историю конвертаций, фильтр failed и безопасное управление результатами.
 - **Проверки:** Добавлены service-тесты фильтра активных ключей и приоритета Subscription plan; полный набор будет выполнен перед коммитом.
