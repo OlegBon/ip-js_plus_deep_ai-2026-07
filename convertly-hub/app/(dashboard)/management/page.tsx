@@ -13,6 +13,7 @@ export default function AdminPage() {
       </section>
 
       <section>
+        <h2 className="text-2xl font-semibold mb-4">User Management</h2>
         <UserManagement />
       </section>
     </div>

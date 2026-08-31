@@ -112,14 +112,16 @@ export default function ConversionHistory() {
     return <div className="rounded-lg bg-white p-6 shadow-md">Loading conversion history…</div>;
   return (
     <div className="overflow-x-auto rounded-lg bg-white p-6 shadow-md">
-      <Search
-        className="mb-4"
-        aria-label="Search by file name"
-        value={searchInput}
-        onValueChange={setSearchInput}
-        onSearch={applySearch}
-        placeholder="Search by file name"
-      />
+      <div className="mb-4 flex justify-end">
+        <Search
+          className="w-full max-w-md"
+          aria-label="Search by file name"
+          value={searchInput}
+          onValueChange={setSearchInput}
+          onSearch={applySearch}
+          placeholder="Search by file name"
+        />
+      </div>
       <table className="min-w-full text-left text-sm text-gray-600">
         <thead className="bg-gray-50 text-xs uppercase text-gray-700">
           <tr>

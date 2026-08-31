@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CursorPagination } from '@/components/ui/CursorPagination';
 import Search from '@/components/ui/Search';
+import ConfirmationModal from '@/components/core/ConfirmationModal';
 import { toast } from '@/lib/hooks/use-toast';
 
 type ApiKey = { id: string; name: string; keyPrefix: string };
@@ -19,6 +20,7 @@ type User = {
 };
 type SortField = 'createdAt' | 'email' | 'role' | 'plan' | 'status' | 'lastLoginAt';
 type UsersResponse = { users: User[]; nextCursor: string | null; total: number };
+type PendingAction = { type: 'status'; user: User } | { type: 'key'; key: ApiKey } | null;
 
 const PAGE_SIZE = 10;
 
@@ -30,6 +32,7 @@ export default function UserManagement() {
   const [previousCursors, setPreviousCursors] = useState<string[]>([]);
   const [sort, setSort] = useState<SortField>('createdAt');
   const [direction, setDirection] = useState<'asc' | 'desc'>('desc');
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -112,16 +115,22 @@ export default function UserManagement() {
   const users = result?.users ?? [];
   const page = previousCursors.length + 1;
   const pages = Math.max(1, Math.ceil((result?.total ?? 0) / PAGE_SIZE));
+  const confirmation = pendingAction && getConfirmationDetails(pendingAction);
+
+  function confirmPendingAction() {
+    if (!pendingAction) return;
+    const action = pendingAction;
+    setPendingAction(null);
+    if (action.type === 'status') void updateStatus(action.user);
+    else void revokeKey(action.key);
+  }
 
   return (
     <section className="rounded-lg bg-white p-6 shadow-md">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">User Management</h2>
-          <p className="text-sm text-gray-500">
-            {result ? `${result.total} users` : 'Loading users…'}
-          </p>
-        </div>
+        <p className="text-sm text-gray-500">
+          {result ? `${result.total} users` : 'Loading users…'}
+        </p>
         <Search
           className="w-full max-w-md sm:w-auto"
           aria-label="Search users"
@@ -190,7 +199,7 @@ export default function UserManagement() {
                     size="sm"
                     variant={user.status === 'ACTIVE' ? 'primary' : 'secondary'}
                     disabled={isPending}
-                    onClick={() => void updateStatus(user)}
+                    onClick={() => setPendingAction({ type: 'status', user })}
                   >
                     {user.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
                   </Button>
@@ -207,7 +216,7 @@ export default function UserManagement() {
                             size="sm"
                             variant="outline"
                             disabled={isPending}
-                            onClick={() => void revokeKey(key)}
+                            onClick={() => setPendingAction({ type: 'key', key })}
                           >
                             Revoke
                           </Button>
@@ -248,8 +257,38 @@ export default function UserManagement() {
           }
         }}
       />
+      {confirmation && (
+        <ConfirmationModal
+          isOpen
+          onClose={() => setPendingAction(null)}
+          onConfirm={confirmPendingAction}
+          title={confirmation.title}
+          message={confirmation.message}
+          confirmLabel={confirmation.confirmLabel}
+          isPending={isPending}
+        />
+      )}
     </section>
   );
+}
+
+function getConfirmationDetails(action: Exclude<PendingAction, null>) {
+  if (action.type === 'key') {
+    return {
+      title: 'Revoke API key?',
+      message: `“${action.key.name} (${action.key.keyPrefix}…)” will stop working immediately. This cannot be undone.`,
+      confirmLabel: 'Revoke key',
+    };
+  }
+
+  const suspending = action.user.status === 'ACTIVE';
+  return {
+    title: suspending ? 'Suspend user?' : 'Activate user?',
+    message: suspending
+      ? `${action.user.email} will no longer be able to sign in or use API keys.`
+      : `${action.user.email} will regain access to Convertly Hub and active API keys.`,
+    confirmLabel: suspending ? 'Suspend user' : 'Activate user',
+  };
 }
 
 function SortableHeader({
