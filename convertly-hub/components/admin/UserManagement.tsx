@@ -1,7 +1,9 @@
 'use client';
 
-import { FormEvent, useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
+import { CursorPagination } from '@/components/ui/CursorPagination';
+import Search from '@/components/ui/Search';
 import { toast } from '@/lib/hooks/use-toast';
 
 type ApiKey = { id: string; name: string; keyPrefix: string };
@@ -48,19 +50,11 @@ export default function UserManagement() {
     return () => controller.abort();
   }, [cursor, direction, query, sort]);
 
-  function submitSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const applySearch = useCallback((value: string) => {
     setCursor(null);
     setPreviousCursors([]);
-    setQuery(queryInput.trim());
-  }
-
-  function clearSearch() {
-    setQueryInput('');
-    setQuery('');
-    setCursor(null);
-    setPreviousCursors([]);
-  }
+    setQuery(value.trim());
+  }, []);
 
   function changeSort(field: SortField) {
     setDirection((current) => (sort === field ? (current === 'asc' ? 'desc' : 'asc') : 'asc'));
@@ -128,33 +122,14 @@ export default function UserManagement() {
             {result ? `${result.total} users` : 'Loading users…'}
           </p>
         </div>
-        <form className="flex w-full max-w-md gap-2 sm:w-auto" onSubmit={submitSearch}>
-          <label className="sr-only" htmlFor="user-search">
-            Search users
-          </label>
-          <div className="relative flex-1">
-            <input
-              id="user-search"
-              value={queryInput}
-              onChange={(event) => setQueryInput(event.target.value)}
-              placeholder="Search by name or email"
-              className="h-10 w-full rounded-md border border-border px-3 pr-10 text-sm"
-            />
-            {queryInput && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                aria-label="Clear search"
-                className="absolute inset-y-0 right-0 w-10 text-lg text-gray-500 hover:text-gray-900"
-              >
-                ×
-              </button>
-            )}
-          </div>
-          <Button type="submit" variant="secondary">
-            Search
-          </Button>
-        </form>
+        <Search
+          className="w-full max-w-md sm:w-auto"
+          aria-label="Search users"
+          value={queryInput}
+          onValueChange={setQueryInput}
+          onSearch={applySearch}
+          placeholder="Search by name or email"
+        />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -213,7 +188,7 @@ export default function UserManagement() {
                 <td className="px-3 py-4">
                   <Button
                     size="sm"
-                    variant={user.status === 'ACTIVE' ? 'danger' : 'secondary'}
+                    variant={user.status === 'ACTIVE' ? 'primary' : 'secondary'}
                     disabled={isPending}
                     onClick={() => void updateStatus(user)}
                   >
@@ -255,38 +230,24 @@ export default function UserManagement() {
           </tbody>
         </table>
       </div>
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <p className="text-sm text-gray-500">
-          Page {page} of {pages}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={!previousCursors.length || isPending}
-            onClick={() => {
-              const history = [...previousCursors];
-              setCursor(history.pop() ?? null);
-              setPreviousCursors(history);
-            }}
-          >
-            Previous
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={!result?.nextCursor || isPending}
-            onClick={() => {
-              if (result?.nextCursor) {
-                setPreviousCursors((history) => [...history, cursor ?? '']);
-                setCursor(result.nextCursor);
-              }
-            }}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <CursorPagination
+        page={page}
+        totalPages={pages}
+        canGoPrevious={previousCursors.length > 0}
+        canGoNext={Boolean(result?.nextCursor)}
+        disabled={isPending}
+        onPrevious={() => {
+          const history = [...previousCursors];
+          setCursor(history.pop() ?? null);
+          setPreviousCursors(history);
+        }}
+        onNext={() => {
+          if (result?.nextCursor) {
+            setPreviousCursors((history) => [...history, cursor ?? '']);
+            setCursor(result.nextCursor);
+          }
+        }}
+      />
     </section>
   );
 }

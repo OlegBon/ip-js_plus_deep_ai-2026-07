@@ -113,7 +113,7 @@ services:
 │   ├── dashboard/                    # Профиль, тариф, ключи, privacy, Telegram, история
 │   ├── admin/                        # UserManagement, SystemMonitoring, EditUserModal
 │   ├── pricing/                      # PaymentModal для Mock Checkout
-│   ├── ui/                           # Базовые Button, Card, Input, Modal, Toast и др.
+│   ├── ui/                           # Базовые Button, Card, Input, Search, CursorPagination, Modal, Toast и др.
 │   └── **/__tests__/                 # Component-тесты рядом с компонентами
 ├── lib/
 │   ├── admin/                        # Поиск пользователей и административные действия
@@ -212,7 +212,7 @@ services:
 
 `GET /api/account/conversions` принимает server-side параметры `search`, `sort`, `direction` и `cursor`. Поиск ограничен именем исходного файла, а сортировка разрешена только для имени файла, целевого формата, статуса, срока доступности и даты создания; общий `total` позволяет Dashboard показать `Page X of Y` для текущего billing-месяца.
 
-Когда появится список конвертаций в Admin Panel, он не должен копировать `ConversionHistory`. Сначала будет добавлен отдельный `ADMIN` API-контракт с массовым выбором и безопасным удалением. После появления второго потребителя общими станут только нейтральные части списка: типы строк, search/sort/cursor-container и презентационная таблица через композицию; checkbox-выбор, подтверждение удаления и админские права останутся в отдельном admin-container.
+Когда появится список конвертаций в Admin Panel, он не должен копировать `ConversionHistory`. Сначала будет добавлен отдельный `ADMIN` API-контракт с массовым выбором и безопасным удалением. Нейтральные `Search` и `CursorPagination` уже общие для Dashboard и Admin; типы строк, checkbox-выбор, подтверждение удаления и админские права останутся в отдельном admin-container.
 
 Маршрут `/api/v1/convert` уже выполняет доступные Core-конвертации, а жизненный цикл API-ключей реализован session-защищёнными маршрутами Dashboard.
 

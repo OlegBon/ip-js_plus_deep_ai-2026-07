@@ -46,10 +46,12 @@ describe('UI interactions', () => {
     act(() => jest.advanceTimersByTime(250));
     expect(onSearch).toHaveBeenLastCalledWith('invoice');
 
-    const buttons = screen.getAllByRole('button');
-    await user.click(buttons[0]);
-    await user.click(buttons[2]);
-    await user.click(buttons[3]);
+    const paginationButtons = screen
+      .getAllByRole('button')
+      .filter((button) => button.getAttribute('aria-label') !== 'Clear search');
+    await user.click(paginationButtons[0]);
+    await user.click(paginationButtons[2]);
+    await user.click(paginationButtons[3]);
     expect(onPageChange).toHaveBeenNthCalledWith(1, 1);
     expect(onPageChange).toHaveBeenNthCalledWith(2, 3);
     expect(onPageChange).toHaveBeenNthCalledWith(3, 3);

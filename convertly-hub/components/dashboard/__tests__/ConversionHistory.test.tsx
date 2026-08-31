@@ -83,7 +83,7 @@ describe('ConversionHistory', () => {
     expect(await screen.findByText('holiday.jpg')).toBeInTheDocument();
   });
 
-  it('submits a file-name search and resets pagination when sorting changes', async () => {
+  it('applies a live file-name search and resets pagination when sorting changes', async () => {
     const user = userEvent.setup();
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -93,7 +93,6 @@ describe('ConversionHistory', () => {
     render(<ConversionHistory />);
     await screen.findByText('holiday.jpg');
     await user.type(screen.getByRole('textbox', { name: 'Search by file name' }), 'holiday');
-    await user.click(screen.getByRole('button', { name: 'Search' }));
 
     await waitFor(() =>
       expect(global.fetch).toHaveBeenLastCalledWith(
@@ -120,7 +119,12 @@ describe('ConversionHistory', () => {
     render(<ConversionHistory />);
     const searchInput = await screen.findByRole('textbox', { name: 'Search by file name' });
     await user.type(searchInput, 'holiday');
-    await user.click(screen.getByRole('button', { name: 'Search' }));
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        '/api/account/conversions?sort=createdAt&direction=desc&search=holiday',
+        expect.any(Object),
+      ),
+    );
     await user.click(screen.getByRole('button', { name: 'Clear search' }));
 
     expect(searchInput).toHaveValue('');
