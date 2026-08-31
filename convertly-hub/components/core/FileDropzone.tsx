@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from '@/lib/hooks/use-toast';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 import { UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
 import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_LABEL } from '@/lib/files/upload-policy';
@@ -20,6 +20,7 @@ interface FileDropzoneProps {
 type Status = 'idle' | 'uploading' | 'success' | 'error';
 
 const defaultSuccessMessage = (file: File) => `${file.name} uploaded successfully!`;
+const SUCCESS_DISPLAY_MS = 5_000;
 
 const FileDropzone = ({
   title,
@@ -37,6 +38,19 @@ const FileDropzone = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const uploadInProgress = useRef(false);
+
+  useEffect(() => {
+    if (status !== 'success') return;
+
+    const resetTimer = window.setTimeout(() => {
+      setStatus('idle');
+      setProgress(0);
+      setFileName(null);
+      setSuccessMessage(null);
+    }, SUCCESS_DISPLAY_MS);
+
+    return () => window.clearTimeout(resetTimer);
+  }, [status]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -100,13 +114,15 @@ const FileDropzone = ({
     [maxSizeLabel],
   );
 
+  const isDropzoneDisabled = disabled || status === 'uploading' || status === 'success';
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     onDropRejected,
     accept,
     maxSize,
     multiple: false,
-    disabled: disabled || status === 'uploading',
+    disabled: isDropzoneDisabled,
   });
 
   const renderContent = () => {
@@ -152,8 +168,8 @@ const FileDropzone = ({
   return (
     <div
       {...getRootProps()}
-      aria-disabled={disabled}
-      className={`${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} rounded-lg border-2 border-dashed p-8 transition-colors
+      aria-disabled={isDropzoneDisabled}
+      className={`${isDropzoneDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} rounded-lg border-2 border-dashed p-8 transition-colors
         ${isDragActive ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'}
         ${status === 'success' && 'border-success'}
         ${status === 'error' && 'border-error'}`}
