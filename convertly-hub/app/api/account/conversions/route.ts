@@ -1,4 +1,5 @@
 import { after, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { getCurrentSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import {
@@ -95,6 +96,8 @@ export async function POST(request: Request) {
     created = await createConversionRequest(principal, {
       file,
       targetFormat: validation.targetFormat,
+      sourceFileHash: createHash('sha256').update(fileData).digest('hex'),
+      reuseStoredResult: true,
     });
   } catch (error) {
     if (error instanceof ConversionQuotaExceededError) {
@@ -106,6 +109,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unable to create conversion request.' }, { status: 503 });
   }
   if ('error' in created) return conversionValidationError(created.error);
+  if ('existingConversion' in created) {
+    return NextResponse.json(
+      { status: 'AVAILABLE', conversionId: created.existingConversion.id },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
 
   const job = {
     conversionId: created.conversion.id,

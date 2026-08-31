@@ -146,6 +146,33 @@ describe('FileDropzone', () => {
     expect(screen.getByLabelText('Choose a file')).not.toBeDisabled();
   });
 
+  it('links to Dashboard instead of converting again when a matching result is available', async () => {
+    const user = userEvent.setup();
+    render(
+      <FileDropzone
+        title="Images"
+        description="PNG only"
+        accept={{ 'image/png': ['.png'] }}
+        onUpload={jest.fn().mockResolvedValue({ kind: 'already-available' })}
+      />,
+    );
+
+    await user.upload(
+      screen.getByLabelText('Choose a file'),
+      new File(['content'], 'photo.png', { type: 'image/png' }),
+    );
+
+    expect(
+      await screen.findByText(
+        'A matching conversion is already available in your Conversion History.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Dashboard' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
+  });
+
   it('rejects files over the configured size before upload', async () => {
     const user = userEvent.setup();
     const onUpload = jest.fn();

@@ -127,6 +127,7 @@ model ConversionLog {
   sourceFileName String
   sourceMimeType String
   sourceSize     BigInt
+  sourceFileHash String?
   targetFormat   String
   status         ConversionStatus @default(PENDING)
 
@@ -148,6 +149,7 @@ model ConversionLog {
   apiKey   ApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+  @@index([userId, sourceFileHash, targetFormat])
   @@index([userId, expiresAt])
   @@index([status, createdAt])
   @@index([apiKeyId])

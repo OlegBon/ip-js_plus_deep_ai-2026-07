@@ -1,23 +1,26 @@
 'use client';
 
 import { toast } from '@/lib/hooks/use-toast';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 import { UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
 import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_LABEL } from '@/lib/files/upload-policy';
 
+type UploadResult = { kind: 'converted' } | { kind: 'already-available' };
+
 interface FileDropzoneProps {
   title: string;
   description: string;
   accept: Record<string, string[]>;
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (file: File) => Promise<UploadResult | void>;
   getSuccessMessage?: (file: File) => string;
   maxSize?: number;
   maxSizeLabel?: string;
   disabled?: boolean;
 }
 
-type Status = 'idle' | 'uploading' | 'success' | 'error';
+type Status = 'idle' | 'uploading' | 'success' | 'already-available' | 'error';
 
 const defaultSuccessMessage = (file: File) => `${file.name} uploaded successfully!`;
 const SUCCESS_DISPLAY_MS = 5_000;
@@ -40,7 +43,7 @@ const FileDropzone = ({
   const uploadInProgress = useRef(false);
 
   useEffect(() => {
-    if (status !== 'success') return;
+    if (status !== 'success' && status !== 'already-available') return;
 
     const resetTimer = window.setTimeout(() => {
       setStatus('idle');
@@ -78,7 +81,14 @@ const FileDropzone = ({
       }, 200);
 
       try {
-        await onUpload(file);
+        const result = await onUpload(file);
+        if (result?.kind === 'already-available') {
+          const message = 'A matching conversion is already available in your Conversion History.';
+          setStatus('already-available');
+          setSuccessMessage(message);
+          toast.success(message);
+          return;
+        }
         setProgress(100);
         setStatus('success');
         const message = getSuccessMessage(file);
@@ -114,7 +124,8 @@ const FileDropzone = ({
     [maxSizeLabel],
   );
 
-  const isDropzoneDisabled = disabled || status === 'uploading' || status === 'success';
+  const isDropzoneDisabled =
+    disabled || status === 'uploading' || status === 'success' || status === 'already-available';
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -142,6 +153,19 @@ const FileDropzone = ({
           <div className="text-center">
             <CheckCircle className="text-success mx-auto h-12 w-12" />
             <p className="text-text-primary mt-2">{successMessage}</p>
+          </div>
+        );
+      case 'already-available':
+        return (
+          <div className="text-center">
+            <CheckCircle className="text-success mx-auto h-12 w-12" />
+            <p className="text-text-primary mt-2">{successMessage}</p>
+            <Link
+              className="text-accent mt-4 inline-block text-sm hover:underline"
+              href="/dashboard"
+            >
+              Open Dashboard
+            </Link>
           </div>
         );
       case 'error':
@@ -172,6 +196,7 @@ const FileDropzone = ({
       className={`${isDropzoneDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} rounded-lg border-2 border-dashed p-8 transition-colors
         ${isDragActive ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'}
         ${status === 'success' && 'border-success'}
+        ${status === 'already-available' && 'border-success'}
         ${status === 'error' && 'border-error'}`}
     >
       <input {...getInputProps()} />
