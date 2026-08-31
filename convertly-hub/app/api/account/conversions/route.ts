@@ -15,12 +15,17 @@ import { processConversionJob } from '@/lib/core/conversion-job';
 
 export const runtime = 'nodejs';
 
-export async function GET() {
+const HISTORY_PAGE_SIZE = 10;
+
+export async function GET(request: Request) {
   const session = await getCurrentSession();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
-  const conversions = await prisma.conversionLog.findMany({
-    where: { userId: session.user.id },
+  const cursor = new URL(request.url).searchParams.get('cursor');
+  const now = new Date();
+  const billingPeriodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const rows = await prisma.conversionLog.findMany({
+    where: { userId: session.user.id, createdAt: { gte: billingPeriodStart } },
     select: {
       id: true,
       sourceFileName: true,
@@ -31,10 +36,18 @@ export async function GET() {
       expiresAt: true,
       storageKey: true,
     },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    cursor: cursor ? { id: cursor } : undefined,
+    skip: cursor ? 1 : 0,
+    take: HISTORY_PAGE_SIZE + 1,
   });
-  return NextResponse.json({ conversions }, { headers: { 'Cache-Control': 'no-store' } });
+  const hasNextPage = rows.length > HISTORY_PAGE_SIZE;
+  const conversions = hasNextPage ? rows.slice(0, HISTORY_PAGE_SIZE) : rows;
+  const nextCursor = hasNextPage ? (conversions.at(-1)?.id ?? null) : null;
+  return NextResponse.json(
+    { conversions, nextCursor },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }
 
 export async function POST(request: Request) {

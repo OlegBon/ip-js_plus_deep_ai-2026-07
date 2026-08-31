@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/Button';
 
 const sourceFormatLabels: Record<string, string> = {
   'image/jpeg': 'JPG',
@@ -41,12 +42,37 @@ function availability(conversion: Conversion) {
 
 export default function ConversionHistory() {
   const [conversions, setConversions] = useState<Conversion[] | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [previousCursors, setPreviousCursors] = useState<Array<string | null>>([]);
+
   useEffect(() => {
-    fetch('/api/account/conversions')
+    const controller = new AbortController();
+    const url = cursor
+      ? `/api/account/conversions?cursor=${encodeURIComponent(cursor)}`
+      : '/api/account/conversions';
+    fetch(url, { signal: controller.signal })
       .then(async (response) => (response.ok ? response.json() : null))
-      .then((payload) => setConversions(payload?.conversions ?? []))
+      .then((payload) => {
+        setConversions(payload?.conversions ?? []);
+        setNextCursor(typeof payload?.nextCursor === 'string' ? payload.nextCursor : null);
+      })
       .catch(() => setConversions([]));
-  }, []);
+    return () => controller.abort();
+  }, [cursor]);
+
+  function showNextPage() {
+    if (!nextCursor) return;
+    setPreviousCursors((history) => [...history, cursor]);
+    setCursor(nextCursor);
+  }
+
+  function showPreviousPage() {
+    const previousCursor = previousCursors.at(-1);
+    if (previousCursor === undefined) return;
+    setPreviousCursors((history) => history.slice(0, -1));
+    setCursor(previousCursor);
+  }
   if (!conversions)
     return <div className="rounded-lg bg-white p-6 shadow-md">Loading conversion history…</div>;
   return (
@@ -93,6 +119,20 @@ export default function ConversionHistory() {
           )}
         </tbody>
       </table>
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={showPreviousPage}
+          disabled={previousCursors.length === 0}
+        >
+          Previous
+        </Button>
+        <span className="text-text-secondary text-sm">Page {previousCursors.length + 1}</span>
+        <Button variant="secondary" size="sm" onClick={showNextPage} disabled={!nextCursor}>
+          Next
+        </Button>
+      </div>
     </div>
   );
 }
