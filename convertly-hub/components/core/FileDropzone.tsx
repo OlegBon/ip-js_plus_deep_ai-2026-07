@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
 import { toast } from '@/lib/hooks/use-toast';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 import { UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
 import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_LABEL } from '@/lib/files/upload-policy';
@@ -36,58 +36,69 @@ const FileDropzone = ({
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const uploadInProgress = useRef(false);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (uploadInProgress.current) return;
 
-    setFileName(file.name);
-    setStatus('uploading');
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setProgress(0);
+      const file = acceptedFiles[0];
+      if (!file) return;
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 200);
+      uploadInProgress.current = true;
+      setFileName(file.name);
+      setStatus('uploading');
+      setErrorMessage(null);
+      setSuccessMessage(null);
+      setProgress(0);
 
-    try {
-      await onUpload(file);
-      setProgress(100);
-      setStatus('success');
-      const message = getSuccessMessage(file);
-      setSuccessMessage(message);
-      toast.success(message);
-    } catch (error) {
-      setStatus('error');
-      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setErrorMessage(message);
-      toast.error(`${file.name} failed to upload. ${message}`);
-    } finally {
+      // Simulate upload progress
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 5;
+        });
+      }, 200);
+
+      try {
+        await onUpload(file);
+        setProgress(100);
+        setStatus('success');
+        const message = getSuccessMessage(file);
+        setSuccessMessage(message);
+        toast.success(message);
+      } catch (error) {
+        setStatus('error');
+        const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+        setErrorMessage(message);
+        toast.error(`${file.name} failed to upload. ${message}`);
+      } finally {
         clearInterval(interval);
-    }
-  }, [getSuccessMessage, onUpload]);
+        uploadInProgress.current = false;
+      }
+    },
+    [getSuccessMessage, onUpload],
+  );
 
-  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
-    const rejection = fileRejections[0];
-    if (!rejection) return;
+  const onDropRejected = useCallback(
+    (fileRejections: FileRejection[]) => {
+      const rejection = fileRejections[0];
+      if (!rejection) return;
 
-    const message = rejection.errors.some(({ code }) => code === 'file-too-large')
-      ? `File must be ${maxSizeLabel} or smaller.`
-      : 'Unsupported file type. Choose JPG, PNG, DOCX, or PDF.';
+      const message = rejection.errors.some(({ code }) => code === 'file-too-large')
+        ? `File must be ${maxSizeLabel} or smaller.`
+        : 'Unsupported file type. Choose JPG, PNG, DOCX, or PDF.';
 
-    setFileName(rejection.file.name);
-    setStatus('error');
-    setErrorMessage(message);
-    toast.error(`${rejection.file.name} was not selected. ${message}`);
-  }, [maxSizeLabel]);
+      setFileName(rejection.file.name);
+      setStatus('error');
+      setErrorMessage(message);
+      toast.error(`${rejection.file.name} was not selected. ${message}`);
+    },
+    [maxSizeLabel],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -95,45 +106,45 @@ const FileDropzone = ({
     accept,
     maxSize,
     multiple: false,
-    disabled,
+    disabled: disabled || status === 'uploading',
   });
-  
+
   const renderContent = () => {
     switch (status) {
-        case 'uploading':
+      case 'uploading':
         return (
-            <div className="text-center">
-                <p className="text-text-secondary mb-2">{fileName}</p>
-                <div className="bg-border h-2.5 w-full rounded-full">
-                    <div className="bg-accent h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
-                </div>
-                <p className="text-text-secondary mt-2 text-sm">{progress}%</p>
+          <div className="text-center">
+            <p className="text-text-secondary mb-2">{fileName}</p>
+            <div className="bg-border h-2.5 w-full rounded-full">
+              <div className="bg-accent h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
             </div>
+            <p className="text-text-secondary mt-2 text-sm">{progress}%</p>
+          </div>
         );
-        case 'success':
+      case 'success':
         return (
-            <div className="text-center">
-                <CheckCircle className="text-success mx-auto h-12 w-12" />
-                <p className="text-text-primary mt-2">{successMessage}</p>
-            </div>
+          <div className="text-center">
+            <CheckCircle className="text-success mx-auto h-12 w-12" />
+            <p className="text-text-primary mt-2">{successMessage}</p>
+          </div>
         );
-        case 'error':
+      case 'error':
         return (
-            <div className="text-center">
-                <AlertCircle className="text-error mx-auto h-12 w-12" />
-                <p className="text-text-primary mt-2">{fileName} failed to upload.</p>
-                <p className="text-text-secondary text-sm">{errorMessage}</p>
-            </div>
+          <div className="text-center">
+            <AlertCircle className="text-error mx-auto h-12 w-12" />
+            <p className="text-text-primary mt-2">{fileName} failed to upload.</p>
+            <p className="text-text-secondary text-sm">{errorMessage}</p>
+          </div>
         );
-        case 'idle':
-        default:
+      case 'idle':
+      default:
         return (
-            <div className="text-center">
-                <UploadCloud className="text-indigo-600 mx-auto h-12 w-12" />
-                <p className="text-text-primary mt-2 font-semibold">{title}</p>
-                <p className="text-text-secondary text-sm">{description}</p>
-                <p className="text-accent mt-4 text-sm">Drag & drop a file or click to select</p>
-            </div>
+          <div className="text-center">
+            <UploadCloud className="text-indigo-600 mx-auto h-12 w-12" />
+            <p className="text-text-primary mt-2 font-semibold">{title}</p>
+            <p className="text-text-secondary text-sm">{description}</p>
+            <p className="text-accent mt-4 text-sm">Drag & drop a file or click to select</p>
+          </div>
         );
     }
   };
