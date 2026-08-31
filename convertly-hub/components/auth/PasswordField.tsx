@@ -1,33 +1,46 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 type PasswordFieldProps = {
   id: string;
   label: string;
   value: string;
-  autoComplete: "current-password" | "new-password";
+  autoComplete: 'current-password' | 'new-password';
   onChange: (value: string) => void;
   describedBy?: string;
   minLength?: number;
   maxLength?: number;
+  required?: boolean;
 };
 
-export function PasswordField({ id, label, value, autoComplete, onChange, describedBy, minLength, maxLength }: PasswordFieldProps) {
+export function PasswordField({
+  id,
+  label,
+  value,
+  autoComplete,
+  onChange,
+  describedBy,
+  minLength,
+  maxLength,
+  required = true,
+}: PasswordFieldProps) {
   const [isVisible, setIsVisible] = useState(false);
   const toggleLabel = isVisible ? `Hide ${label}` : `Show ${label}`;
 
   return (
     <div>
-      <label htmlFor={id} className="text-text-primary block text-sm font-medium">{label}</label>
+      <label htmlFor={id} className="text-text-primary block text-sm font-medium">
+        {label}
+      </label>
       <div className="relative mt-1">
         <input
           id={id}
           name={id}
-          type={isVisible ? "text" : "password"}
+          type={isVisible ? 'text' : 'password'}
           autoComplete={autoComplete}
-          required
+          required={required}
           value={value}
           aria-describedby={describedBy}
           minLength={minLength}
@@ -42,7 +55,11 @@ export function PasswordField({ id, label, value, autoComplete, onChange, descri
           onClick={() => setIsVisible((current) => !current)}
           className="text-text-secondary hover:text-text-primary absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          {isVisible ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}
+          {isVisible ? (
+            <EyeOff aria-hidden="true" size={18} />
+          ) : (
+            <Eye aria-hidden="true" size={18} />
+          )}
         </button>
       </div>
     </div>

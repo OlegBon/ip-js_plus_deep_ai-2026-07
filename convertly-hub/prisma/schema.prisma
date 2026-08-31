@@ -50,6 +50,7 @@ model User {
   updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
 
   emailVerified              DateTime? @db.Timestamptz(3)
+  pendingEmail               String?   @unique
   emailVerificationTokenHash String?   @unique
   emailVerificationExpires   DateTime? @db.Timestamptz(3)
   passwordResetTokenHash     String?   @unique

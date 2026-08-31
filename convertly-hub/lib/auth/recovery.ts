@@ -1,17 +1,17 @@
-import bcrypt from "bcrypt";
-import { createHash, randomBytes } from "crypto";
-import { prisma } from "@/lib/prisma";
+import bcrypt from 'bcrypt';
+import { createHash, randomBytes } from 'crypto';
+import { prisma } from '@/lib/prisma';
 
 const PASSWORD_SALT_ROUNDS = 12;
 const PASSWORD_MINIMUM_LENGTH = 12;
 const TOKEN_TTL_MINUTES = 30;
 
 function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
+  return createHash('sha256').update(token).digest('hex');
 }
 
 function createToken() {
-  return randomBytes(32).toString("base64url");
+  return randomBytes(32).toString('base64url');
 }
 
 function expiresAt() {
@@ -65,10 +65,10 @@ export async function createEmailVerification(userId: string) {
       emailVerificationTokenHash: hashToken(token),
       emailVerificationExpires: tokenExpiresAt,
     },
-    select: { email: true },
+    select: { email: true, pendingEmail: true },
   });
 
-  return { email: user.email, token, expiresAt: tokenExpiresAt };
+  return { email: user.pendingEmail ?? user.email, token, expiresAt: tokenExpiresAt };
 }
 
 export async function verifyEmail(token: string) {
@@ -76,9 +76,31 @@ export async function verifyEmail(token: string) {
     return false;
   }
 
+  const tokenHash = hashToken(token);
+  const user = await prisma.user.findUnique({
+    where: { emailVerificationTokenHash: tokenHash },
+    select: { id: true, pendingEmail: true, emailVerificationExpires: true },
+  });
+  if (!user?.emailVerificationExpires || user.emailVerificationExpires <= new Date()) return false;
   const result = await prisma.user.updateMany({
-    where: { emailVerificationTokenHash: hashToken(token), emailVerificationExpires: { gt: new Date() } },
-    data: { emailVerified: new Date(), emailVerificationTokenHash: null, emailVerificationExpires: null },
+    where: {
+      id: user.id,
+      emailVerificationTokenHash: tokenHash,
+      emailVerificationExpires: { gt: new Date() },
+    },
+    data: user.pendingEmail
+      ? {
+          email: user.pendingEmail,
+          pendingEmail: null,
+          emailVerified: new Date(),
+          emailVerificationTokenHash: null,
+          emailVerificationExpires: null,
+        }
+      : {
+          emailVerified: new Date(),
+          emailVerificationTokenHash: null,
+          emailVerificationExpires: null,
+        },
   });
   return result.count === 1;
 }
