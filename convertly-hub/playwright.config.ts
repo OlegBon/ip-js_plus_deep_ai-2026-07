@@ -17,7 +17,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --hostname 127.0.0.1 --port 3001',
+    command: 'npx next dev -H 127.0.0.1 -p 3001',
     url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
   },

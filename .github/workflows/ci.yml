@@ -1,0 +1,122 @@
+name: Convertly Hub CI
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "convertly-hub/**"
+      - ".github/workflows/ci.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: convertly-hub
+
+env:
+  NODE_ENV: test
+  NEXTAUTH_URL: http://localhost:3001
+  NEXTAUTH_SECRET: ci-only-nextauth-secret-change-me
+  DATABASE_URL: postgresql://convertly:convertly-ci-password@localhost:5432/convertly_hub?schema=public
+
+jobs:
+  quality-and-jest:
+    name: Lint, types and Jest
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: convertly_hub
+          POSTGRES_USER: convertly
+          POSTGRES_PASSWORD: convertly-ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U convertly -d convertly_hub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: convertly-hub/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: Lint
+        run: npm run linteslint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+      - name: Unit, route and component tests
+        run: npm test -- --runInBand --forceExit
+
+  playwright:
+    name: Playwright E2E
+    needs: quality-and-jest
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: convertly_hub
+          POSTGRES_USER: convertly
+          POSTGRES_PASSWORD: convertly-ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U convertly -d convertly_hub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: convertly-hub/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: convertly-hub/test-results
+          if-no-files-found: ignore
