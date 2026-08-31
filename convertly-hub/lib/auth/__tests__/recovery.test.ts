@@ -24,6 +24,7 @@ describe("account recovery", () => {
   });
 
   it("verifies an unexpired email token once and clears it", async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: "user-1", pendingEmail: null, emailVerificationExpires: new Date(Date.now() + 60_000) } as never);
     mockedPrisma.user.updateMany.mockResolvedValue({ count: 1 } as never);
     await expect(verifyEmail("verification-token")).resolves.toBe(true);
     expect(mockedPrisma.user.updateMany).toHaveBeenCalledWith({ where: expect.objectContaining({ emailVerificationExpires: { gt: expect.any(Date) } }), data: expect.objectContaining({ emailVerified: expect.any(Date), emailVerificationTokenHash: null, emailVerificationExpires: null }) });
