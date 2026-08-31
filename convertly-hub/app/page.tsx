@@ -4,12 +4,19 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import FileDropzone from '@/components/core/FileDropzone';
+import GuestConversionSummary from '@/components/core/GuestConversionSummary';
 import { Button } from '@/components/ui/Button';
 import {
   BROWSER_DOCUMENT_FILE_ACCEPT,
   IMAGE_FILE_ACCEPT,
   MAX_UPLOAD_SIZE_LABEL,
 } from '@/lib/files/upload-policy';
+import {
+  loadGuestConversionResults,
+  expireGuestConversionResult,
+  saveGuestConversionResult,
+  type GuestConversionResult,
+} from '@/lib/client/guest-conversion-cache';
 
 const conversionTargets: Record<string, { format: string; extension: string }> = {
   'image/jpeg': { format: 'png', extension: 'png' },
@@ -27,12 +34,12 @@ function conversionSuccessMessage(file: File) {
 export default function Home() {
   const { status } = useSession();
   const isAuthenticated = status === 'authenticated';
-  const [guestQuota, setGuestQuota] = useState({ image: 3, document: 2 });
-  const [guestDownload, setGuestDownload] = useState<{
-    blob: Blob;
-    fileName: string;
-    expiresAt: number;
-  } | null>(null);
+  const [guestQuota, setGuestQuota] = useState({
+    image: 3,
+    document: 2,
+    resetsAt: null as string | null,
+  });
+  const [guestResults, setGuestResults] = useState<GuestConversionResult[]>([]);
   const [now, setNow] = useState(0);
   useEffect(() => {
     if (isAuthenticated) return;
@@ -40,21 +47,55 @@ export default function Home() {
     fetch('/api/guest/conversions', { cache: 'no-store', signal: controller.signal })
       .then(async (response) =>
         response.ok
-          ? (response.json() as Promise<{ remainingImage: number; remainingDocument: number }>)
+          ? (response.json() as Promise<{
+              remainingImage: number;
+              remainingDocument: number;
+              resetsAt?: string;
+            }>)
           : null,
       )
       .then((quota) => {
         if (quota)
-          setGuestQuota({ image: quota.remainingImage, document: quota.remainingDocument });
+          setGuestQuota({
+            image: quota.remainingImage,
+            document: quota.remainingDocument,
+            resetsAt: quota.resetsAt ?? null,
+          });
       })
       .catch(() => undefined);
     return () => controller.abort();
   }, [isAuthenticated]);
   useEffect(() => {
-    if (!guestDownload) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    if (isAuthenticated) return;
+    let active = true;
+    loadGuestConversionResults()
+      .then((results) => {
+        if (!active) return;
+        setNow(Date.now());
+        setGuestResults(results);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
+  useEffect(() => {
+    if (!guestResults.some((result) => result.blob !== null && result.expiresAt > Date.now()))
+      return;
+    const timer = window.setInterval(() => {
+      const currentTime = Date.now();
+      setNow(currentTime);
+      setGuestResults((results) => {
+        const updatedResults = results.map((result) => {
+          if (result.expiresAt > currentTime || result.blob === null) return result;
+          void expireGuestConversionResult(result);
+          return { ...result, blob: null };
+        });
+        return updatedResults;
+      });
+    }, 30_000);
     return () => window.clearInterval(timer);
-  }, [guestDownload]);
+  }, [guestResults.length]);
 
   const handleUpload = useCallback(
     async (file: File) => {
@@ -87,21 +128,31 @@ export default function Home() {
       const fileName = resultFileName(file.name, target.extension);
       downloadResult(blob, fileName);
       if (!isAuthenticated) {
-        const expiresAt = Date.now() + 10 * 60 * 1000;
+        const guestResult = {
+          id: crypto.randomUUID(),
+          blob,
+          fileName,
+          expiresAt: Date.now() + 10 * 60 * 1000,
+        };
         setGuestQuota({
           image: Number(resultResponse.headers.get('X-Guest-Image-Remaining') ?? guestQuota.image),
           document: Number(
             resultResponse.headers.get('X-Guest-Document-Remaining') ?? guestQuota.document,
           ),
+          resetsAt: guestQuota.resetsAt,
         });
+        await saveGuestConversionResult(guestResult);
         setNow(Date.now());
-        setGuestDownload({ blob, fileName, expiresAt });
+        setGuestResults((results) => [guestResult, ...results]);
       }
       return { kind: 'converted' as const };
     },
     [guestQuota, isAuthenticated, status],
   );
-  const guestDownloadAvailable = guestDownload && guestDownload.expiresAt > now;
+  function downloadGuestResult(result: GuestConversionResult) {
+    if (result.blob === null || result.expiresAt <= Date.now()) return;
+    downloadResult(result.blob, result.fileName);
+  }
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center p-4">
@@ -166,21 +217,14 @@ export default function Home() {
                 getSuccessMessage={conversionSuccessMessage}
               />
             </div>
-            {guestDownloadAvailable && (
-              <div className="mx-auto mt-6 max-w-xl rounded-lg border border-border bg-white p-4 text-center">
-                <p className="text-sm text-text-secondary">
-                  {guestDownload.fileName} is available in this browser for{' '}
-                  {Math.ceil((guestDownload.expiresAt - now) / 60_000)} minutes.
-                </p>
-                <Button
-                  className="mt-3"
-                  variant="outline"
-                  onClick={() => downloadResult(guestDownload.blob, guestDownload.fileName)}
-                >
-                  Download again
-                </Button>
-              </div>
-            )}
+            <GuestConversionSummary
+              remainingImage={guestQuota.image}
+              remainingDocument={guestQuota.document}
+              resetsAt={guestQuota.resetsAt}
+              results={guestResults}
+              now={now}
+              onDownload={downloadGuestResult}
+            />
             <div className="mt-8 text-center">
               <Button asChild variant="secondary">
                 <Link href="/register">Create a free account for more conversions</Link>
