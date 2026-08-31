@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { useCallback, useEffect, useState } from 'react';
+import { CursorPagination } from '@/components/ui/CursorPagination';
+import Search from '@/components/ui/Search';
 
 const sourceFormatLabels: Record<string, string> = {
   'image/jpeg': 'JPG',
@@ -74,17 +75,11 @@ export default function ConversionHistory() {
     setPreviousCursors([]);
   }
 
-  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSearch(searchInput.trim());
-    resetPagination();
-  }
-
-  function clearSearch() {
-    setSearchInput('');
-    setSearch('');
-    resetPagination();
-  }
+  const applySearch = useCallback((value: string) => {
+    setSearch(value.trim());
+    setCursor(null);
+    setPreviousCursors([]);
+  }, []);
 
   function changeSort(field: SortField) {
     if (sortField === field)
@@ -117,30 +112,14 @@ export default function ConversionHistory() {
     return <div className="rounded-lg bg-white p-6 shadow-md">Loading conversion history…</div>;
   return (
     <div className="overflow-x-auto rounded-lg bg-white p-6 shadow-md">
-      <form className="mb-4 flex gap-2" onSubmit={submitSearch}>
-        <div className="relative w-full">
-          <input
-            className="w-full rounded-md border border-border px-3 py-2 pr-10 text-sm"
-            aria-label="Search by file name"
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search by file name"
-          />
-          {searchInput && (
-            <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
-              type="button"
-              onClick={clearSearch}
-              aria-label="Clear search"
-            >
-              ×
-            </button>
-          )}
-        </div>
-        <Button variant="secondary" type="submit">
-          Search
-        </Button>
-      </form>
+      <Search
+        className="mb-4"
+        aria-label="Search by file name"
+        value={searchInput}
+        onValueChange={setSearchInput}
+        onSearch={applySearch}
+        placeholder="Search by file name"
+      />
       <table className="min-w-full text-left text-sm text-gray-600">
         <thead className="bg-gray-50 text-xs uppercase text-gray-700">
           <tr>
@@ -199,22 +178,14 @@ export default function ConversionHistory() {
           )}
         </tbody>
       </table>
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={showPreviousPage}
-          disabled={previousCursors.length === 0}
-        >
-          Previous
-        </Button>
-        <span className="text-text-secondary text-sm">
-          Page {previousCursors.length + 1} of {Math.max(1, Math.ceil(total / 10))}
-        </span>
-        <Button variant="secondary" size="sm" onClick={showNextPage} disabled={!nextCursor}>
-          Next
-        </Button>
-      </div>
+      <CursorPagination
+        page={previousCursors.length + 1}
+        totalPages={Math.max(1, Math.ceil(total / 10))}
+        onPrevious={showPreviousPage}
+        onNext={showNextPage}
+        canGoPrevious={previousCursors.length > 0}
+        canGoNext={Boolean(nextCursor)}
+      />
     </div>
   );
 }
