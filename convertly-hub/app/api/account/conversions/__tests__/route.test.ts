@@ -30,7 +30,9 @@ jest.mock('@/lib/core/conversion', () => ({
   validateCoreConversion: jest.fn(),
 }));
 jest.mock('@/lib/core/conversion-job', () => ({ processConversionJob: jest.fn() }));
-jest.mock('@/lib/prisma', () => ({ prisma: { conversionLog: { findMany: jest.fn() } } }));
+jest.mock('@/lib/prisma', () => ({
+  prisma: { conversionLog: { findMany: jest.fn(), count: jest.fn() } },
+}));
 
 const mockedGetCurrentSession = jest.mocked(getCurrentSession);
 const mockedGetSessionPrincipal = jest.mocked(getSessionConversionPrincipal);
@@ -147,19 +149,41 @@ describe('GET /api/account/conversions', () => {
 
   it('returns only the current calendar billing month using a cursor page', async () => {
     mockedPrisma.conversionLog.findMany.mockResolvedValue([] as never);
+    mockedPrisma.conversionLog.count.mockResolvedValue(0);
 
     const response = await GET(
       new Request('http://localhost/api/account/conversions?cursor=page-1'),
     );
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ conversions: [], nextCursor: null });
+    await expect(response.json()).resolves.toEqual({ conversions: [], nextCursor: null, total: 0 });
     expect(mockedPrisma.conversionLog.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ userId: 'user-1', createdAt: { gte: expect.any(Date) } }),
         cursor: { id: 'page-1' },
         skip: 1,
         take: 11,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      }),
+    );
+  });
+
+  it('filters file names and accepts only supported sort fields', async () => {
+    mockedPrisma.conversionLog.findMany.mockResolvedValue([] as never);
+    mockedPrisma.conversionLog.count.mockResolvedValue(0);
+
+    await GET(
+      new Request(
+        'http://localhost/api/account/conversions?search=invoice&sort=status&direction=asc',
+      ),
+    );
+
+    expect(mockedPrisma.conversionLog.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          sourceFileName: { contains: 'invoice', mode: 'insensitive' },
+        }),
+        orderBy: [{ status: 'asc' }, { id: 'asc' }],
       }),
     );
   });

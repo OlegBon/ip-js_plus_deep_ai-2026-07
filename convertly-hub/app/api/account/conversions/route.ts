@@ -12,42 +12,73 @@ import {
 import { getPlanDefinition } from '@/lib/billing/plans';
 import { CoreConversionError, validateCoreConversion } from '@/lib/core/conversion';
 import { processConversionJob } from '@/lib/core/conversion-job';
+import type { Prisma } from '@prisma/client';
 
 export const runtime = 'nodejs';
 
 const HISTORY_PAGE_SIZE = 10;
+const historySortFields = [
+  'sourceFileName',
+  'targetFormat',
+  'status',
+  'expiresAt',
+  'createdAt',
+] as const;
+type HistorySortField = (typeof historySortFields)[number];
 
 export async function GET(request: Request) {
   const session = await getCurrentSession();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
-  const cursor = new URL(request.url).searchParams.get('cursor');
+  const searchParams = new URL(request.url).searchParams;
+  const cursor = searchParams.get('cursor');
+  const search = searchParams.get('search')?.trim().slice(0, 100) ?? '';
+  const sortField = parseHistorySortField(searchParams.get('sort'));
+  const sortDirection = searchParams.get('direction') === 'asc' ? 'asc' : 'desc';
   const now = new Date();
   const billingPeriodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const rows = await prisma.conversionLog.findMany({
-    where: { userId: session.user.id, createdAt: { gte: billingPeriodStart } },
-    select: {
-      id: true,
-      sourceFileName: true,
-      sourceMimeType: true,
-      targetFormat: true,
-      status: true,
-      createdAt: true,
-      expiresAt: true,
-      storageKey: true,
-    },
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    cursor: cursor ? { id: cursor } : undefined,
-    skip: cursor ? 1 : 0,
-    take: HISTORY_PAGE_SIZE + 1,
-  });
+  const where: Prisma.ConversionLogWhereInput = {
+    userId: session.user.id,
+    createdAt: { gte: billingPeriodStart },
+    ...(search ? { sourceFileName: { contains: search, mode: 'insensitive' } } : {}),
+  };
+  const orderBy: Prisma.ConversionLogOrderByWithRelationInput[] = [
+    { [sortField]: sortDirection },
+    { id: sortDirection },
+  ];
+  const [rows, total] = await Promise.all([
+    prisma.conversionLog.findMany({
+      where,
+      select: {
+        id: true,
+        sourceFileName: true,
+        sourceMimeType: true,
+        targetFormat: true,
+        status: true,
+        createdAt: true,
+        expiresAt: true,
+        storageKey: true,
+      },
+      orderBy,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      take: HISTORY_PAGE_SIZE + 1,
+    }),
+    prisma.conversionLog.count({ where }),
+  ]);
   const hasNextPage = rows.length > HISTORY_PAGE_SIZE;
   const conversions = hasNextPage ? rows.slice(0, HISTORY_PAGE_SIZE) : rows;
   const nextCursor = hasNextPage ? (conversions.at(-1)?.id ?? null) : null;
   return NextResponse.json(
-    { conversions, nextCursor },
+    { conversions, nextCursor, total },
     { headers: { 'Cache-Control': 'no-store' } },
   );
+}
+
+function parseHistorySortField(value: string | null): HistorySortField {
+  return historySortFields.includes(value as HistorySortField)
+    ? (value as HistorySortField)
+    : 'createdAt';
 }
 
 export async function POST(request: Request) {

@@ -18,6 +18,7 @@ type Conversion = {
   expiresAt: string | null;
   storageKey: string | null;
 };
+type SortField = 'sourceFileName' | 'targetFormat' | 'status' | 'expiresAt' | 'createdAt';
 
 function sourceFormat(conversion: Conversion) {
   return sourceFormatLabels[conversion.sourceMimeType] ?? conversion.sourceMimeType.toUpperCase();
@@ -45,21 +46,54 @@ export default function ConversionHistory() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [previousCursors, setPreviousCursors] = useState<Array<string | null>>([]);
+  const [total, setTotal] = useState(0);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     const controller = new AbortController();
-    const url = cursor
-      ? `/api/account/conversions?cursor=${encodeURIComponent(cursor)}`
-      : '/api/account/conversions';
+    const params = new URLSearchParams({ sort: sortField, direction: sortDirection });
+    if (cursor) params.set('cursor', cursor);
+    if (search) params.set('search', search);
+    const url = `/api/account/conversions?${params.toString()}`;
     fetch(url, { signal: controller.signal })
       .then(async (response) => (response.ok ? response.json() : null))
       .then((payload) => {
         setConversions(payload?.conversions ?? []);
         setNextCursor(typeof payload?.nextCursor === 'string' ? payload.nextCursor : null);
+        setTotal(typeof payload?.total === 'number' ? payload.total : 0);
       })
       .catch(() => setConversions([]));
     return () => controller.abort();
-  }, [cursor]);
+  }, [cursor, search, sortDirection, sortField]);
+
+  function resetPagination() {
+    setCursor(null);
+    setPreviousCursors([]);
+  }
+
+  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSearch(searchInput.trim());
+    resetPagination();
+  }
+
+  function changeSort(field: SortField) {
+    if (sortField === field)
+      setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortField(field);
+      setSortDirection(field === 'sourceFileName' ? 'asc' : 'desc');
+    }
+    resetPagination();
+  }
+
+  function sortLabel(label: string, field: SortField) {
+    if (sortField !== field) return label;
+    return `${label} ${sortDirection === 'asc' ? '↑' : '↓'}`;
+  }
 
   function showNextPage() {
     if (!nextCursor) return;
@@ -77,13 +111,41 @@ export default function ConversionHistory() {
     return <div className="rounded-lg bg-white p-6 shadow-md">Loading conversion history…</div>;
   return (
     <div className="overflow-x-auto rounded-lg bg-white p-6 shadow-md">
+      <form className="mb-4 flex gap-2" onSubmit={submitSearch}>
+        <input
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          aria-label="Search by file name"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder="Search by file name"
+        />
+        <Button variant="secondary" type="submit">
+          Search
+        </Button>
+      </form>
       <table className="min-w-full text-left text-sm text-gray-600">
         <thead className="bg-gray-50 text-xs uppercase text-gray-700">
           <tr>
-            <th className="px-4 py-3">File</th>
-            <th className="px-4 py-3">Conversion</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Availability</th>
+            <th className="px-4 py-3">
+              <button type="button" onClick={() => changeSort('sourceFileName')}>
+                {sortLabel('File', 'sourceFileName')}
+              </button>
+            </th>
+            <th className="px-4 py-3">
+              <button type="button" onClick={() => changeSort('targetFormat')}>
+                {sortLabel('Conversion', 'targetFormat')}
+              </button>
+            </th>
+            <th className="px-4 py-3">
+              <button type="button" onClick={() => changeSort('status')}>
+                {sortLabel('Status', 'status')}
+              </button>
+            </th>
+            <th className="px-4 py-3">
+              <button type="button" onClick={() => changeSort('expiresAt')}>
+                {sortLabel('Availability', 'expiresAt')}
+              </button>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -128,7 +190,9 @@ export default function ConversionHistory() {
         >
           Previous
         </Button>
-        <span className="text-text-secondary text-sm">Page {previousCursors.length + 1}</span>
+        <span className="text-text-secondary text-sm">
+          Page {previousCursors.length + 1} of {Math.max(1, Math.ceil(total / 10))}
+        </span>
         <Button variant="secondary" size="sm" onClick={showNextPage} disabled={!nextCursor}>
           Next
         </Button>
