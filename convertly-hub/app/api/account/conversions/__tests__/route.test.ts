@@ -1,6 +1,6 @@
 /** @jest-environment node */
 
-import { POST } from '../route';
+import { GET, POST } from '../route';
 import { getCurrentSession } from '@/lib/auth/session';
 import {
   createConversionRequest,
@@ -10,6 +10,7 @@ import {
 import { validateCoreConversion } from '@/lib/core/conversion';
 import { processConversionJob } from '@/lib/core/conversion-job';
 import { after } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 jest.mock('next/server', () => {
   const actual = jest.requireActual('next/server');
@@ -29,6 +30,7 @@ jest.mock('@/lib/core/conversion', () => ({
   validateCoreConversion: jest.fn(),
 }));
 jest.mock('@/lib/core/conversion-job', () => ({ processConversionJob: jest.fn() }));
+jest.mock('@/lib/prisma', () => ({ prisma: { conversionLog: { findMany: jest.fn() } } }));
 
 const mockedGetCurrentSession = jest.mocked(getCurrentSession);
 const mockedGetSessionPrincipal = jest.mocked(getSessionConversionPrincipal);
@@ -37,6 +39,7 @@ const mockedValidateConversionRequest = jest.mocked(validateConversionRequest);
 const mockedValidateCoreConversion = jest.mocked(validateCoreConversion);
 const mockedProcessConversionJob = jest.mocked(processConversionJob);
 const mockedAfter = jest.mocked(after);
+const mockedPrisma = jest.mocked(prisma, { shallow: false });
 
 function formRequest() {
   const formData = new FormData();
@@ -132,6 +135,32 @@ describe('POST /api/account/conversions', () => {
     await expect(response.text()).resolves.toBe('jpg');
     expect(mockedProcessConversionJob).toHaveBeenCalledWith(
       expect.objectContaining({ storeResult: false }),
+    );
+  });
+});
+
+describe('GET /api/account/conversions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedGetCurrentSession.mockResolvedValue({ user: { id: 'user-1' } } as never);
+  });
+
+  it('returns only the current calendar billing month using a cursor page', async () => {
+    mockedPrisma.conversionLog.findMany.mockResolvedValue([] as never);
+
+    const response = await GET(
+      new Request('http://localhost/api/account/conversions?cursor=page-1'),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ conversions: [], nextCursor: null });
+    expect(mockedPrisma.conversionLog.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: 'user-1', createdAt: { gte: expect.any(Date) } }),
+        cursor: { id: 'page-1' },
+        skip: 1,
+        take: 11,
+      }),
     );
   });
 });

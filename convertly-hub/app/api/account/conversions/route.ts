@@ -22,8 +22,10 @@ export async function GET(request: Request) {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
   const cursor = new URL(request.url).searchParams.get('cursor');
+  const now = new Date();
+  const billingPeriodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const rows = await prisma.conversionLog.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, createdAt: { gte: billingPeriodStart } },
     select: {
       id: true,
       sourceFileName: true,

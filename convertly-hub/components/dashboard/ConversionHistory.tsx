@@ -48,7 +48,6 @@ export default function ConversionHistory() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setConversions(null);
     const url = cursor
       ? `/api/account/conversions?cursor=${encodeURIComponent(cursor)}`
       : '/api/account/conversions';
