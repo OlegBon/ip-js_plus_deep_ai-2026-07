@@ -29,7 +29,13 @@ export default function EditProfileModal({
     [isSaving, setIsSaving] = useState(false);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (password && password !== confirmPassword) {
+    const isEmailChanging = nextEmail.trim().toLowerCase() !== email;
+    const isPasswordChanging = Boolean(password || confirmPassword);
+    if ((isEmailChanging || isPasswordChanging) && !currentPassword) {
+      toast.error('Enter your current password to change email or password.');
+      return;
+    }
+    if (isPasswordChanging && password !== confirmPassword) {
       toast.error('New passwords do not match.');
       return;
     }
@@ -37,9 +43,9 @@ export default function EditProfileModal({
     try {
       if (displayName.trim() !== name)
         await api('/api/account/profile', 'PATCH', { name: displayName });
-      if (nextEmail.trim().toLowerCase() !== email)
+      if (isEmailChanging)
         await api('/api/account/email', 'POST', { email: nextEmail, currentPassword });
-      if (password)
+      if (isPasswordChanging)
         await api('/api/account/password', 'POST', { currentPassword, password, confirmPassword });
       await onProfileUpdated();
       onClose();
