@@ -109,4 +109,26 @@ describe('ConversionHistory', () => {
       ),
     );
   });
+
+  it('clears the visible and submitted file-name search', async () => {
+    const user = userEvent.setup();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ conversions: [activeConversion], nextCursor: null, total: 1 }),
+    }) as jest.Mock;
+
+    render(<ConversionHistory />);
+    const searchInput = await screen.findByRole('textbox', { name: 'Search by file name' });
+    await user.type(searchInput, 'holiday');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+    expect(searchInput).toHaveValue('');
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        '/api/account/conversions?sort=createdAt&direction=desc',
+        expect.any(Object),
+      ),
+    );
+  });
 });

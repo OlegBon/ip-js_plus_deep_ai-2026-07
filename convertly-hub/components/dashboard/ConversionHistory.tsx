@@ -80,6 +80,12 @@ export default function ConversionHistory() {
     resetPagination();
   }
 
+  function clearSearch() {
+    setSearchInput('');
+    setSearch('');
+    resetPagination();
+  }
+
   function changeSort(field: SortField) {
     if (sortField === field)
       setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
@@ -112,13 +118,25 @@ export default function ConversionHistory() {
   return (
     <div className="overflow-x-auto rounded-lg bg-white p-6 shadow-md">
       <form className="mb-4 flex gap-2" onSubmit={submitSearch}>
-        <input
-          className="w-full rounded-md border border-border px-3 py-2 text-sm"
-          aria-label="Search by file name"
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search by file name"
-        />
+        <div className="relative w-full">
+          <input
+            className="w-full rounded-md border border-border px-3 py-2 pr-10 text-sm"
+            aria-label="Search by file name"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder="Search by file name"
+          />
+          {searchInput && (
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
+              type="button"
+              onClick={clearSearch}
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
         <Button variant="secondary" type="submit">
           Search
         </Button>
