@@ -1,26 +1,323 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState, useTransition } from "react";
-import { toast } from "@/lib/hooks/use-toast";
-import { Button } from "@/components/ui/Button";
-import Search from "@/components/ui/Search";
+import { FormEvent, useEffect, useState, useTransition } from 'react';
+import { Button } from '@/components/ui/Button';
+import { toast } from '@/lib/hooks/use-toast';
 
-type User = { id: string; name: string | null; email: string; role: "USER" | "ADMIN"; status: "ACTIVE" | "SUSPENDED"; plan: string; lastLoginAt: string | null; apiKeys: { id: string; name: string; keyPrefix: string }[] };
-type UsersResponse = { users: User[]; nextCursor: string | null };
+type ApiKey = { id: string; name: string; keyPrefix: string };
+type User = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  status: 'ACTIVE' | 'SUSPENDED';
+  plan: string;
+  lastLoginAt: string | null;
+  apiKeys: ApiKey[];
+};
+type SortField = 'createdAt' | 'email' | 'role' | 'plan' | 'status' | 'lastLoginAt';
+type UsersResponse = { users: User[]; nextCursor: string | null; total: number };
+
+const PAGE_SIZE = 10;
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]); const [query, setQuery] = useState("");
-  const [nextCursor, setNextCursor] = useState<string | null>(null); const [isLoading, setIsLoading] = useState(true);
+  const [result, setResult] = useState<UsersResponse | null>(null);
+  const [queryInput, setQueryInput] = useState('');
+  const [query, setQuery] = useState('');
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [previousCursors, setPreviousCursors] = useState<string[]>([]);
+  const [sort, setSort] = useState<SortField>('createdAt');
+  const [direction, setDirection] = useState<'asc' | 'desc'>('desc');
   const [isPending, startTransition] = useTransition();
-  const loadUsers = useCallback(async (search = "", cursor?: string, append = false) => {
-    setIsLoading(true); const params = new URLSearchParams({ limit: "20" }); if (search) params.set("query", search); if (cursor) params.set("cursor", cursor);
-    const response = await fetch(`/api/admin/users?${params}`, { cache: "no-store" }); const payload = await response.json() as UsersResponse | { error?: string };
-    if (!response.ok || !("users" in payload)) { toast.error("Unable to load users."); setIsLoading(false); return; }
-    setUsers((current) => append ? [...current, ...payload.users] : payload.users); setNextCursor(payload.nextCursor); setIsLoading(false);
-  }, []);
-  useEffect(() => { const timer = window.setTimeout(() => { void loadUsers(); }, 0); return () => window.clearTimeout(timer); }, [loadUsers]);
-  function handleSearch(value: string) { setQuery(value); void loadUsers(value); }
-  function updateStatus(user: User, status: User["status"]) { startTransition(async () => { const response = await fetch(`/api/admin/users/${user.id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) }); if (!response.ok) { const body = await response.json() as { error?: string }; toast.error(body.error ?? "Unable to update user."); return; } setUsers((current) => current.map((item) => item.id === user.id ? { ...item, status } : item)); toast.success(`${user.email} is now ${status.toLowerCase()}.`); }); }
-  function revokeKey(user: User, keyId: string) { startTransition(async () => { const response = await fetch(`/api/admin/api-keys/${keyId}`, { method: "DELETE" }); if (!response.ok) { toast.error("Unable to revoke API key."); return; } setUsers((current) => current.map((item) => item.id === user.id ? { ...item, apiKeys: item.apiKeys.filter((key) => key.id !== keyId) } : item)); toast.success("API key revoked."); }); }
-  return <div className="rounded-lg bg-white p-6 shadow-md"><div className="mb-4 flex items-center justify-between gap-4"><Search placeholder="Search users..." onSearch={handleSearch} className="w-full max-w-xs" /><span className="text-sm text-gray-500">{isLoading ? "Loading…" : `${users.length} users`}</span></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm text-gray-500"><thead className="bg-gray-50 text-xs uppercase text-gray-700"><tr><th className="px-6 py-3">User</th><th className="px-6 py-3">Role / plan</th><th className="px-6 py-3">Status</th><th className="px-6 py-3">Last login</th><th className="px-6 py-3">Actions</th></tr></thead><tbody>{users.map((user) => <tr key={user.id} className="border-b bg-white hover:bg-gray-50"><td className="px-6 py-4"><div className="font-bold text-gray-900">{user.name ?? "Unnamed user"}</div><div>{user.email}</div></td><td className="px-6 py-4">{user.role} · {user.plan}</td><td className="px-6 py-4">{user.status}</td><td className="px-6 py-4">{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : "Never"}</td><td className="space-y-2 px-6 py-4"><Button size="sm" variant="outline" disabled={isPending || user.role === "ADMIN"} onClick={() => updateStatus(user, user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE")}>{user.status === "ACTIVE" ? "Suspend" : "Restore"}</Button>{user.apiKeys.map((key) => <Button key={key.id} size="sm" variant="ghost" disabled={isPending} onClick={() => revokeKey(user, key.id)}>Revoke {key.name} ({key.keyPrefix})</Button>)}</td></tr>)}</tbody></table></div>{nextCursor && <Button className="mt-4" variant="outline" onClick={() => void loadUsers(query, nextCursor, true)} disabled={isLoading}>Load more</Button>}</div>;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), sort, direction });
+    if (query) params.set('query', query);
+    if (cursor) params.set('cursor', cursor);
+
+    fetch(`/api/admin/users?${params}`, { signal: controller.signal })
+      .then(async (response) => (response.ok ? (response.json() as Promise<UsersResponse>) : null))
+      .then((payload) => setResult(payload ?? { users: [], nextCursor: null, total: 0 }))
+      .catch((error: unknown) => {
+        if ((error as { name?: string }).name !== 'AbortError') {
+          setResult({ users: [], nextCursor: null, total: 0 });
+        }
+      });
+
+    return () => controller.abort();
+  }, [cursor, direction, query, sort]);
+
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCursor(null);
+    setPreviousCursors([]);
+    setQuery(queryInput.trim());
+  }
+
+  function clearSearch() {
+    setQueryInput('');
+    setQuery('');
+    setCursor(null);
+    setPreviousCursors([]);
+  }
+
+  function changeSort(field: SortField) {
+    setDirection((current) => (sort === field ? (current === 'asc' ? 'desc' : 'asc') : 'asc'));
+    setSort(field);
+    setCursor(null);
+    setPreviousCursors([]);
+  }
+
+  async function updateStatus(user: User) {
+    const nextStatus = user.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    startTransition(async () => {
+      const response = await fetch(`/api/admin/users/${user.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (!response.ok) {
+        toast.error('Unable to update user status.');
+        return;
+      }
+      setResult(
+        (current) =>
+          current && {
+            ...current,
+            users: current.users.map((item) =>
+              item.id === user.id ? { ...item, status: nextStatus } : item,
+            ),
+          },
+      );
+      toast.success(`User ${nextStatus === 'ACTIVE' ? 'activated' : 'suspended'}.`);
+    });
+  }
+
+  async function revokeKey(key: ApiKey) {
+    startTransition(async () => {
+      const response = await fetch(`/api/admin/api-keys/${key.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        toast.error('Unable to revoke API key.');
+        return;
+      }
+      setResult(
+        (current) =>
+          current && {
+            ...current,
+            users: current.users.map((user) => ({
+              ...user,
+              apiKeys: user.apiKeys.filter((item) => item.id !== key.id),
+            })),
+          },
+      );
+      toast.success('API key revoked.');
+    });
+  }
+
+  const users = result?.users ?? [];
+  const page = previousCursors.length + 1;
+  const pages = Math.max(1, Math.ceil((result?.total ?? 0) / PAGE_SIZE));
+
+  return (
+    <section className="rounded-lg bg-white p-6 shadow-md">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">User Management</h2>
+          <p className="text-sm text-gray-500">
+            {result ? `${result.total} users` : 'Loading users…'}
+          </p>
+        </div>
+        <form className="flex w-full max-w-md gap-2 sm:w-auto" onSubmit={submitSearch}>
+          <label className="sr-only" htmlFor="user-search">
+            Search users
+          </label>
+          <div className="relative flex-1">
+            <input
+              id="user-search"
+              value={queryInput}
+              onChange={(event) => setQueryInput(event.target.value)}
+              placeholder="Search by name or email"
+              className="h-10 w-full rounded-md border border-border px-3 pr-10 text-sm"
+            />
+            {queryInput && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                aria-label="Clear search"
+                className="absolute inset-y-0 right-0 w-10 text-lg text-gray-500 hover:text-gray-900"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <Button type="submit" variant="secondary">
+            Search
+          </Button>
+        </form>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b text-xs uppercase text-gray-500">
+            <tr>
+              <SortableHeader
+                label="User"
+                field="email"
+                sort={sort}
+                direction={direction}
+                onSort={changeSort}
+              />
+              <SortableHeader
+                label="Role / plan"
+                field="role"
+                sort={sort}
+                direction={direction}
+                onSort={changeSort}
+              />
+              <SortableHeader
+                label="Status"
+                field="status"
+                sort={sort}
+                direction={direction}
+                onSort={changeSort}
+              />
+              <SortableHeader
+                label="Last login"
+                field="lastLoginAt"
+                sort={sort}
+                direction={direction}
+                onSort={changeSort}
+              />
+              <th className="px-3 py-3">Actions</th>
+              <th className="px-3 py-3">API keys</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} className="border-b last:border-0">
+                <td className="px-3 py-4">
+                  <p className="font-medium text-gray-900">{user.name || 'Unnamed user'}</p>
+                  <p className="text-gray-500">{user.email}</p>
+                </td>
+                <td className="whitespace-nowrap px-3 py-4">
+                  {user.role} · {user.plan}
+                </td>
+                <td className="px-3 py-4">
+                  <span className={user.status === 'ACTIVE' ? 'text-green-700' : 'text-red-700'}>
+                    {user.status}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-3 py-4">
+                  {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
+                </td>
+                <td className="px-3 py-4">
+                  <Button
+                    size="sm"
+                    variant={user.status === 'ACTIVE' ? 'danger' : 'secondary'}
+                    disabled={isPending}
+                    onClick={() => void updateStatus(user)}
+                  >
+                    {user.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                  </Button>
+                </td>
+                <td className="min-w-48 px-3 py-4">
+                  {user.apiKeys.length ? (
+                    <div className="space-y-2">
+                      {user.apiKeys.map((key) => (
+                        <div key={key.id} className="flex items-center justify-between gap-2">
+                          <span className="truncate">
+                            {key.name} ({key.keyPrefix}…)
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isPending}
+                            onClick={() => void revokeKey(key)}
+                          >
+                            Revoke
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-500">No active keys</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {result && users.length === 0 && (
+              <tr>
+                <td className="px-3 py-8 text-center text-gray-500" colSpan={6}>
+                  No users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <p className="text-sm text-gray-500">
+          Page {page} of {pages}
+        </p>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={!previousCursors.length || isPending}
+            onClick={() => {
+              const history = [...previousCursors];
+              setCursor(history.pop() ?? null);
+              setPreviousCursors(history);
+            }}
+          >
+            Previous
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={!result?.nextCursor || isPending}
+            onClick={() => {
+              if (result?.nextCursor) {
+                setPreviousCursors((history) => [...history, cursor ?? '']);
+                setCursor(result.nextCursor);
+              }
+            }}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SortableHeader({
+  label,
+  field,
+  sort,
+  direction,
+  onSort,
+}: {
+  label: string;
+  field: SortField;
+  sort: SortField;
+  direction: 'asc' | 'desc';
+  onSort: (field: SortField) => void;
+}) {
+  return (
+    <th className="px-3 py-3">
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="inline-flex items-center gap-1 hover:text-gray-900"
+      >
+        {label}
+        {sort === field && (
+          <span aria-label={direction === 'asc' ? 'ascending' : 'descending'}>
+            {direction === 'asc' ? '↑' : '↓'}
+          </span>
+        )}
+      </button>
+    </th>
+  );
 }
