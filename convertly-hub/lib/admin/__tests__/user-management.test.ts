@@ -23,9 +23,14 @@ describe('admin user management service', () => {
 
   it('returns a cursor-paginated, secret-free user page', async () => {
     mockedPrisma.user.findMany.mockResolvedValue([
-      { id: 'user-3', email: 'third@example.com' },
-      { id: 'user-2', email: 'second@example.com' },
-      { id: 'user-1', email: 'first@example.com' },
+      {
+        id: 'user-3',
+        email: 'third@example.com',
+        plan: 'FREE',
+        subscription: { activePlan: 'PRO' },
+      },
+      { id: 'user-2', email: 'second@example.com', plan: 'FREE', subscription: null },
+      { id: 'user-1', email: 'first@example.com', plan: 'FREE', subscription: null },
     ] as never);
     mockedPrisma.user.count.mockResolvedValue(3);
 
@@ -39,8 +44,8 @@ describe('admin user management service', () => {
 
     expect(result).toEqual({
       users: [
-        { id: 'user-3', email: 'third@example.com' },
-        { id: 'user-2', email: 'second@example.com' },
+        { id: 'user-3', email: 'third@example.com', plan: 'PRO' },
+        { id: 'user-2', email: 'second@example.com', plan: 'FREE' },
       ],
       nextCursor: 'user-2',
       total: 3,
