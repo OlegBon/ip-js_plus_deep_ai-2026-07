@@ -9,20 +9,20 @@
 
 ## Правила проекта
 
-| Документ | Когда читать |
-| --- | --- |
-| [Глобальные правила](./.codex/rules/global-rules.md) | Для любой задачи. |
-| [Архитектура](./docs/architecture.md) | Изменяется структура приложения, API, интеграции или поток данных. |
-| [Стиль и данные](./.codex/rules/local-style-and-data.md) | TypeScript, модели данных, Prisma или API. |
-| [База данных](./.codex/rules/local-database.md) | Prisma-схема, миграции, SQL, PostgreSQL или доступ к данным. |
-| [Архитектура Next.js](./.codex/rules/local-architecture.md) | React-компоненты, App Router, состояние или получение данных. |
-| [React Hooks](./.codex/rules/local-react-hooks.md) | `useState`, `useEffect`, колбэки и другая клиентская логика. |
-| [Финансы](./.codex/rules/local-finance.md) | Денежные расчёты, транзакции и тарифы. |
-| [Безопасность](./.codex/rules/local-security.md) | Ввод пользователя, авторизация, API, загрузка файлов и переменные окружения. |
-| [Тестирование](./.codex/rules/local-testing.md) | Unit-, integration- и component-тесты. |
-| [Качество и производительность](./.codex/rules/local-quality-and-performance.md) | UI, изображения, анимации и Core Web Vitals. |
-| [Проверка изменений](./.codex/rules/local-verification.md) | После изменения исходного кода, конфигурации или зависимостей. |
-| [Дизайн-система](./DESIGN.md) | Любое визуальное изменение, CSS или React-компонент. |
+| Документ                                                                         | Когда читать                                                                 |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [Глобальные правила](./.codex/rules/global-rules.md)                             | Для любой задачи.                                                            |
+| [Архитектура](./docs/architecture.md)                                            | Изменяется структура приложения, API, интеграции или поток данных.           |
+| [Стиль и данные](./.codex/rules/local-style-and-data.md)                         | TypeScript, модели данных, Prisma или API.                                   |
+| [База данных](./.codex/rules/local-database.md)                                  | Prisma-схема, миграции, SQL, PostgreSQL или доступ к данным.                 |
+| [Архитектура Next.js](./.codex/rules/local-architecture.md)                      | React-компоненты, App Router, состояние или получение данных.                |
+| [React Hooks](./.codex/rules/local-react-hooks.md)                               | `useState`, `useEffect`, колбэки и другая клиентская логика.                 |
+| [Финансы](./.codex/rules/local-finance.md)                                       | Денежные расчёты, транзакции и тарифы.                                       |
+| [Безопасность](./.codex/rules/local-security.md)                                 | Ввод пользователя, авторизация, API, загрузка файлов и переменные окружения. |
+| [Тестирование](./.codex/rules/local-testing.md)                                  | Unit-, integration- и component-тесты.                                       |
+| [Качество и производительность](./.codex/rules/local-quality-and-performance.md) | UI, изображения, анимации и Core Web Vitals.                                 |
+| [Проверка изменений](./.codex/rules/local-verification.md)                       | После изменения исходного кода, конфигурации или зависимостей.               |
+| [Дизайн-система](./DESIGN.md)                                                    | Любое визуальное изменение, CSS или React-компонент.                         |
 
 `DESIGN.md` в корне — единственный канонический файл дизайн-системы. Не создавайте его копию в `.codex`.
 
@@ -30,12 +30,12 @@
 
 Фактический список сверяйте командой `codex mcp list`. На момент последней проверки активны только следующие серверы:
 
-| Сервер | Применение |
-| --- | --- |
-| `context7` | Актуальная документация библиотек и API перед интеграцией или исправлением ошибок. |
-| `chrome-devtools` | Отладка уже открытого браузера: DOM, console, network и визуальные проблемы. |
-| `playwright` | E2E-сценарии, воспроизведение пользовательских флоу и регрессионное UI-тестирование. |
-| `github` | Репозитории, issues и pull requests на GitHub — только когда задача этого требует. |
+| Сервер            | Применение                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| `context7`        | Актуальная документация библиотек и API перед интеграцией или исправлением ошибок.   |
+| `chrome-devtools` | Отладка уже открытого браузера: DOM, console, network и визуальные проблемы.         |
+| `playwright`      | E2E-сценарии, воспроизведение пользовательских флоу и регрессионное UI-тестирование. |
+| `github`          | Репозитории, issues и pull requests на GitHub — только когда задача этого требует.   |
 
 Используйте лишь инструменты, реально предоставленные сервером в текущей сессии: не предполагайте имена методов из Gemini Code Assist или старых инструкций. GitLab и Atlassian MCP в текущем конфиге отсутствуют, поэтому не используйте связанные с ними правила.
 
@@ -43,16 +43,17 @@
 
 Перед задачей, соответствующей описанию навыка, прочитайте его `SKILL.md`.
 
-| Навык | Когда применять | Путь |
-| --- | --- | --- |
-| Project Discovery | Первое знакомство с кодовой базой или запрос на онбординг/обзор проекта. | `.codex/skills/project-discovery/SKILL.md` |
-| API Response Auditor | Аудит ответов API. | `.codex/skills/api-response-auditor/SKILL.md` |
-| Security Review | Запрос на аудит безопасности или изменение чувствительного кода. | `.codex/skills/security-review/SKILL.md` |
-| Database Reviewer | Проектирование или ревью PostgreSQL/Prisma: схема, миграции, запросы, индексы и производительность. | `.codex/skills/database-reviewer/SKILL.md` |
-| Database Migrations | Безопасные миграции PostgreSQL и Prisma 7. | `.codex/skills/database-migrations/SKILL.md` |
-| PostgreSQL Patterns | SQL, индексы, транзакции и диагностика производительности PostgreSQL. | `.codex/skills/postgres-patterns/SKILL.md` |
-| Prisma Patterns | Prisma 7: схема, Prisma Client, отношения и транзакции. | `.codex/skills/prisma-patterns/SKILL.md` |
-| Prisma skills | Работа с Prisma CLI, клиентом, PostgreSQL или обновлением Prisma. | `.agents/skills/prisma-*/SKILL.md` |
+| Навык                | Когда применять                                                                                     | Путь                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Project Discovery    | Первое знакомство с кодовой базой или запрос на онбординг/обзор проекта.                            | `.codex/skills/project-discovery/SKILL.md`    |
+| API Response Auditor | Аудит ответов API.                                                                                  | `.codex/skills/api-response-auditor/SKILL.md` |
+| Security Review      | Запрос на аудит безопасности или изменение чувствительного кода.                                    | `.codex/skills/security-review/SKILL.md`      |
+| Database Reviewer    | Проектирование или ревью PostgreSQL/Prisma: схема, миграции, запросы, индексы и производительность. | `.codex/skills/database-reviewer/SKILL.md`    |
+| Database Migrations  | Безопасные миграции PostgreSQL и Prisma 7.                                                          | `.codex/skills/database-migrations/SKILL.md`  |
+| PostgreSQL Patterns  | SQL, индексы, транзакции и диагностика производительности PostgreSQL.                               | `.codex/skills/postgres-patterns/SKILL.md`    |
+| Prisma Patterns      | Prisma 7: схема, Prisma Client, отношения и транзакции.                                             | `.codex/skills/prisma-patterns/SKILL.md`      |
+| Web Performance      | Аудит производительности веб-продукта: Core Web Vitals, сеть, сервер и БД.                          | `.codex/skills/web-performance/SKILL.md`      |
+| Prisma skills        | Работа с Prisma CLI, клиентом, PostgreSQL или обновлением Prisma.                                   | `.agents/skills/prisma-*/SKILL.md`            |
 
 ## Проверка и документация
 
@@ -109,5 +110,6 @@ npm run audit:api
 - **СТРОГИЙ ЗАПРЕТ:** Никогда не выполняй `git merge`, не удаляй worktree и не создавай Pull Request без моего прямого текстового разрешения "Да, сливай".
 
 ## Тестирование
+
 При создании нового функционала создавай только самые важные unit, integration и component тесты.
 При редактировании уже существующего функционала, тесты редактировать нельзя.
