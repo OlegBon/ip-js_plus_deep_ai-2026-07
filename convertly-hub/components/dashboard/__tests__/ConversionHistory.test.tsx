@@ -27,7 +27,7 @@ describe('ConversionHistory', () => {
   beforeEach(() => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ conversions: [activeConversion, expiredConversion] }),
+      json: async () => ({ conversions: [activeConversion, expiredConversion], total: 2 }),
     }) as jest.Mock;
   });
 
@@ -57,15 +57,15 @@ describe('ConversionHistory', () => {
       .fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ conversions: [activeConversion], nextCursor: 'cursor-1' }),
+        json: async () => ({ conversions: [activeConversion], nextCursor: 'cursor-1', total: 11 }),
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ conversions: [expiredConversion], nextCursor: null }),
+        json: async () => ({ conversions: [expiredConversion], nextCursor: null, total: 11 }),
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ conversions: [activeConversion], nextCursor: 'cursor-1' }),
+        json: async () => ({ conversions: [activeConversion], nextCursor: 'cursor-1', total: 11 }),
       }) as jest.Mock;
 
     render(<ConversionHistory />);
@@ -74,12 +74,39 @@ describe('ConversionHistory', () => {
 
     expect(await screen.findByText('archive.png')).toBeInTheDocument();
     expect(global.fetch).toHaveBeenLastCalledWith(
-      '/api/account/conversions?cursor=cursor-1',
+      '/api/account/conversions?sort=createdAt&direction=desc&cursor=cursor-1',
       expect.any(Object),
     );
-    expect(screen.getByText('Page 2')).toBeInTheDocument();
+    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Previous' }));
     expect(await screen.findByText('holiday.jpg')).toBeInTheDocument();
+  });
+
+  it('submits a file-name search and resets pagination when sorting changes', async () => {
+    const user = userEvent.setup();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ conversions: [activeConversion], nextCursor: null, total: 1 }),
+    }) as jest.Mock;
+
+    render(<ConversionHistory />);
+    await screen.findByText('holiday.jpg');
+    await user.type(screen.getByRole('textbox', { name: 'Search by file name' }), 'holiday');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        '/api/account/conversions?sort=createdAt&direction=desc&search=holiday',
+        expect.any(Object),
+      ),
+    );
+    await user.click(screen.getByRole('button', { name: 'Status' }));
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        '/api/account/conversions?sort=status&direction=desc&search=holiday',
+        expect.any(Object),
+      ),
+    );
   });
 });
