@@ -38,10 +38,11 @@
    - **Как выполнить:** при webhook-привязке безопасно сохранять нормализованный публичный Telegram username (если он есть), сопоставлять только подтверждённый аккаунт, создавать уже существующий одноразовый хешированный токен и отправлять ссылку в связанный chat через Bot API. Нужны нейтральные ответы против user enumeration, общий rate limit, сценарий отсутствующего username, тесты webhook/Bot API и отдельные integration/E2E-проверки.
    - **Когда:** после согласования Telegram как канала восстановления и до production-релиза; не блокирует текущий локальный MVP, где надёжным каналом остаётся email.
 
-7. **(-, 10) Прочие задачи‑3 — production deployment**
-   - **Почему не завершено:** локальный Docker Compose проверен, но нет целевой платформы, production-конфигурации, CI/CD и эксплуатационной процедуры.
-   - **Как выполнить:** сравнить Vercel, Render и Oracle Cloud Free Tier по региону, стоимости, лимитам, managed PostgreSQL/S3/Redis и возможности постоянно запускать Gotenberg. Vercel удобен для Next.js, но Gotenberg и постоянное файловое хранилище нужно вынести во внешние сервисы; Render позволяет развернуть web и worker-сервисы, но бесплатные лимиты и сон сервисов непригодны для стабильной обработки; Oracle Free Tier может вместить Docker Compose на VM, но требует самостоятельного администрирования, backup и проверки доступности выбранного региона. После выбора: настроить секреты, миграции, HTTPS/домен, backup/restore, мониторинг, CI/CD и runbook.
-   - **Когда:** после закрытия обязательных production-пунктов выше и до первого публичного релиза.
+7. **(+, 1) Прочие задачи‑3 — production deployment на Oracle** (подготовка выполнена)
+   - **Что готово:** выбран отдельный Oracle A1 instance в Frankfurt; добавлены ARM64-compatible Dockerfile, production Compose, Caddy HTTPS, безопасный `.env.production.example` и подробный [Oracle runbook](./oracle-production-deployment.md). Локальные сервисы и MailHog изолированы от production-контура.
+   - **Что ещё не выполнено:** VM, DNS A-запись, SMTP и реальный публичный запуск пока не созданы; не настроены off-host backup/restore, мониторинг/alerting и CD. Rate limiter остаётся допустимым только для одного экземпляра Next.js.
+   - **Как выполнить:** создать VM и firewall по runbook, проверить ARM64 images, заполнить server-only `.env.production`, выполнить миграции и smoke-tests. До пользовательских файлов настроить и проверить восстановление PostgreSQL и MinIO во внешнем хранилище.
+   - **Когда:** следующий инфраструктурный этап после готовности Oracle VM и DNS; public go-live — только после успешных smoke-tests и принятого backup-плана.
 
 8. **(+, 3) Админская история конвертаций и failed conversions**
    - **Почему не завершено:** System Monitoring показывает число `FAILED`, но администратор может увидеть конкретные записи и `errorMessage` только в Prisma Studio. В Admin Panel нет истории конвертаций, фильтра failed, поиска, сортировки и управляемого удаления результатов.
@@ -200,6 +201,6 @@
     - [x] Настроены Playwright и Chromium, добавлены команды `npm run test:e2e` / `npm run test:e2e:ui` и E2E-сценарии для главной страницы, входа, выбора тарифа, Dashboard и Admin.
     - [x] Добавлены backend unit- и route-тесты: API-аутентификация, API-ключи, Core-конвертация, приватность результатов, rate limiting и admin API.
     - [x] Добавить реальные integration/E2E-тесты backend через HTTP с изолированными PostgreSQL, MinIO, Gotenberg и MailHog; инструкция — `docs/integration-tests.md`.
-3.  **Развертывание:** (не выполнено)
-    - [ ] Подготовить и сравнить варианты production-развёртывания: Vercel с внешними managed-сервисами, Render с отдельными web/worker-сервисами и Oracle Cloud Free Tier с самостоятельно администрируемым Docker Compose.
-    - [ ] После выбора платформы подготовить скрипты и инструкции для Next.js, PostgreSQL, S3, Redis и Gotenberg; настроить секреты, миграции, домен/HTTPS, backup/restore, мониторинг и CI/CD. Подробный следующий этап указан в приоритетном обзоре выше.
+3.  **Развертывание:** (подготовка выполнена, запуск ожидает Oracle)
+    - [x] Выбрана отдельная Oracle Cloud Free Tier A1 VM и подготовлены Dockerfile, production Compose, Caddy, `.env.production.example` и [runbook](./oracle-production-deployment.md) для Next.js, PostgreSQL, MinIO и Gotenberg.
+    - [ ] Создать VM и DNS, заполнить production-секреты, применить миграции, настроить SMTP, HTTPS, off-host backup/restore, мониторинг и выполнить публичные smoke-tests. Redis нужен только перед горизонтальным масштабированием.
