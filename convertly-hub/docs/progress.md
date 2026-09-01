@@ -1,5 +1,50 @@
 # Журнал изменений проекта
 
+# 2026-09-01
+
+- **Задача:** Повторная сверка раздела «Структура папок проекта».
+- **Изменённые файлы:** `docs/architecture.md`.
+- **Результат:** дерево отражает guest/mail/client-модули, profile/password/email
+  account API, оба Playwright config, integration runner и отдельный test Compose.
+- **Проверки:** раздел сверён с фактическими отслеживаемыми файлами проекта.
+- **Переменные окружения:** не добавлялись.
+
+# 2026-09-01
+
+- **Задача:** Сверка документации после добавления реальных backend integration/E2E.
+- **Изменённые файлы:** `README.md`, `docs/local-start.md`, `docs/START.md`,
+  `docs/architecture.md`, `docs/e2e_test_plan.md`, `docs/integration-tests.md`.
+- **Результат:** документация больше не относит реальный integration/E2E-набор к
+  будущим работам; добавлены единая команда запуска, границы покрытия CI и
+  объяснение диагностического каталога Playwright `test-results/`.
+- **Проверки:** сверены package scripts, оба Playwright config, integration runner,
+  Compose-файл и workflow GitHub Actions; пользователь подтвердил успешный
+  `npm run test:integration`.
+- **Переменные окружения:** не добавлялись.
+
+# 2026-09-01
+
+- **Задача:** Реальные backend integration/E2E-тесты.
+- **Изменённые файлы:** test Compose, Playwright config/spec, runner, CI и
+  `docs/integration-tests.md`.
+- **Результат:** добавлен изолированный контур PostgreSQL, MinIO, Gotenberg и
+  MailHog; CI запускает его отдельной job без изменения существующих Jest/Playwright jobs.
+- **Проверки:** `npm run test:integration` — 1 passed.
+- **Уточнение:** локальная команда сама управляет только `convertly-integration`;
+  CI передаёт флаг управления сервисами workflow.
+- **Переменные окружения:** используются только test-only значения внутри runner.
+
+# 2026-08-31
+
+- **Задача:** Сохранение отчёта Web Performance и дополнение локального skill.
+- **Изменённые файлы:** `.codex/skills/web-performance/SKILL.md`,
+  `docs/audits/web-performance-audit-2026-08-31T16-44-57-000Z.md`,
+  `docs/audits/web-performance-audit-latest.md`.
+- **Результат:** skill содержит триггеры, примеры вызова, порядок воспроизводимого
+  аудита и обязательное создание актуальной и timestamp-копии отчёта.
+- **Проверки:** локальные HTTP- и Playwright-измерения, `GET /api/health` — healthy.
+- **Переменные окружения:** не добавлялись.
+
 ## 2026-08-31
 
 - **Задача:** Добавление локального skill Web Performance.
@@ -960,14 +1005,3 @@
   - `docs/audits/api-audit-latest.md` (обновлен)
 - **Новые переменные окружения:**
   - Нет
-
-# 2026-08-31
-
-- **Задача:** Сохранение отчёта Web Performance и дополнение локального skill.
-- **Изменённые файлы:** `.codex/skills/web-performance/SKILL.md`,
-  `docs/audits/web-performance-audit-2026-08-31T16-44-57-000Z.md`,
-  `docs/audits/web-performance-audit-latest.md`.
-- **Результат:** skill содержит триггеры, примеры вызова, порядок воспроизводимого
-  аудита и обязательное создание актуальной и timestamp-копии отчёта.
-- **Проверки:** локальные HTTP- и Playwright-измерения, `GET /api/health` — healthy.
-- **Переменные окружения:** не добавлялись.

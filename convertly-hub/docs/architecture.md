@@ -2,7 +2,7 @@
 
 Этот документ описывает высокоуровневую архитектуру SaaS-платформы "Convertly Hub", разработанную на основе [технического задания](./tech_saas.md). Архитектура спроектирована с учетом принципов масштабируемости, отказоустойчивости и удобства развертывания.
 
-> **Статус на 26 августа 2026.** В репозитории реализованы и протестированы Prisma-схема, `GET /api/health`, серверный S3-сервис, NextAuth.js, парольная регистрация/вход, восстановление пароля и email-подтверждение через SMTP/MailHog, RBAC, Telegram linking, Core-конвертация, приватность результатов, жизненный цикл API-ключей, тарифные квоты и Mock Checkout, а также server-side API админ-панели. `JPG ↔ PNG` обрабатывается через `sharp`, `DOCX → PDF` — через Gotenberg. Главная страница доступна для ограниченной гостевой конвертации и для browser-конвертации после входа: `GET /api/guest/conversions` гидратирует остаток месячной cookie-квоты, а `POST` не сохраняет файлы; `POST /api/account/conversions` использует HttpOnly-сессию, не принимает API-ключ и скачивает готовый результат через session-защищённый маршрут. При включённом хранении результат также помещается в приватный S3; при выключенном — возвращается бинарным потоком без записи в S3. Dashboard доступен `USER` и `ADMIN`, а `/management` защищён серверной проверкой `ADMIN`.
+> **Статус на 1 сентября 2026.** В репозитории реализованы и протестированы Prisma-схема, `GET /api/health`, серверный S3-сервис, NextAuth.js, парольная регистрация/вход, восстановление пароля и email-подтверждение через SMTP/MailHog, RBAC, Telegram linking, Core-конвертация, приватность результатов, жизненный цикл API-ключей, тарифные квоты и Mock Checkout, а также server-side API админ-панели. `JPG ↔ PNG` обрабатывается через `sharp`, `DOCX → PDF` — через Gotenberg. Главная страница доступна для ограниченной гостевой конвертации и для browser-конвертации после входа: `GET /api/guest/conversions` гидратирует остаток месячной cookie-квоты, а `POST` не сохраняет файлы; `POST /api/account/conversions` использует HttpOnly-сессию, не принимает API-ключ и скачивает готовый результат через session-защищённый маршрут. При включённом хранении результат также помещается в приватный S3; при выключенном — возвращается бинарным потоком без записи в S3. Dashboard доступен `USER` и `ADMIN`, а `/management` защищён серверной проверкой `ADMIN`. Реальный backend integration/E2E-набор запускается на отдельном Compose-стеке и проверяет HTTP-контракты PostgreSQL, MinIO, Gotenberg, авторизации, квот, API-ключей и администрирования.
 
 ---
 
@@ -98,9 +98,10 @@ services:
 │   │   ├── layout.tsx                # Проверка сессии Dashboard
 │   │   └── management/layout.tsx     # Дополнительная server-side проверка ADMIN
 │   ├── api/
-│   │   ├── account/                  # Сессия: billing, preferences, Telegram, ключи, конвертации/скачивание
+│   │   ├── account/                  # Сессия: profile, password/email, billing, preferences, Telegram, ключи, конвертации/скачивание
 │   │   ├── admin/                    # Только ADMIN: пользователи и API-ключи
-│   │   ├── auth/, guest/             # NextAuth/регистрация и потоковая гостевая конвертация
+│   │   ├── auth/                     # NextAuth, регистрация, reset и email verification
+│   │   ├── guest/                    # Потоковая гостевая конвертация и cookie-квота
 │   │   ├── telegram/webhook/          # Webhook привязки Telegram
 │   │   ├── v1/                       # Public API: конвертация и скачивание по API-ключу
 │   │   └── health/                   # Состояние PostgreSQL, S3 и Gotenberg
@@ -108,8 +109,8 @@ services:
 │   ├── layout.tsx, page.tsx          # Корневой layout и browser-конвертация
 │   └── not-found.tsx, globals.css
 ├── components/
-│   ├── auth/                         # AuthSessionProvider и формы входа/регистрации
-│   ├── core/                         # Header, Footer, FileDropzone, confirmation UI
+│   ├── auth/                         # SessionProvider, формы auth и PasswordField
+│   ├── core/                         # Header, Footer, FileDropzone, guest summary и confirmation UI
 │   ├── dashboard/                    # Профиль, тариф, ключи, privacy, Telegram, история
 │   ├── admin/                        # UserManagement, SystemMonitoring, EditUserModal
 │   ├── pricing/                      # PaymentModal для Mock Checkout
@@ -120,8 +121,11 @@ services:
 │   ├── api/                          # API-ключи, request-конвертации, rate limit
 │   ├── auth/                         # NextAuth, пользователи, server-side authorization
 │   ├── billing/                      # Планы, квоты и Mock Checkout
+│   ├── client/                       # Временный кэш guest-результатов в браузере
 │   ├── core/                         # Валидация сигнатур, sharp/Gotenberg и жизненный цикл job
 │   ├── files/                        # Единая политика upload MIME/размеров
+│   ├── guest/                        # Guest cookie-квота и локальный IP limiter
+│   ├── mail/                         # SMTP-отправка reset/verification-писем
 │   ├── privacy/, storage/            # Правила хранения и S3/MinIO-клиент
 │   ├── telegram/                     # Одноразовые Telegram link-токены и webhook-логика
 │   ├── hooks/                        # Клиентские UI-хуки
@@ -129,14 +133,17 @@ services:
 ├── prisma/
 │   ├── schema.prisma                 # Модели и перечисления
 │   └── migrations/                   # Отслеживаемые SQL-миграции
-├── scripts/                          # API audit и назначение первого администратора
-├── e2e/ + playwright.config.ts       # Playwright-сценарии и конфигурация
-├── docs/                             # Architecture, START, DB schema, audits, план и журнал
+├── scripts/                          # API audit, первый администратор и integration/E2E runner
+├── e2e/                              # Browser critical flows и real backend integration/E2E spec
+├── playwright.config.ts              # Конфигурация критических browser E2E на порту 3001
+├── playwright.integration.config.ts  # Изолированные backend integration/E2E на порту 3101
+├── docs/                             # Architecture, local-start, START, DB schema, audits, планы и журнал
 ├── public/                           # Статические файлы
 ├── types/next-auth.d.ts              # Расширение типов user и JWT-сессии NextAuth
-├── .codex/, AGENTS.md                # Локальные правила работы с проектом
+├── .codex/, AGENTS.md, CODEX.md      # Локальные правила и project skills для Codex
 ├── .env, .env.example                # Локальные секреты и безопасный шаблон без секретов
 ├── docker-compose.yml                # PostgreSQL, MinIO, Gotenberg и MailHog
+├── docker-compose.integration.yml    # Одноразовый изолированный стек для реальных тестов
 └── package.json                      # Команды и зависимости
 ```
 
@@ -246,11 +253,14 @@ services:
 
 ---
 
-## 8. Тестирование frontend
+## 8. Тестирование
 
 Тестовая инфраструктура построена на Jest с `next/jest`, TypeScript-поддержкой через `ts-jest` и окружением `jsdom`. Component-тесты используют React Testing Library и `@testing-library/user-event`, проверяя наблюдаемое пользователем поведение. Для изолированных сетевых integration-тестов подключён MSW.
 
 - `npm test` запускает все тесты.
 - `npm run test:coverage` формирует отчёт покрытия.
 - `npm run test:e2e` запускает критические пользовательские сценарии Playwright в Chromium.
+- `npm run test:integration` поднимает изолированные PostgreSQL, MinIO, Gotenberg и MailHog, запускает Next.js на `127.0.0.1:3101` и выполняет реальный backend integration/E2E-сценарий. Обычный `.env` и локальный Compose-стек при этом не используются.
 - Тесты располагаются рядом с компонентами в каталогах `__tests__`: `auth`, `core`, `dashboard`, `admin`, `pricing` и `ui`. Они покрывают загрузку файлов, аутентификацию, модальные окна, платежный сценарий, Dashboard и управление пользователями.
+
+GitHub Actions на каждом push в ветку, затрагивающем `convertly-hub`, выполняет lint, type-check, production build, Jest, browser Playwright и отдельную job `Real backend integration/E2E`. При падении Playwright артефакты попадают в `test-results/`: локально каталог игнорируется Git, а в CI прикладывается к запуску вместе с логами integration-сервисов.

@@ -120,3 +120,47 @@ jobs:
           name: playwright-artifacts
           path: convertly-hub/test-results
           if-no-files-found: ignore
+
+  backend-integration-e2e:
+    name: Real backend integration/E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: convertly-hub/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start isolated integration services
+        run: |
+          docker compose -p convertly-integration -f docker-compose.integration.yml up -d --wait db minio gotenberg mailhog
+          docker compose -p convertly-integration -f docker-compose.integration.yml --profile init run --rm minio-init
+
+      - name: Real backend integration/E2E tests
+        run: npm run test:integration
+        env:
+          INTEGRATION_SERVICES_MANAGED: "true"
+
+      - name: Save integration service logs
+        if: failure()
+        run: docker compose -p convertly-integration -f docker-compose.integration.yml logs --no-color > integration-services.log
+
+      - name: Upload integration artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-integration-artifacts
+          path: |
+            convertly-hub/integration-services.log
+            convertly-hub/test-results
+          if-no-files-found: ignore
+
+      - name: Stop isolated integration services
+        if: always()
+        run: docker compose -p convertly-integration -f docker-compose.integration.yml down --volumes
