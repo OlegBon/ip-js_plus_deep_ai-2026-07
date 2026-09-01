@@ -1,0 +1,62 @@
+name: convertly-integration
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: convertly_integration
+      POSTGRES_USER: convertly_integration
+      POSTGRES_PASSWORD: convertly-integration-password
+    ports:
+      - '55432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U convertly_integration -d convertly_integration']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ROOT_USER: convertly-integration
+      MINIO_ROOT_PASSWORD: convertly-integration-secret
+    ports:
+      - '59000:9000'
+    command: server /data
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:9000/minio/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - mc alias set integration http://minio:9000 convertly-integration convertly-integration-secret && mc mb --ignore-existing integration/convertly-integration-files
+    profiles: ['init']
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    ports:
+      - '53000:3000'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider --quiet http://localhost:3000/health']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - '51025:1025'
+      - '58025:8025'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider --quiet http://localhost:8025']
+      interval: 5s
+      timeout: 5s
+      retries: 20

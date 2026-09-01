@@ -68,13 +68,31 @@ npm run dev
 - [План работ](./docs/work_plan.md)
 - [Прогресс проекта](./docs/progress.md)
 - [План E2E-тестирования](./docs/e2e_test_plan.md)
+- [Реальные backend integration/E2E-тесты](./docs/integration-tests.md)
 - [Локальный старт и диагностика](./docs/local-start.md)
+
+## 🧪 Проверки
+
+```bash
+npm run linteslint
+npx tsc --noEmit
+npm test -- --runInBand
+npm run test:e2e
+npm run test:integration
+```
+
+Последняя команда поднимает отдельные PostgreSQL, MinIO, Gotenberg и MailHog,
+выполняет реальные HTTP-сценарии и затем удаляет только свою тестовую Compose-среду.
+Docker Desktop должен быть запущен. Подробности, порты и покрытие — в
+[integration-tests.md](./docs/integration-tests.md). Артефакты неуспешного
+Playwright-запуска сохраняются в локальной `test-results/` (она игнорируется Git)
+и прикладываются к упавшему GitHub Actions run.
 
 ## ⚠️ Текущий статус
 
 Реализованы аутентификация через HttpOnly-сессию, восстановление пароля и подтверждение email через одноразовые ссылки, роли `USER`/`ADMIN`, API-ключи, Telegram linking, тарифные квоты и Mock Checkout, приватное хранение в MinIO и доступные Core-конвертации. Гость может выполнить до трёх image- и двух document-конвертаций в месяц (до 1 МБ, без S3 и истории); зарегистрированный пользователь работает через сессию и получает тарифные возможности Dashboard.
 
-Dashboard и Admin UI работают с реальными account/admin API. Реальные платежи, `PDF → DOCX`, распределённый rate limiter, production deployment и полноценные backend integration/E2E остаются в [плане работ](./docs/work_plan.md).
+Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. В [плане работ](./docs/work_plan.md) остаются реальные платежи, `PDF → DOCX`, распределённый rate limiter, расширение админской истории и production deployment.
 
 ---
 

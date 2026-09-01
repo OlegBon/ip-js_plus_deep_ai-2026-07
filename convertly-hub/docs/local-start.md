@@ -18,7 +18,7 @@ docker version
 docker compose version
 ```
 
-Если `docker version` не показывает раздел `Server`, запустите Docker Desktop и дождитесь статуса *Engine running*. Не продолжайте к миграциям, пока Docker недоступен.
+Если `docker version` не показывает раздел `Server`, запустите Docker Desktop и дождитесь статуса _Engine running_. Не продолжайте к миграциям, пока Docker недоступен.
 
 ## 2. Настройка `.env`
 
@@ -114,6 +114,7 @@ npx prisma migrate status
   "gotenberg": "up"
 }
 ```
+
 3. Выполните единый локальный HTTP-аудит:
 
 ```powershell
@@ -149,13 +150,13 @@ docker compose down
 
 `docker compose down` останавливает контейнеры, но сохраняет Docker volumes с PostgreSQL и MinIO. Не удаляйте volumes, если хотите сохранить локальные данные.
 
-| Симптом | Что проверить |
-| --- | --- |
-| Docker daemon недоступен | Запустить Docker Desktop; затем повторить `docker version` и `docker compose up -d`. |
-| Порт занят | Найти процесс, освободить порт либо запустить Next.js на свободном порту и соответственно поменять только локальный `NEXTAUTH_URL`. |
-| Prisma не подключается | `docker compose ps`, совпадение `POSTGRES_*` и `DATABASE_URL` в `.env`, затем `npx prisma migrate status`. |
-| `/api/health` возвращает `503` | Проверить поля JSON: `database`, `storage`, `gotenberg`; затем соответствующий контейнер и адрес в `.env`. |
-| Письмо не пришло | Убедиться, что MailHog запущен и открыть `http://localhost:8025`; локальные SMTP-значения оставьте из `.env.example`. |
+| Симптом                        | Что проверить                                                                                                                       |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Docker daemon недоступен       | Запустить Docker Desktop; затем повторить `docker version` и `docker compose up -d`.                                                |
+| Порт занят                     | Найти процесс, освободить порт либо запустить Next.js на свободном порту и соответственно поменять только локальный `NEXTAUTH_URL`. |
+| Prisma не подключается         | `docker compose ps`, совпадение `POSTGRES_*` и `DATABASE_URL` в `.env`, затем `npx prisma migrate status`.                          |
+| `/api/health` возвращает `503` | Проверить поля JSON: `database`, `storage`, `gotenberg`; затем соответствующий контейнер и адрес в `.env`.                          |
+| Письмо не пришло               | Убедиться, что MailHog запущен и открыть `http://localhost:8025`; локальные SMTP-значения оставьте из `.env.example`.               |
 
 ## 8. Полезные команды
 
@@ -164,7 +165,15 @@ npm run linteslint
 npx jest --runInBand
 npm run build
 npm run audit:api
+npm run test:integration
 npx prisma studio
 ```
 
-Подробная карта маршрутов находится в [architecture.md](./architecture.md#5-api-endpoints), а границы будущих реальных integration/E2E-проверок — в [e2e_test_plan.md](./e2e_test_plan.md).
+`npm run test:integration` не использует обычный `.env` и локальный стек на порту
+`3001`: он временно поднимает отдельную Docker Compose-среду, запускает Next.js на
+`3101` и после завершения удаляет только тестовые контейнеры и volumes. Перед ним
+нужен запущенный Docker Desktop. Полная инструкция и покрытие — в
+[integration-tests.md](./integration-tests.md). При падении Playwright может создать
+`test-results/` с trace, screenshot и error context; каталог игнорируется Git.
+
+Подробная карта маршрутов находится в [architecture.md](./architecture.md#5-api-endpoints), а актуальные границы browser и backend E2E — в [e2e_test_plan.md](./e2e_test_plan.md).
