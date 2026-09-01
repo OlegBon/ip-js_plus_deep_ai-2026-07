@@ -85,6 +85,9 @@
     "bcrypt@6.0.0": true
   },
   "overrides": {
-    "deepmerge-ts": "8.0.0"
+    "deepmerge-ts": "8.0.0",
+    "next-auth": {
+      "nodemailer": "$nodemailer"
+    }
   }
 }

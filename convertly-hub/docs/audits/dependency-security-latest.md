@@ -10,9 +10,13 @@
 | `deepmerge-ts`       | 7.1.5 (transitive) | 8.0.0 (override) | Устраняет GHSA-ggr8-5vv4-36mx до upstream-исправления Prisma. |
 | `nodemailer`         | 7.0.13             | 9.1.0            | Закрывает advisories; проверен с реальным MailHog.            |
 
-`package.json` содержит узкий `overrides.deepmerge-ts = "8.0.0"`. Он нужен только
-пока `@prisma/config` Prisma 7 фиксирует уязвимую версию. Проверять возможность
-удаления override при каждом будущем обновлении Prisma.
+`package.json` содержит два узких overrides:
+
+- `deepmerge-ts = "8.0.0"` нужен только пока `@prisma/config` Prisma 7 фиксирует
+  уязвимую версию; проверять возможность удаления при каждом обновлении Prisma;
+- `next-auth.nodemailer = "$nodemailer"` явно связывает optional peer NextAuth v4
+  с корневым Nodemailer 9.1.0. Это сохраняет строгий `npm ci` без `--force` и
+  `--legacy-peer-deps`; повторно проверить его при обновлении NextAuth.
 
 ## Результат audit
 
@@ -27,7 +31,8 @@
   Convertly Hub применяется только `CredentialsProvider`; email-сообщения отправляет
   собственный SMTP-модуль `lib/mail/send-auth-email.ts`, а не NextAuth Email Provider.
   Поэтому Nodemailer 9.1.0 обновлён без `--force` и подтверждён реальной доставкой
-  registration verification-письма в MailHog в integration/E2E.
+  registration verification-письма в MailHog в integration/E2E. `npm ci --dry-run
+--ignore-scripts` подтверждает воспроизводимое peer-разрешение для CI.
 - При любом будущем обновлении NextAuth повторить Credentials-сессию, password reset,
   email verification, SMTP integration/E2E и `npm audit --omit=dev`. Не добавлять
   NextAuth Email Provider к этой связке без отдельной проверки совместимости или
