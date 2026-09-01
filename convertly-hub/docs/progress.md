@@ -2,6 +2,29 @@
 
 # 2026-09-01
 
+- **Задача:** Подготовка production-развёртывания на Oracle Cloud Free Tier.
+- **Изменённые файлы:** `Dockerfile`, `.dockerignore`,
+  `docker-compose.production.yml`, `deploy/Caddyfile`,
+  `.env.production.example`, `README.md`, `docs/oracle-production-deployment.md`,
+  `docs/architecture.md`, `docs/local-start.md`, `docs/START.md`,
+  `docs/work_plan.md`.
+- **Результат:** подготовлен отдельный ARM64-compatible production-контур для
+  Oracle A1: Next.js standalone, private PostgreSQL/MinIO/Gotenberg, Caddy с
+  автоматическим HTTPS, раздельный шаблон production-секретов, ручные безопасные
+  миграции и создание первого администратора. Runbook описывает DNS, firewall,
+  SMTP, ARM64 preflight, запуск, обновление, smoke-tests и обязательный off-host
+  backup.
+- **Проверки:** полный `docker compose --env-file .env.production.example
+--profile maintenance ... config`, TypeScript, ESLint, Prettier, `npm audit` и
+  Jest (44 suites / 134 tests) успешны. Локальный `npm run build` остановлен
+  внешней недоступностью `fonts.googleapis.com`; неуспешно завершённый
+  integration-runner был сразу очищен и не затронул основной Compose-стек.
+- **Новые переменные окружения:** production-шаблон документирует `APP_DOMAIN`,
+  `SMTP_USER` и `SMTP_PASSWORD`; остальные значения используют уже существующие
+  server-only переменные с production internal hostnames.
+
+# 2026-09-01
+
 - **Задача:** Добавить публичный контакт поддержки в футер.
 - **Описание:** В футер добавлена доступная ссылка `mailto:support@bon.kharkov.ua`.
   Copyright и контакт являются самостоятельными неразрываемыми элементами flex-wrap:
@@ -12,6 +35,8 @@
   проверка выполняются перед финальным коммитом.
 - **Переменные окружения:** не добавлялись.
 
+# 2026-09-01
+
 - **Задача:** Восстановить строгую установку зависимостей в GitHub Actions.
 - **Описание:** Добавлен узкий `overrides.next-auth.nodemailer = "$nodemailer"`.
   Он связывает optional peer NextAuth v4 с уже проверенным корневым Nodemailer 9.1.0,
@@ -19,6 +44,8 @@
 - **Проверки:** `npm ci --dry-run --ignore-scripts` успешно; `npm audit --omit=dev`
   — 0 vulnerabilities.
 - **Переменные окружения:** не добавлялись.
+
+# 2026-09-01
 
 - **Задача:** Завершить адресное обновление production-зависимостей.
 - **Описание:** Nodemailer обновлён с `7.0.13` до `9.1.0` без `npm audit fix --force`.
@@ -32,7 +59,8 @@
   Playwright E2E и integration/E2E — успешно.
 - **Переменные окружения:** не добавлялись.
 
-- **Задача:** Адресное обновление уязвимых production-зависимостей.
+# 2026-09-01
+
 - **Задача:** Адресное обновление уязвимых production-зависимостей.
 - **Изменённые файлы:** `package.json`, `package-lock.json`,
   `docs/audits/dependency-security-2026-09-01.md`,
@@ -1066,26 +1094,3 @@
   - `docs/audits/api-audit-latest.md` (обновлен)
 - **Новые переменные окружения:**
   - Нет
-
-# 2026-09-01
-
-- **Задача:** Подготовка production-развёртывания на Oracle Cloud Free Tier.
-- **Изменённые файлы:** `Dockerfile`, `.dockerignore`,
-  `docker-compose.production.yml`, `deploy/Caddyfile`,
-  `.env.production.example`, `README.md`, `docs/oracle-production-deployment.md`,
-  `docs/architecture.md`, `docs/local-start.md`, `docs/START.md`,
-  `docs/work_plan.md`.
-- **Результат:** подготовлен отдельный ARM64-compatible production-контур для
-  Oracle A1: Next.js standalone, private PostgreSQL/MinIO/Gotenberg, Caddy с
-  автоматическим HTTPS, раздельный шаблон production-секретов, ручные безопасные
-  миграции и создание первого администратора. Runbook описывает DNS, firewall,
-  SMTP, ARM64 preflight, запуск, обновление, smoke-tests и обязательный off-host
-  backup.
-- **Проверки:** полный `docker compose --env-file .env.production.example
---profile maintenance ... config`, TypeScript, ESLint, Prettier, `npm audit` и
-  Jest (44 suites / 134 tests) успешны. Локальный `npm run build` остановлен
-  внешней недоступностью `fonts.googleapis.com`; неуспешно завершённый
-  integration-runner был сразу очищен и не затронул основной Compose-стек.
-- **Новые переменные окружения:** production-шаблон документирует `APP_DOMAIN`,
-  `SMTP_USER` и `SMTP_PASSWORD`; остальные значения используют уже существующие
-  server-only переменные с production internal hostnames.
