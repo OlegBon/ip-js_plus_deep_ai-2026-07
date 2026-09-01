@@ -70,6 +70,7 @@ npm run dev
 - [План E2E-тестирования](./docs/e2e_test_plan.md)
 - [Реальные backend integration/E2E-тесты](./docs/integration-tests.md)
 - [Локальный старт и диагностика](./docs/local-start.md)
+- [Production-развёртывание на Oracle Cloud Free Tier](./docs/oracle-production-deployment.md)
 
 ## 🧪 Проверки
 
@@ -92,7 +93,7 @@ Playwright-запуска сохраняются в локальной `test-res
 
 Реализованы аутентификация через HttpOnly-сессию, восстановление пароля и подтверждение email через одноразовые ссылки, роли `USER`/`ADMIN`, API-ключи, Telegram linking, тарифные квоты и Mock Checkout, приватное хранение в MinIO и доступные Core-конвертации. Гость может выполнить до трёх image- и двух document-конвертаций в месяц (до 1 МБ, без S3 и истории); зарегистрированный пользователь работает через сессию и получает тарифные возможности Dashboard.
 
-Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. В [плане работ](./docs/work_plan.md) остаются реальные платежи, `PDF → DOCX`, распределённый rate limiter, расширение админской истории и production deployment.
+Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. Для отдельной Oracle A1 VM подготовлены ARM64-compatible Docker Compose, Caddy HTTPS и [пошаговый production runbook](./docs/oracle-production-deployment.md); фактическое публичное развёртывание, внешний backup и мониторинг выполняются отдельно. В [плане работ](./docs/work_plan.md) остаются реальные платежи, `PDF → DOCX`, распределённый rate limiter и расширение админской истории.
 
 Перед production deployment повторно проверьте [актуальную сводку dependency security](./docs/audits/dependency-security-latest.md): Prisma 7 обновлён до `7.10.0`, Nodemailer — до `9.1.0`, а текущий production dependency graph проходит `npm audit --omit=dev` без уязвимостей. NextAuth остаётся на стабильной v4; его major-обновление требует отдельной проверки breaking changes.
 

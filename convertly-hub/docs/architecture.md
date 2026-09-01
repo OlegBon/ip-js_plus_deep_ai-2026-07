@@ -141,9 +141,13 @@ services:
 ├── public/                           # Статические файлы
 ├── types/next-auth.d.ts              # Расширение типов user и JWT-сессии NextAuth
 ├── .codex/, AGENTS.md, CODEX.md      # Локальные правила и project skills для Codex
+├── deploy/Caddyfile                  # HTTPS reverse proxy для Oracle production-стека
 ├── .env, .env.example                # Локальные секреты и безопасный шаблон без секретов
+├── .env.production.example            # Отдельный безопасный шаблон production-секретов
+├── .dockerignore, Dockerfile          # ARM64-compatible standalone-сборка Next.js
 ├── docker-compose.yml                # PostgreSQL, MinIO, Gotenberg и MailHog
 ├── docker-compose.integration.yml    # Одноразовый изолированный стек для реальных тестов
+├── docker-compose.production.yml     # Oracle A1: private services, app и Caddy
 └── package.json                      # Команды и зависимости
 ```
 
@@ -229,14 +233,36 @@ services:
 
 ## 6. Развертывание (Deployment)
 
-Архитектура позволяет гибко подходить к развертыванию.
+Для первого production MVP выбран отдельный ARM64 instance Oracle Cloud Free Tier
+`VM.Standard.A1.Flex` в Frankfurt. `docker-compose.production.yml` не использует
+локальный compose-файл: он собирает Next.js как standalone-образ и запускает Caddy,
+PostgreSQL, MinIO и Gotenberg на одной VM. Caddy — единственный сервис с открытыми
+портами `80/443`; остальные контейнеры доступны только внутри Docker-сети.
 
-- **Основное приложение (Next.js):** Разворачивается на платформах вроде **Vercel**, Netlify или в Docker-контейнере на собственном сервере.
-- **База данных (PostgreSQL):** В продакшене используется управляемый сервис (`Managed Database`), такой как **Supabase**, **Neon** или **AWS RDS**. Это заменяет локальный Docker-сервис `db`.
-- **Хранилище файлов (S3):** Используется облачный сервис, например, **Cloudflare R2** или **AWS S3**. Это заменяет локальный Docker-сервис `minio`.
-- **Воркер (Gotenberg):** Разворачивается как отдельный **Docker-контейнер** на любой платформе, поддерживающей их (например, AWS Fargate, Google Cloud Run, или на том же сервере, что и Next.js-приложение).
+```mermaid
+graph LR
+  I[Internet] --> C[Caddy :80/:443]
+  C --> N[Next.js :3001]
+  N --> P[(PostgreSQL)]
+  N --> M[(MinIO)]
+  N --> G[Gotenberg]
+```
 
-Такое разделение позволяет масштабировать каждый компонент независимо. Например, при высокой нагрузке можно увеличить количество контейнеров `Gotenberg`, не затрагивая основное приложение.
+- **Next.js:** `output: 'standalone'`; production-образ строится на целевой A1 VM,
+  чтобы Prisma, `sharp` и `bcrypt` получили ARM64 runtime.
+- **PostgreSQL и MinIO:** persistent Docker volumes, без опубликованных портов и
+  без публичных S3 URL.
+- **Gotenberg:** внутренний Docker-контейнер для `DOCX → PDF`; на A1 до go-live
+  обязательно выполняется реальный smoke-test конвертации.
+- **Почта:** MailHog — только локально. Production использует SMTP ящика
+  `support@bon.kharkov.ua` через переменные `.env.production`.
+- **Операции:** миграции Prisma и назначение первого администратора запускаются
+  вручную одноразовым `migrate` service. Backup PostgreSQL и зеркалирование MinIO
+  должны уходить во внешнее хранилище: данные на той же VM не являются backup.
+
+Точный порядок создания VM, ARM64 preflight, DNS/HTTPS, firewall, секреты, первый
+запуск, обновление и smoke-tests зафиксирован в
+[oracle-production-deployment.md](./oracle-production-deployment.md).
 
 ---
 

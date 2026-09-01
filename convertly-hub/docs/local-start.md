@@ -176,4 +176,4 @@ npx prisma studio
 [integration-tests.md](./integration-tests.md). При падении Playwright может создать
 `test-results/` с trace, screenshot и error context; каталог игнорируется Git.
 
-Подробная карта маршрутов находится в [architecture.md](./architecture.md#5-api-endpoints), а актуальные границы browser и backend E2E — в [e2e_test_plan.md](./e2e_test_plan.md).
+Подробная карта маршрутов находится в [architecture.md](./architecture.md#5-api-endpoints), а актуальные границы browser и backend E2E — в [e2e_test_plan.md](./e2e_test_plan.md). Для отдельной Oracle A1 production VM используйте не эту инструкцию, а [oracle-production-deployment.md](./oracle-production-deployment.md).

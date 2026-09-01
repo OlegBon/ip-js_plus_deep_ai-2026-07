@@ -1066,3 +1066,26 @@
   - `docs/audits/api-audit-latest.md` (обновлен)
 - **Новые переменные окружения:**
   - Нет
+
+# 2026-09-01
+
+- **Задача:** Подготовка production-развёртывания на Oracle Cloud Free Tier.
+- **Изменённые файлы:** `Dockerfile`, `.dockerignore`,
+  `docker-compose.production.yml`, `deploy/Caddyfile`,
+  `.env.production.example`, `README.md`, `docs/oracle-production-deployment.md`,
+  `docs/architecture.md`, `docs/local-start.md`, `docs/START.md`,
+  `docs/work_plan.md`.
+- **Результат:** подготовлен отдельный ARM64-compatible production-контур для
+  Oracle A1: Next.js standalone, private PostgreSQL/MinIO/Gotenberg, Caddy с
+  автоматическим HTTPS, раздельный шаблон production-секретов, ручные безопасные
+  миграции и создание первого администратора. Runbook описывает DNS, firewall,
+  SMTP, ARM64 preflight, запуск, обновление, smoke-tests и обязательный off-host
+  backup.
+- **Проверки:** полный `docker compose --env-file .env.production.example
+--profile maintenance ... config`, TypeScript, ESLint, Prettier, `npm audit` и
+  Jest (44 suites / 134 tests) успешны. Локальный `npm run build` остановлен
+  внешней недоступностью `fonts.googleapis.com`; неуспешно завершённый
+  integration-runner был сразу очищен и не затронул основной Compose-стек.
+- **Новые переменные окружения:** production-шаблон документирует `APP_DOMAIN`,
+  `SMTP_USER` и `SMTP_PASSWORD`; остальные значения используют уже существующие
+  server-only переменные с production internal hostnames.

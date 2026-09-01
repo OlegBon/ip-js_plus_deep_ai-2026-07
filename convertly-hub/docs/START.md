@@ -2,7 +2,7 @@
 
 > **Статус на 1 сентября 2026:** Docker Compose, Prisma, NextAuth, RBAC, Telegram linking, Core-конвертация, тарифные квоты, атомарное резервирование storage и управление приватностью результатов проверены локально. Browser-конвертация доступна после входа через `/`; API-ключ в браузер не передаётся. Реальный изолированный backend integration/E2E-набор проверяет PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и административный API.
 
-Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**. Для воспроизводимого локального запуска используйте [local-start.md](./local-start.md): в нём есть preflight Docker, `.env.example`, миграции, проверка, первый администратор и диагностика.
+Внутреннее техническое руководство и лог развертывания проекта **Convertly Hub**. Для воспроизводимого локального запуска используйте [local-start.md](./local-start.md): в нём есть preflight Docker, `.env.example`, миграции, проверка, первый администратор и диагностика. Для отдельной production VM Oracle A1 используйте [oracle-production-deployment.md](./oracle-production-deployment.md), а не локальный Compose.
 
 ---
 
