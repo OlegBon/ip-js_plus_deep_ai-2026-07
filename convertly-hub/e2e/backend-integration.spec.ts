@@ -29,14 +29,7 @@ test.afterAll(async () => {
 test('реальные сервисы поддерживают auth, квоты, API-конвертацию и администрирование', async ({
   request,
 }) => {
-  const health = await request.get('/api/health');
-  await expect(health).toBeOK();
-  expect(await health.json()).toEqual({
-    status: 'healthy',
-    database: 'up',
-    storage: 'up',
-    gotenberg: 'up',
-  });
+  await waitForHealthySystem(request);
 
   const user = await registerAndSignIn(request);
   const apiKey = await createApiKey(request);
@@ -157,6 +150,23 @@ async function waitForDownload(request: APIRequestContext, conversionId: string,
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   throw new Error('Stored conversion did not finish in time.');
+}
+
+async function waitForHealthySystem(request: APIRequestContext) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    const response = await request.get('/api/health');
+    if (response.ok()) {
+      expect(await response.json()).toEqual({
+        status: 'healthy',
+        database: 'up',
+        storage: 'up',
+        gotenberg: 'up',
+      });
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error('Integration services did not become healthy in 60 seconds.');
 }
 
 async function verifyGuestQuota(request: APIRequestContext, png: Buffer) {

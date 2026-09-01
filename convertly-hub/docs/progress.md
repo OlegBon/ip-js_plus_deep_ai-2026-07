@@ -2,6 +2,20 @@
 
 # 2026-09-01
 
+- **Задача:** Исправление изоляции Playwright jobs в GitHub Actions.
+- **Изменённые файлы:** `playwright.config.ts`, `docker-compose.integration.yml`,
+  `e2e/backend-integration.spec.ts`, `docs/integration-tests.md`.
+- **Результат:** browser Playwright не запускает real integration spec; Gotenberg
+  больше не блокирует CI ложным Docker healthcheck, а integration spec ожидает
+  реальную готовность `/api/health` до 60 секунд.
+- **Проверки:** Prettier, `npx tsc --noEmit`, ESLint, `npm run test:e2e` (5/5)
+  и `npm run test:integration` (1/1) прошли. Локальный `npm run build` остановлен
+  недоступностью `fonts.googleapis.com`; production build уже успешно прошёл в
+  GitHub Actions job `Lint, types and Jest`.
+- **Переменные окружения:** не добавлялись.
+
+# 2026-09-01
+
 - **Задача:** Повторная сверка раздела «Структура папок проекта».
 - **Изменённые файлы:** `docs/architecture.md`.
 - **Результат:** дерево отражает guest/mail/client-модули, profile/password/email

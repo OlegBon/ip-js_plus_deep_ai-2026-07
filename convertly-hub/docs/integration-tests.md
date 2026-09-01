@@ -18,6 +18,11 @@ Runner применяет миграции только к `convertly_integratio
 `127.0.0.1:3101` с отдельной папкой `.next-integration` и очищает созданные
 тестовые записи и S3-объекты.
 
+Gotenberg не использует Docker healthcheck, зависящий от утилит внутри его образа.
+Вместо этого integration spec ожидает положительный ответ приложения
+`GET /api/health` (PostgreSQL, MinIO и Gotenberg) до 60 секунд. Это проверяет
+фактическую готовность нужного HTTP-контракта и одинаково работает локально и в CI.
+
 ## Покрываемые контракты
 
 - health-check PostgreSQL, MinIO и Gotenberg;
