@@ -2,6 +2,19 @@
 
 # 2026-09-01
 
+- **Задача:** Завершить адресное обновление production-зависимостей.
+- **Описание:** Nodemailer обновлён с `7.0.13` до `9.1.0` без `npm audit fix --force`.
+  NextAuth остаётся на стабильной v4 и используется только с Credentials Provider;
+  исходящие verification/reset-письма отправляет собственный SMTP-модуль. Реальный
+  integration/E2E теперь подтверждает доставку verification email в MailHog.
+- **Изменённые файлы:** `package.json`, `package-lock.json`, `eslint.config.mjs`,
+  `e2e/backend-integration.spec.ts`, dependency-security audit, `README.md`,
+  `docs/integration-tests.md` и `docs/work_plan.md`.
+- **Проверки:** `npm audit --omit=dev` — 0 vulnerabilities; TypeScript, ESLint, Jest,
+  Playwright E2E и integration/E2E — успешно.
+- **Переменные окружения:** не добавлялись.
+
+- **Задача:** Адресное обновление уязвимых production-зависимостей.
 - **Задача:** Адресное обновление уязвимых production-зависимостей.
 - **Изменённые файлы:** `package.json`, `package-lock.json`,
   `docs/audits/dependency-security-2026-09-01.md`,

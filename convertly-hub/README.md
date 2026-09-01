@@ -94,7 +94,7 @@ Playwright-запуска сохраняются в локальной `test-res
 
 Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. В [плане работ](./docs/work_plan.md) остаются реальные платежи, `PDF → DOCX`, распределённый rate limiter, расширение админской истории и production deployment.
 
-Перед production deployment повторно проверьте [актуальную сводку dependency security](./docs/audits/dependency-security-latest.md): Prisma 7 обновлён до `7.10.0`, но стабильный путь NextAuth/Nodemailer 9 ещё требует отдельной migration-задачи.
+Перед production deployment повторно проверьте [актуальную сводку dependency security](./docs/audits/dependency-security-latest.md): Prisma 7 обновлён до `7.10.0`, Nodemailer — до `9.1.0`, а текущий production dependency graph проходит `npm audit --omit=dev` без уязвимостей. NextAuth остаётся на стабильной v4; его major-обновление требует отдельной проверки breaking changes.
 
 ---
 

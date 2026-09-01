@@ -26,7 +26,8 @@ Gotenberg не использует Docker healthcheck, зависящий от 
 ## Покрываемые контракты
 
 - health-check PostgreSQL, MinIO и Gotenberg;
-- регистрация, Credentials login и HttpOnly-сессия;
+- регистрация, реальная SMTP-доставка verification email в MailHog, Credentials login
+  и HttpOnly-сессия;
 - API-ключ, асинхронная API-конвертация и защищённое скачивание из MinIO;
 - API-конвертация без сохранения результата;
 - guest image-квота и `DOCX → PDF` через Gotenberg;
