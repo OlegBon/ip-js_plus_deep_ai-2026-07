@@ -2,6 +2,22 @@
 
 # 2026-09-01
 
+- **Задача:** Адресное обновление уязвимых production-зависимостей.
+- **Изменённые файлы:** `package.json`, `package-lock.json`,
+  `docs/audits/dependency-security-2026-09-01.md`,
+  `docs/audits/dependency-security-latest.md`, `README.md`, `docs/work_plan.md`.
+- **Результат:** Prisma CLI/Client/adapter-pg обновлены `7.9.1 → 7.10.0`; override
+  `deepmerge-ts@8.0.0` устранил Prisma advisory. Production audit сокращён с пяти
+  finding (4 high, 1 moderate) до двух (1 high, 1 moderate) в цепочке
+  NextAuth v4/Nodemailer 7. Принудительный переход на Nodemailer 9 и Auth.js v5 beta
+  намеренно не выполнен; условия безопасной будущей миграции зафиксированы.
+- **Проверки:** Prisma generate/validate/migrate status, Jest, browser E2E (5/5),
+  real integration/E2E (1/1), TypeScript, ESLint и Prettier прошли. Локальный build
+  блокируется сетевым доступом к Google Fonts; production build уже проходит в CI.
+- **Переменные окружения:** не добавлялись.
+
+# 2026-09-01
+
 - **Задача:** Исправление изоляции Playwright jobs в GitHub Actions.
 - **Изменённые файлы:** `playwright.config.ts`, `docker-compose.integration.yml`,
   `e2e/backend-integration.spec.ts`, `docs/integration-tests.md`.

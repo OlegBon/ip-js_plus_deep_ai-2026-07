@@ -13,10 +13,11 @@
    - **Как выполнить:** после выбора провайдера определить модель подписок и страны/валюты, реализовать checkout, customer portal, верификацию и идемпотентную обработку webhook, затем связать тариф с правами пользователя и добавить контрактные тесты.
    - **Когда:** намеренно отложено; не входит в ближайший локальный MVP и возобновляется только после продуктового решения о провайдере.
 
-2. **(+, 1) Обновление уязвимых production-зависимостей**
-   - **Почему не завершено:** `npm audit --omit=dev` сообщает о пяти уязвимостях (четыре high, одна moderate) в транзитивных цепочках Prisma и NextAuth/Nodemailer. Автоматический fix требует breaking-обновлений.
-   - **Как выполнить:** изучить release notes и migration guides, обновить Prisma Client/CLI и зависимости аутентификации контролируемо, проверить lockfile, миграции, auth/email flows, полный тестовый набор и build. Не применять `npm audit fix --force` без ревью диффа.
-   - **Когда:** сразу после стабилизации MVP и до любого production deployment.
+2. **(-, 1) Обновление уязвимых production-зависимостей — частично выполнено**
+   - **Что выполнено:** Prisma CLI, Client и PostgreSQL adapter обновлены с `7.9.1` до `7.10.0`; временный узкий override `deepmerge-ts@8.0.0` закрывает advisory Prisma. Актуальная сводка и проверки — [dependency-security-latest.md](./audits/dependency-security-latest.md).
+   - **Почему не завершено:** после обновления `npm audit --omit=dev` оставляет одну high и одну moderate уязвимость в цепочке `next-auth@4.24.15 → nodemailer@7.0.13`. NextAuth находится на последней стабильной v4 и объявляет peer dependency только Nodemailer 7; Auth.js/NextAuth v5 пока beta.
+   - **Как выполнить:** не применять `npm audit fix --force` и не форсировать Nodemailer 9 через несовместимый peer. При выходе стабильного Auth.js/NextAuth с поддержкой Nodemailer 9 выполнить отдельную migration-задачу: обновить auth/email зависимости, проверить Credentials-сессию, password reset, email verification, SMTP, unit/integration/E2E, audit и build. При каждом обновлении Prisma проверять, можно ли удалить override.
+   - **Когда:** блокирует production deployment; вернуться перед первым production-релизом либо после выхода совместимых стабильных версий.
 
 3. **(-, 9) Backend‑5 — `PDF → DOCX`**
    - **Почему не завершено:** PDF обычно не содержит полной структуры исходного документа, а Gotenberg не даёт качественную обратную конвертацию; текущий Core поддерживает только `JPG ↔ PNG` и `DOCX → PDF`.
