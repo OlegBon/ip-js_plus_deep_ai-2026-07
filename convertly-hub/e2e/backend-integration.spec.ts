@@ -93,6 +93,7 @@ async function registerAndSignIn(request: APIRequestContext) {
     data: { email, password, name: 'Integration User' },
   });
   expect(registration.status()).toBe(201);
+  await waitForVerificationEmail(email);
 
   const user = await prisma.user.findUniqueOrThrow({ where: { email } });
   await prisma.user.update({
@@ -128,6 +129,31 @@ async function registerAndSignIn(request: APIRequestContext) {
     expect.objectContaining({ user: expect.objectContaining({ id: user.id, email }) }),
   );
   return user;
+}
+
+type MailHogMessage = {
+  Content?: {
+    Headers?: Record<string, string[]>;
+  };
+};
+
+async function waitForVerificationEmail(email: string) {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const response = await fetch('http://127.0.0.1:58025/api/v2/messages');
+    if (response.ok) {
+      const body = (await response.json()) as { items?: MailHogMessage[] };
+      const found = body.items?.some((message) => {
+        const headers = message.Content?.Headers;
+        return (
+          headers?.To?.includes(email) &&
+          headers.Subject?.includes('Verify your Convertly Hub email')
+        );
+      });
+      if (found) return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error(`MailHog did not receive an email verification message for ${email}.`);
 }
 
 async function createApiKey(request: APIRequestContext) {

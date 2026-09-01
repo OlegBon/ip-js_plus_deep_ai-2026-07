@@ -25,6 +25,8 @@ export default [
   globalIgnores([
     // Default ignores of eslint-config-next:
     '.next/**',
+    // Dedicated output directory of playwright.integration.config.ts:
+    '.next-integration/**',
     'out/**',
     'build/**',
     'next-env.d.ts',
