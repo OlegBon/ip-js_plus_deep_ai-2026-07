@@ -2,6 +2,14 @@
 
 # 2026-09-01
 
+- **Задача:** Восстановить строгую установку зависимостей в GitHub Actions.
+- **Описание:** Добавлен узкий `overrides.next-auth.nodemailer = "$nodemailer"`.
+  Он связывает optional peer NextAuth v4 с уже проверенным корневым Nodemailer 9.1.0,
+  поэтому CI сохраняет `npm ci` без `--force` и `--legacy-peer-deps`.
+- **Проверки:** `npm ci --dry-run --ignore-scripts` успешно; `npm audit --omit=dev`
+  — 0 vulnerabilities.
+- **Переменные окружения:** не добавлялись.
+
 - **Задача:** Завершить адресное обновление production-зависимостей.
 - **Описание:** Nodemailer обновлён с `7.0.13` до `9.1.0` без `npm audit fix --force`.
   NextAuth остаётся на стабильной v4 и используется только с Credentials Provider;
