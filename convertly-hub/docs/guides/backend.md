@@ -161,6 +161,12 @@ if (started.count === 0) return undefined;
    очищается, log становится `FAILED`, а пользователю выдаётся безопасный текст
    без внутренних stack traces.
 
+Storage layer намеренно использует нейтральный S3-compatible контракт, хотя
+исторические названия переменных начинаются с `MINIO_`: endpoint, access key,
+secret key и bucket остаются server-only. `S3_REGION` имеет default `us-east-1`
+для локального и Oracle MinIO; managed provider, например Supabase, получает
+свой точный регион. Клиентский код и Route Handlers этих credentials не видят.
+
 ## 5. Account и guest routes: чем отличаются
 
 ### Account browser flow

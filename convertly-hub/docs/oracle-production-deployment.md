@@ -102,6 +102,8 @@ chmod 600 .env.production
 
 Убедитесь, что `DATABASE_URL` использует hostname `db`, а `MINIO_ENDPOINT` —
 `http://minio:9000`: это внутренние имена Docker, не публичный домен.
+Для локального MinIO на Oracle оставьте `S3_REGION=us-east-1`; эта server-only
+переменная нужна лишь для перехода на другой S3-compatible provider.
 
 ## 5. Первый запуск
 

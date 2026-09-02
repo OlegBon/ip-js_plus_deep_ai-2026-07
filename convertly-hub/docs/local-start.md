@@ -61,6 +61,11 @@ NEXTAUTH_URL=https://convertly.example
 
 `APP_DOMAIN` и `APP_URL` не нужны и не используются. Адреса `localhost` в `DATABASE_URL`, `MINIO_ENDPOINT`, `GOTENBERG_URL` и SMTP-настройках — это внутренние локальные сервисы Docker. Они не меняются при смене публичного домена; в production их заменяют адресами соответствующих managed-сервисов.
 
+`S3_REGION=us-east-1` в локальном шаблоне сохраняет совместимость с MinIO. Для
+S3-compatible managed storage (например, Supabase) в отдельном cloud environment
+задаётся точный регион, выданный провайдером; локальный `.env` менять для этого не
+нужно.
+
 ## 3. Первый запуск
 
 Docker Desktop и Docker Compose — разные состояния: запущенный Docker Desktop означает, что доступен Docker Engine, но контейнеры Convertly Hub ещё могут быть остановлены. Для полного локального запуска (БД, S3, DOCX → PDF и MailHog) обязательно выполните `docker compose up -d` и убедитесь, что все четыре сервиса имеют статус `running`.

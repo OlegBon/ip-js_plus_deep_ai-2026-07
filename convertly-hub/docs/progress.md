@@ -2,6 +2,26 @@
 
 # 2026-09-02
 
+- **Задача:** Подготовить функциональный public demo MVP на Northflank Free +
+  Supabase Free без создания облачных ресурсов.
+- **Изменённые файлы:** `docs/northflank-supabase-demo.md`, `README.md`,
+  `docs/architecture.md`, `docs/tech_saas.md`, `docs/local-start.md`,
+  `docs/work_plan.md`, `.env.example`, `.env.production.example`,
+  `lib/storage/s3.ts`, `lib/storage/__tests__/s3.test.ts`, `docs/progress.md`.
+- **Результат:** подготовлен независимый runbook: public Next.js и private
+  Gotenberg занимают два Northflank services, PostgreSQL и private
+  S3-compatible Storage находятся в одном Supabase project. Явно описаны
+  Dockerfile path/build context `/convertly-hub` для GitHub repository с
+  несколькими проектами, secret groups, migrations, SMTP, domain, rollback и
+  ограничения Free demo. Storage-layer принимает `S3_REGION`, поэтому тот же
+  AWS SDK код работает с локальным MinIO, Oracle MinIO и Supabase S3 API.
+- **Проверки:** целевой Jest (6 tests), TypeScript, ESLint и
+  `npm audit --omit=dev` успешно; облачные аккаунты, DNS и secrets не менялись.
+- **Новые переменные окружения:** `S3_REGION` (server-only; default
+  `us-east-1`, для Supabase задаётся фактический регион project).
+
+# 2026-09-02
+
 - **Задача:** Создать подробные руководства по слоям приложения.
 - **Изменённые файлы:** `docs/guides/README.md`, `docs/guides/frontend.md`,
   `docs/guides/backend.md`, `docs/guides/database.md`,

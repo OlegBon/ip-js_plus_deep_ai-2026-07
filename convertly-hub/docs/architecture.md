@@ -275,6 +275,13 @@ Oracle A1 остаётся предпочтительным single-server вар
 [vercel-production-deployment.md](./vercel-production-deployment.md) и
 [render-production-deployment.md](./render-production-deployment.md).
 
+Для временного функционального demo подготовлен отдельный контур Northflank Free +
+Supabase Free: public Next.js и private Gotenberg — две Northflank services, а
+PostgreSQL/S3-compatible Storage — один Supabase project. Он не заменяет
+production и не объединяет Gotenberg с MinIO. Точный порядок, GitHub monorepo
+build context, secrets, миграции и ограничения описаны в
+[northflank-supabase-demo.md](./northflank-supabase-demo.md).
+
 ---
 
 ## 7. Потоки аутентификации
