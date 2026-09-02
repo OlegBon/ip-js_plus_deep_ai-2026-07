@@ -264,6 +264,15 @@ graph LR
 запуск, обновление и smoke-tests зафиксирован в
 [oracle-production-deployment.md](./oracle-production-deployment.md).
 
+Oracle A1 остаётся предпочтительным single-server вариантом. Альтернативные
+планы не меняют этот контур и не являются готовой конфигурацией: Vercel Pro
+требует managed PostgreSQL/S3 и закрытого conversion worker, а Render Paid —
+отдельных Web и private Gotenberg services. Ограниченный Render Free + MailHog
+допустим только как неполный developer demo, не public production. Их условия,
+границы и будущий порядок действий описаны в
+[vercel-production-deployment.md](./vercel-production-deployment.md) и
+[render-production-deployment.md](./render-production-deployment.md).
+
 ---
 
 ## 7. Потоки аутентификации

@@ -1,5 +1,21 @@
 # Журнал изменений проекта
 
+# 2026-09-02
+
+- **Задача:** Подготовить альтернативные cloud deployment runbook-планы и
+  актуализировать технологическую документацию.
+- **Изменённые файлы:** `docs/vercel-production-deployment.md`,
+  `docs/render-production-deployment.md`, `docs/tech_saas.md`,
+  `docs/architecture.md`, `docs/work_plan.md`, `README.md`, `docs/progress.md`.
+- **Результат:** устаревшее ТЗ `tech_saas.md` заменено актуальной картой
+  реализованного MVP, окружений и production-границ. Созданы независимые планы:
+  Vercel Pro (managed PostgreSQL/S3 и закрытый worker) и Render Paid / Free demo.
+  Зафиксировано, что Render Free + MailHog не подходит для полного public MVP;
+  Oracle A1 остаётся предпочтительным single-server вариантом.
+- **Проверки:** Markdown/ссылки и форматирование проверяются перед финальным
+  коммитом; runtime, Docker, облачные аккаунты и secrets не изменялись.
+- **Новые переменные окружения:** не добавлялись.
+
 # 2026-09-01
 
 - **Задача:** Подготовка production-развёртывания на Oracle Cloud Free Tier.
