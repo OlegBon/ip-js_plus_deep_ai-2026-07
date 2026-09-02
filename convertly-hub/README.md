@@ -73,6 +73,7 @@ npm run dev
 - [Production-развёртывание на Oracle Cloud Free Tier](./docs/oracle-production-deployment.md)
 - [План развёртывания на Vercel Pro](./docs/vercel-production-deployment.md)
 - [План развёртывания на Render Paid / Free demo](./docs/render-production-deployment.md)
+- [Подробные руководства по frontend, backend и database](./docs/guides/README.md)
 
 ## 🧪 Проверки
 
