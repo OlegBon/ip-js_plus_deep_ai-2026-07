@@ -6,21 +6,22 @@ import {
   S3Client,
   type GetObjectCommandOutput,
   type PutObjectCommandInput,
-} from "@aws-sdk/client-s3";
+} from '@aws-sdk/client-s3';
 
-const DEFAULT_BUCKET = "convertly-files";
+const DEFAULT_BUCKET = 'convertly-files';
 
-type S3CommandClient = Pick<S3Client, "send">;
+type S3CommandClient = Pick<S3Client, 'send'>;
 
 export type UploadFileInput = {
   key: string;
-  body: PutObjectCommandInput["Body"];
+  body: PutObjectCommandInput['Body'];
   contentType?: string;
   contentLength?: number;
 };
 
 type StorageConfig = {
   endpoint: string;
+  region: string;
   accessKeyId: string;
   secretAccessKey: string;
   bucket: string;
@@ -42,34 +43,35 @@ function validateEndpoint(endpoint: string) {
   try {
     parsedEndpoint = new URL(endpoint);
   } catch {
-    throw new Error("MINIO_ENDPOINT должен быть корректным HTTP(S)-адресом.");
+    throw new Error('MINIO_ENDPOINT должен быть корректным HTTP(S)-адресом.');
   }
 
-  if (parsedEndpoint.protocol !== "http:" && parsedEndpoint.protocol !== "https:") {
-    throw new Error("MINIO_ENDPOINT должен использовать протокол HTTP или HTTPS.");
+  if (parsedEndpoint.protocol !== 'http:' && parsedEndpoint.protocol !== 'https:') {
+    throw new Error('MINIO_ENDPOINT должен использовать протокол HTTP или HTTPS.');
   }
 
-  return parsedEndpoint.toString().replace(/\/$/, "");
+  return parsedEndpoint.toString().replace(/\/$/, '');
 }
 
 function getStorageConfig(): StorageConfig {
   return {
-    endpoint: validateEndpoint(requiredEnvironmentVariable("MINIO_ENDPOINT")),
-    accessKeyId: requiredEnvironmentVariable("MINIO_ACCESS_KEY"),
-    secretAccessKey: requiredEnvironmentVariable("MINIO_SECRET_KEY"),
+    endpoint: validateEndpoint(requiredEnvironmentVariable('MINIO_ENDPOINT')),
+    region: process.env.S3_REGION?.trim() || 'us-east-1',
+    accessKeyId: requiredEnvironmentVariable('MINIO_ACCESS_KEY'),
+    secretAccessKey: requiredEnvironmentVariable('MINIO_SECRET_KEY'),
     bucket: process.env.MINIO_BUCKET?.trim() || DEFAULT_BUCKET,
   };
 }
 
 function assertObjectKey(key: string) {
-  if (!key.trim() || key.startsWith("/")) {
+  if (!key.trim() || key.startsWith('/')) {
     throw new Error("Ключ объекта должен быть непустым и не должен начинаться с '/'.");
   }
 }
 
 export function createS3Client(config: StorageConfig = getStorageConfig()) {
   return new S3Client({
-    region: "us-east-1",
+    region: config.region,
     endpoint: config.endpoint,
     forcePathStyle: true,
     credentials: {
@@ -81,7 +83,7 @@ export function createS3Client(config: StorageConfig = getStorageConfig()) {
 
 export function createStorageService(client: S3CommandClient, bucket: string) {
   if (!bucket.trim()) {
-    throw new Error("Имя S3-бакета не может быть пустым.");
+    throw new Error('Имя S3-бакета не может быть пустым.');
   }
 
   return {
@@ -109,7 +111,7 @@ export function createStorageService(client: S3CommandClient, bucket: string) {
       const response = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 
       if (!response.Body) {
-        throw new Error("S3 не вернул содержимое запрошенного объекта.");
+        throw new Error('S3 не вернул содержимое запрошенного объекта.');
       }
 
       return response as GetObjectCommandOutput;

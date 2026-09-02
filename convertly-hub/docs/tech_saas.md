@@ -128,6 +128,16 @@ Render Free + MailHog годится лишь для ограниченного 
 Gotenberg и backup. Подробности и контрольные точки —
 [render-production-deployment.md](./render-production-deployment.md).
 
+### Northflank Free + Supabase Free — функциональный demo
+
+Для временного публичного demo доступен отдельный вариант: две Northflank services
+(`Next.js` public и `Gotenberg` private) и один Supabase project для PostgreSQL и
+S3-compatible Storage. Он избегает объединения MinIO/Gotenberg, но остаётся
+демо-контуром: Northflank Free не предназначен для production, а Supabase Free
+может приостановить project при низкой активности. Пошаговый порядок, включая
+GitHub build context `convertly-hub`, находится в
+[northflank-supabase-demo.md](./northflank-supabase-demo.md).
+
 ---
 
 ## 4. Политика production-секретов и данных
@@ -171,5 +181,6 @@ Gotenberg и backup. Подробности и контрольные точки
 - [Oracle Cloud Free Tier runbook](./oracle-production-deployment.md)
 - [Vercel Pro runbook-план](./vercel-production-deployment.md)
 - [Render Paid / Free demo runbook-план](./render-production-deployment.md)
+- [Northflank Free + Supabase Free demo MVP](./northflank-supabase-demo.md)
 - [Подробные руководства по слоям](./guides/README.md)
 - [План работ](./work_plan.md)
