@@ -171,4 +171,5 @@ Gotenberg и backup. Подробности и контрольные точки
 - [Oracle Cloud Free Tier runbook](./oracle-production-deployment.md)
 - [Vercel Pro runbook-план](./vercel-production-deployment.md)
 - [Render Paid / Free demo runbook-план](./render-production-deployment.md)
+- [Подробные руководства по слоям](./guides/README.md)
 - [План работ](./work_plan.md)

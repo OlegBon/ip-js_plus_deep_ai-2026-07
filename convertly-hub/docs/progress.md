@@ -2,6 +2,21 @@
 
 # 2026-09-02
 
+- **Задача:** Создать подробные руководства по слоям приложения.
+- **Изменённые файлы:** `docs/guides/README.md`, `docs/guides/frontend.md`,
+  `docs/guides/backend.md`, `docs/guides/database.md`,
+  `docs/guides/testing-and-operations.md`, `README.md`, `docs/architecture.md`,
+  `docs/progress.md`.
+- **Результат:** добавлен отдельный раздел с разбором реальных файлов и цепочек
+  выполнения frontend, backend/server, PostgreSQL/Prisma и тестов/операций.
+  Примеры охватывают Dropzone → Route Handler → Core → storage → history,
+  HttpOnly auth, квоты, state machine `ConversionLog`, миграции и CI.
+- **Проверки:** Markdown/ссылки и форматирование проверяются перед финальным
+  коммитом; runtime и secrets не изменялись.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-02
+
 - **Задача:** Подготовить альтернативные cloud deployment runbook-планы и
   актуализировать технологическую документацию.
 - **Изменённые файлы:** `docs/vercel-production-deployment.md`,
