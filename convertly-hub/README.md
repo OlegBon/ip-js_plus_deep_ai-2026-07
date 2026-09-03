@@ -74,6 +74,7 @@ npm run dev
 - [План развёртывания на Vercel Pro](./docs/vercel-production-deployment.md)
 - [План развёртывания на Render Paid / Free demo](./docs/render-production-deployment.md)
 - [Функциональный demo MVP: Northflank Free + Supabase Free](./docs/northflank-supabase-demo.md)
+- [Пошаговый запуск Northflank + Supabase](./docs/northflank-supabase-setup.md)
 - [Подробные руководства по frontend, backend и database](./docs/guides/README.md)
 
 ## 🧪 Проверки

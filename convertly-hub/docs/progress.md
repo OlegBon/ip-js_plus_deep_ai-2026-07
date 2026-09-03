@@ -1,5 +1,21 @@
 # Журнал изменений проекта
 
+# 2026-09-03
+
+- **Задача:** Добавить пошаговую инструкцию первого запуска demo MVP на
+  Northflank + Supabase.
+- **Изменённые файлы:** `docs/northflank-supabase-setup.md`,
+  `docs/northflank-supabase-demo.md`, `README.md`, `docs/work_plan.md`,
+  `docs/progress.md`.
+- **Результат:** концептуальный runbook отделён от практического guide. Новый
+  файл проводит через регистрацию и MFA, ограниченный GitHub-доступ,
+  Supabase PostgreSQL/S3, private Gotenberg, Northflank secret groups,
+  migration/seed jobs, custom domain, SMTP, health/smoke-tests, deploy после
+  обычного commit и commit с Prisma migration, rollback и диагностику.
+- **Проверки:** Markdown-ссылки и Prettier проверены; runtime, cloud accounts,
+  DNS и secrets не изменялись.
+- **Новые переменные окружения:** не добавлялись.
+
 # 2026-09-02
 
 - **Задача:** Подготовить функциональный public demo MVP на Northflank Free +
