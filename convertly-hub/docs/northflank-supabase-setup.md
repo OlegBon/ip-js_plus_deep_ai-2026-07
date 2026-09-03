@@ -391,6 +391,13 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
 3. Введите их только в `convertly-app-runtime`.
 4. Проверьте delivery на внешний тестовый ящик и ссылку в verification/reset
    письме.
+
+Если UI возвращает `503` при отправке, откройте логи `convertly-app` и найдите
+`Authentication email delivery failed.`. Приложение выводит только безопасные
+технические поля `kind`, `errorName`, `code`, `command`, `responseCode`; пароль,
+получатель, одноразовая ссылка и полный ответ SMTP в лог не попадают. Этих полей
+достаточно, чтобы отличить ошибку авторизации (`EAUTH`/`535`) от сетевой
+недоступности (`ETIMEDOUT`, `ECONNREFUSED` или `ESOCKET`).
 5. Если провайдер предоставляет SPF/DKIM/DMARC записи, внесите их до приглашения
    реальных пользователей.
 
