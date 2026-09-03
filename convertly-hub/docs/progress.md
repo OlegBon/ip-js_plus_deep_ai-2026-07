@@ -2,6 +2,20 @@
 
 # 2026-09-03
 
+- **Задача:** Исправить первый Northflank build public Next.js service.
+- **Изменённые файлы:** `Dockerfile`, `docs/progress.md`.
+- **Результат:** удалён `COPY --from=builder /app/public ./public`: папка
+  `public/` пуста и не отслеживается Git, поэтому отсутствует в удалённом
+  Docker build context и останавливала build после успешных Prisma/Next steps.
+  Runtime image по-прежнему получает standalone server и `.next/static`.
+- **Проверки:** первый `npm run build` успешно завершил compilation и
+  TypeScript; локальный `docker build` не запущен, так как Docker Desktop daemon
+  выключен. Повторный Next build заблокирован stale `.next`/OneDrive `EPERM`;
+  это не относится к Dockerfile и будет проверено следующим Northflank build.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-03
+
 - **Задача:** Добавить пошаговую инструкцию первого запуска demo MVP на
   Northflank + Supabase.
 - **Изменённые файлы:** `docs/northflank-supabase-setup.md`,
