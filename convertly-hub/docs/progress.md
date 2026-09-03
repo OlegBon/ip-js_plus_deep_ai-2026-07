@@ -8,8 +8,9 @@
   `docs/progress.md`.
 - **Результат:** зафиксированы измеренный health response, 30-секундный
   server-side timeout Gotenberg и риски capacity для LibreOffice на demo-tier.
-  Источник конкретного failed DOCX пока не установлен: нужны Gotenberg logs,
-  resource graph и restart count вокруг воспроизведения.
+  Повторная guest-конвертация того же DOCX успешна, поэтому стабильная
+  несовместимость входного файла исключена; для определения transient failure
+  всё ещё нужны Gotenberg logs, resource graph и restart count вокруг сбоя.
 - **Проверки:** external `GET /api/health` — HTTP 200 за `0.926 s`; исходный
   код и deployment configuration проанализированы. Исходный код не изменялся.
 - **Новые переменные окружения:** не добавлялись.
