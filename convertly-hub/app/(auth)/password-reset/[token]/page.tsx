@@ -1,16 +1,10 @@
-"use client";
+'use client';
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/Card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { PasswordField } from '@/components/auth/PasswordField';
 import { toast } from '@/lib/hooks/use-toast';
 
@@ -47,21 +41,35 @@ export default function ResetPasswordConfirmPage() {
   };
 
   return (
-    <div className="bg-background-secondary flex flex-grow items-center justify-center p-4">
+    <div className="bg-background-secondary flex flex-grow items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="font-headings text-text-primary text-3xl font-bold">
               Set a New Password
             </CardTitle>
-            <CardDescription>
-              Create a new password for your account.
-            </CardDescription>
+            <CardDescription>Create a new password for your account.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <PasswordField id="password" label="New Password" value={password} autoComplete="new-password" onChange={setPassword} minLength={12} maxLength={128} />
-              <PasswordField id="confirmPassword" label="Confirm New Password" value={confirmPassword} autoComplete="new-password" onChange={setConfirmPassword} minLength={12} maxLength={128} />
+              <PasswordField
+                id="password"
+                label="New Password"
+                value={password}
+                autoComplete="new-password"
+                onChange={setPassword}
+                minLength={12}
+                maxLength={128}
+              />
+              <PasswordField
+                id="confirmPassword"
+                label="Confirm New Password"
+                value={confirmPassword}
+                autoComplete="new-password"
+                onChange={setConfirmPassword}
+                minLength={12}
+                maxLength={128}
+              />
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? 'Resetting…' : 'Reset Password'}
               </Button>

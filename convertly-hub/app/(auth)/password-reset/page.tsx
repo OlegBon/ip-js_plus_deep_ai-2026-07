@@ -81,7 +81,7 @@ export default function PasswordResetPage() {
   const isInvalid = !!error;
 
   return (
-    <div className="bg-background-secondary flex flex-grow items-center justify-center p-4">
+    <div className="bg-background-secondary flex flex-grow items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
