@@ -2,6 +2,22 @@
 
 # 2026-09-03
 
+- **Задача:** Исправить диагностику фоновой stored-конвертации DOCX в cloud
+  runtime.
+- **Изменённые файлы:** `lib/core/conversion-job.ts`,
+  `app/api/account/conversions/[conversionId]/download/route.ts`, их Jest-тесты,
+  `docs/progress.md`.
+- **Результат:** сервер фиксирует безопасный этап неуспешного job (`conversion`,
+  резервирование storage, S3 upload или запись completed-state) с техническим
+  кодом/HTTP status/request ID, но не пишет в логи имя файла, содержимое,
+  credentials или текст исходной ошибки. Download polling теперь возвращает
+  controlled `422` с уже безопасным user-facing message для `FAILED`, вместо
+  неверного `404 Stored conversion not found` после окончания job.
+- **Проверки:** целевые Jest-тесты выполняются перед финальным коммитом.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-03
+
 - **Задача:** Предварительный performance-аудит cloud DOCX → PDF.
 - **Изменённые файлы:** `docs/audits/web-performance-audit-latest.md`,
   `docs/audits/web-performance-audit-2026-09-03T18-19-26-248Z.md`,
