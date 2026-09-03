@@ -26,6 +26,9 @@
   Supabase PostgreSQL/S3, private Gotenberg, Northflank secret groups,
   migration/seed jobs, custom domain, SMTP, health/smoke-tests, deploy после
   обычного commit и commit с Prisma migration, rollback и диагностику.
+- **Уточнения при первом живом прохождении:** guide фиксирует, что `APP_DOMAIN`
+  не нужен Northflank runtime, первый job/service требует отдельного Start build
+  до Run, а Supabase Free может ограничивать Storage до 50 MB.
 - **Проверки:** Markdown-ссылки и Prettier проверены; runtime, cloud accounts,
   DNS и secrets не изменялись.
 - **Новые переменные окружения:** не добавлялись.

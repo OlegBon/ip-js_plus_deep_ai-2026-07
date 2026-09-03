@@ -137,6 +137,13 @@ migration job.
 6. Запишите **точный** region project из Supabase configuration. Это значение
    станет `S3_REGION`; не угадывайте `eu-central-1` по расположению на карте.
 
+Supabase Free может фиксировать global Storage file-size limit на `50 MB`. Если
+панель не позволяет увеличить его, не обещайте в этом demo файлы или stored
+results больше `50 MB`: текущий Enterprise plan приложения допускает input до
+`100 MB`, но Storage отвергнет более крупный результат. Это ограничение
+провайдера, которое снимается платным plan или отдельным изменением тарифной
+логики; оно не повод делать bucket public.
+
 Имена переменных приложения исторически содержат `MINIO_`, но они работают с
 любым S3-compatible provider:
 
@@ -179,28 +186,29 @@ Storage.
 Привяжите группу **только** к будущему `convertly-app`. Добавьте эти runtime
 variables:
 
-| Variable                                | Значение                                                |
-| --------------------------------------- | ------------------------------------------------------- |
-| `NODE_ENV`                              | `production`                                            |
-| `HOSTNAME`                              | `0.0.0.0`                                               |
-| `PORT`                                  | `3001`                                                  |
-| `APP_DOMAIN`                            | сначала generated Northflank domain, затем final domain |
-| `NEXTAUTH_URL`                          | тот же HTTPS origin без завершающего `/`                |
-| `NEXTAUTH_SECRET`                       | secret из шага 1.1                                      |
-| `DATABASE_URL`                          | Supabase Session pooler URI                             |
-| `MINIO_ENDPOINT`                        | Supabase S3 endpoint                                    |
-| `S3_REGION`                             | region Supabase project                                 |
-| `MINIO_ACCESS_KEY`                      | Supabase S3 access key                                  |
-| `MINIO_SECRET_KEY`                      | Supabase S3 secret                                      |
-| `MINIO_BUCKET`                          | `convertly-files`                                       |
-| `GOTENBERG_URL`                         | `http://convertly-gotenberg:3000`                       |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | точные настройки uh.ua SMTP                             |
-| `SMTP_FROM`                             | `Convertly Hub <support@bon.kharkov.ua>`                |
-| `SMTP_USER`, `SMTP_PASSWORD`            | учётные данные ящика                                    |
+| Variable                                | Значение                                 |
+| --------------------------------------- | ---------------------------------------- |
+| `NODE_ENV`                              | `production`                             |
+| `HOSTNAME`                              | `0.0.0.0`                                |
+| `PORT`                                  | `3001`                                   |
+| `NEXTAUTH_URL`                          | тот же HTTPS origin без завершающего `/` |
+| `NEXTAUTH_SECRET`                       | secret из шага 1.1                       |
+| `DATABASE_URL`                          | Supabase Session pooler URI              |
+| `MINIO_ENDPOINT`                        | Supabase S3 endpoint                     |
+| `S3_REGION`                             | region Supabase project                  |
+| `MINIO_ACCESS_KEY`                      | Supabase S3 access key                   |
+| `MINIO_SECRET_KEY`                      | Supabase S3 secret                       |
+| `MINIO_BUCKET`                          | `convertly-files`                        |
+| `GOTENBERG_URL`                         | `http://convertly-gotenberg:3000`        |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | точные настройки uh.ua SMTP              |
+| `SMTP_FROM`                             | `Convertly Hub <support@bon.kharkov.ua>` |
+| `SMTP_USER`, `SMTP_PASSWORD`            | учётные данные ящика                     |
 
-`APP_DOMAIN` и `NEXTAUTH_URL` не должны быть `localhost`, plain HTTP или URL
-Supabase. До привязки собственного domain разрешён generated **HTTPS** domain
-Northflank. После DNS замените оба на `https://convertly-hub.bon.kharkov.ua`.
+`APP_DOMAIN` не добавляйте: он нужен Oracle-варианту с Caddy, но не используется
+Northflank/Next.js runtime. `NEXTAUTH_URL` не должен быть `localhost`, plain
+HTTP или URL Supabase. До создания public app service его generated HTTPS domain
+ещё неизвестен — добавьте эту переменную сразу после создания service. После DNS
+замените её на `https://convertly-hub.bon.kharkov.ua`.
 
 Не добавляйте `TELEGRAM_*`: Telegram ещё не является prerequisite этого demo.
 
@@ -239,6 +247,11 @@ DATABASE_URL=<тот же Supabase Session pooler URI>
 6. Подключите только `convertly-migration-runtime`, создайте job и запустите
    его вручную.
 
+Перед первым **Run** создайте image: job → **Code → Builds → Start build**,
+выберите `main`/latest commit и дождитесь `Succeeded`. В форме **Run** выберите
+этот build в обязательном поле `Build`; Northflank не создаёт первый build
+автоматически по нажатию Run.
+
 Northflank выполняет shallow clone Git repository, но Docker build context
 `/convertly-hub` гарантирует, что `COPY .` видит только нужную папку, а не
 остальные домашние проекты из repository.
@@ -269,6 +282,17 @@ project status и логи job.
 8. Instances: ровно `1`; autoscaling пока выключен, поскольку guest/API rate
    limiters находятся в памяти одного процесса.
 9. Создайте service и дождитесь build/deploy.
+
+После создания service состояние `No build` и `0 / 1` ожидаемо. Откройте
+**Code → Builds → Start build**, выберите `main`/latest commit; при workflow
+`Always deploying latest builds` успешный build будет развёрнут автоматически.
+Сразу после создания service добавьте в `convertly-app-runtime`:
+
+```dotenv
+NEXTAUTH_URL=https://<generated-northflank-domain>
+```
+
+и перезапустите зависимый service после сохранения group.
 
 **Контроль build:** в логах должны быть найдены `convertly-hub/package.json`,
 `prisma` и `next build`. Ошибка `package.json not found` почти всегда означает
@@ -349,7 +373,6 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
 5. В `convertly-app-runtime` замените **одновременно**:
 
    ```dotenv
-   APP_DOMAIN=convertly-hub.bon.kharkov.ua
    NEXTAUTH_URL=https://convertly-hub.bon.kharkov.ua
    ```
 
