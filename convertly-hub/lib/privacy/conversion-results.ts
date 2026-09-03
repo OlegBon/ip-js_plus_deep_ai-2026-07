@@ -1,7 +1,7 @@
-import { Readable } from "stream";
-import { prisma } from "@/lib/prisma";
-import { getStorageService } from "@/lib/storage/s3";
-import type { CoreConversionResult } from "@/lib/core/conversion";
+import { Readable } from 'stream';
+import { prisma } from '@/lib/prisma';
+import { getStorageService } from '@/lib/storage/s3';
+import type { CoreConversionResult } from '@/lib/core/conversion';
 
 type StoreConversionResultInput = CoreConversionResult & {
   conversionId: string;
@@ -15,8 +15,12 @@ type DownloadStoredConversionInput = {
 
 export class StoredConversionNotFoundError extends Error {}
 
-export function createStoredConversionKey({ conversionId, userId, fileName }: StoreConversionResultInput) {
-  return `users/${userId}/conversions/${conversionId}/${encodeURIComponent(sanitizeFileName(fileName))}`;
+export function createStoredConversionKey({
+  conversionId,
+  userId,
+  mimeType,
+}: StoreConversionResultInput) {
+  return `users/${userId}/conversions/${conversionId}/result.${resultExtension(mimeType)}`;
 }
 
 export async function storeConversionResult(input: StoreConversionResultInput) {
@@ -30,12 +34,15 @@ export async function storeConversionResult(input: StoreConversionResultInput) {
   return storageKey;
 }
 
-export async function downloadStoredConversion({ conversionId, userId }: DownloadStoredConversionInput) {
+export async function downloadStoredConversion({
+  conversionId,
+  userId,
+}: DownloadStoredConversionInput) {
   const conversion = await prisma.conversionLog.findFirst({
     where: {
       id: conversionId,
       userId,
-      status: "COMPLETED",
+      status: 'COMPLETED',
       storageKey: { not: null },
       OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
@@ -62,13 +69,24 @@ function toWebStream(body: unknown): ReadableStream<Uint8Array> {
     return Readable.toWeb(body) as ReadableStream<Uint8Array>;
   }
 
-  if (body && typeof body === "object" && "transformToWebStream" in body) {
-    return (body as { transformToWebStream: () => ReadableStream<Uint8Array> }).transformToWebStream();
+  if (body && typeof body === 'object' && 'transformToWebStream' in body) {
+    return (
+      body as { transformToWebStream: () => ReadableStream<Uint8Array> }
+    ).transformToWebStream();
   }
 
-  throw new Error("Stored conversion has an unsupported response body.");
+  throw new Error('Stored conversion has an unsupported response body.');
 }
 
-function sanitizeFileName(fileName: string) {
-  return fileName.replace(/[\\/\u0000-\u001F]/g, "_").slice(0, 255) || "converted-file";
+function resultExtension(mimeType: string) {
+  switch (mimeType) {
+    case 'image/jpeg':
+      return 'jpg';
+    case 'image/png':
+      return 'png';
+    case 'application/pdf':
+      return 'pdf';
+    default:
+      throw new Error('Unsupported stored result type.');
+  }
 }
