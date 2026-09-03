@@ -155,7 +155,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-grow flex-col items-center justify-center p-4">
+    <div className="flex flex-grow flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
       <div className="container mx-auto px-4">
         <section className="mb-12 text-center">
           <h1 className="text-text-primary mb-2 text-4xl font-bold">Seamless File Conversion</h1>
