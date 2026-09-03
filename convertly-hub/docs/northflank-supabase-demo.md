@@ -5,6 +5,11 @@ Next.js, регистрация, реальный SMTP, `JPG ↔ PNG`, `DOCX →
 API-ключи, private storage и Admin Panel работают. Он не создаёт аккаунты,
 секреты, DNS-записи или ресурсы сам по себе.
 
+Практические действия в панелях — от регистрации до обновления приложения после
+`git push` — находятся в отдельном
+[пошаговом setup guide](./northflank-supabase-setup.md). Этот документ оставляет
+за собой схему, решения и эксплуатационные границы.
+
 > На 2 сентября 2026 Northflank Developer Sandbox допускает 2 services, 2 jobs и
 > 1 addon, но сам провайдер указывает, что free tier нельзя использовать для
 > production applications. Supabase Free даёт 500 MB PostgreSQL и 1 GB Storage, а
