@@ -8,9 +8,10 @@
   `docs/progress.md`.
 - **Результат:** зафиксированы измеренный health response, 30-секундный
   server-side timeout Gotenberg и риски capacity для LibreOffice на demo-tier.
-  Повторная guest-конвертация того же DOCX успешна, поэтому стабильная
-  несовместимость входного файла исключена; для определения transient failure
-  всё ещё нужны Gotenberg logs, resource graph и restart count вокруг сбоя.
+  Gotenberg logs подтвердили LibreOffice cold-start timeout до warm-up; после
+  прогрева тот же DOCX обрабатывается за 6–8 секунд. Отдельно подтверждён
+  storage failure авторизованного run: Gotenberg вернул PDF 200, но запись
+  закончилась `FAILED` с `storageKey=NULL` до S3 result persistence.
 - **Проверки:** external `GET /api/health` — HTTP 200 за `0.926 s`; исходный
   код и deployment configuration проанализированы. Исходный код не изменялся.
 - **Новые переменные окружения:** не добавлялись.

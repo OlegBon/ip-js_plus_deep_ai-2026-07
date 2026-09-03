@@ -19,9 +19,27 @@
   successfully in guest mode. Guest and authenticated conversions share the
   same Core and Gotenberg path, so the input is not deterministically
   unsupported. This is evidence of a transient condition, not a capacity SLA.
-- No failed document, Gotenberg log entry, resource graph or restart event was
-  available during this audit. Therefore no browser metric or exact failure
-  cause was measured; conclusions below distinguish observed facts from risks.
+- Gotenberg logs then confirmed a LibreOffice cold-start failure: startup did
+  not finish within its 20-second start timeout (HTTP 503), followed by a
+  client cancellation at 30.08 seconds (HTTP 499). Once warm, the same DOCX
+  returned HTTP 200 in 6.47–7.59 seconds.
+- The authenticated failure at `18:26 UTC` is independent: Gotenberg returned
+  PDF successfully (HTTP 200, 6.58 seconds, 135,221 bytes), but
+  `ConversionLog` ended as `FAILED` with `storageKey=NULL`. The failure is
+  therefore after conversion, during storage reservation or S3 result upload.
+
+## Evidence update
+
+The guest flow streams the result and bypasses S3. The authenticated flow
+converts asynchronously and must persist the result. The browser's repeated
+`409` responses are expected polling while the job is pending/processing; its
+final `404 Stored conversion not found` is the resulting failed job, not the
+primary error.
+
+The next targeted fix is safe server-side stage/S3 error logging for the
+conversion job, followed by verification of the Supabase S3 `PutObject` path.
+The Gotenberg cold-start limits should be adjusted separately after checking
+worker CPU/memory.
 
 ## 1. Diagnostic Matrix
 
