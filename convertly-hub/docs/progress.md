@@ -2,6 +2,20 @@
 
 # 2026-09-03
 
+- **Задача:** Предварительный performance-аудит cloud DOCX → PDF.
+- **Изменённые файлы:** `docs/audits/web-performance-audit-latest.md`,
+  `docs/audits/web-performance-audit-2026-09-03T18-19-26-248Z.md`,
+  `docs/progress.md`.
+- **Результат:** зафиксированы измеренный health response, 30-секундный
+  server-side timeout Gotenberg и риски capacity для LibreOffice на demo-tier.
+  Источник конкретного failed DOCX пока не установлен: нужны Gotenberg logs,
+  resource graph и restart count вокруг воспроизведения.
+- **Проверки:** external `GET /api/health` — HTTP 200 за `0.926 s`; исходный
+  код и deployment configuration проанализированы. Исходный код не изменялся.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-03
+
 - **Задача:** Добавить безопасную диагностику доставки authentication email в
   cloud runtime.
 - **Изменённые файлы:** `lib/mail/send-auth-email.ts`,
