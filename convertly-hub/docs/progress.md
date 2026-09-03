@@ -2,6 +2,21 @@
 
 # 2026-09-03
 
+- **Задача:** Добавить безопасную диагностику доставки authentication email в
+  cloud runtime.
+- **Изменённые файлы:** `lib/mail/send-auth-email.ts`,
+  `docs/northflank-supabase-setup.md`, `docs/progress.md`.
+- **Результат:** ошибки Nodemailer теперь фиксируются сервером один раз для
+  verification и password-reset писем с безопасными техническими признаками:
+  тип письма, имя ошибки, SMTP code/command и response code. В лог не попадают
+  SMTP password, email получателя, текст письма, токен или одноразовая ссылка.
+  Это позволяет диагностировать cloud `503` без ослабления privacy.
+- **Проверки:** Jest: 2/2 целевых test suites; TypeScript, ESLint и production
+  build успешны.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-03
+
 - **Задача:** Исправить первый Northflank build public Next.js service.
 - **Изменённые файлы:** `Dockerfile`, `docs/progress.md`.
 - **Результат:** удалён `COPY --from=builder /app/public ./public`: папка
