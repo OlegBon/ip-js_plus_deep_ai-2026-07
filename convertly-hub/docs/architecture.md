@@ -127,7 +127,7 @@ services:
 │   ├── client/                       # Временный кэш guest-результатов в браузере
 │   ├── core/                         # Валидация сигнатур, sharp/Gotenberg и жизненный цикл job
 │   ├── files/                        # Единая политика upload MIME/размеров
-│   ├── guest/                        # Guest cookie-квота и локальный IP limiter
+│   ├── guest/                        # Guest cookie-квота, support code и локальный IP limiter
 │   ├── mail/                         # SMTP-отправка reset/verification-писем
 │   ├── privacy/, storage/            # Правила хранения и S3/MinIO-клиент
 │   ├── telegram/                     # Одноразовые Telegram link-токены и webhook-логика
@@ -136,7 +136,7 @@ services:
 ├── prisma/
 │   ├── schema.prisma                 # Модели и перечисления
 │   └── migrations/                   # Отслеживаемые SQL-миграции
-├── scripts/                          # API audit, one-off admin/plan scripts и integration/E2E runner
+├── scripts/                          # API audit, one-off admin/plan/quota scripts и integration/E2E runner
 ├── e2e/                              # Browser critical flows и real backend integration/E2E spec
 ├── playwright.config.ts              # Конфигурация критических browser E2E на порту 3001
 ├── playwright.integration.config.ts  # Изолированные backend integration/E2E на порту 3101
@@ -229,6 +229,12 @@ services:
 Когда появится список конвертаций в Admin Panel, он не должен копировать `ConversionHistory`. Сначала будет добавлен отдельный `ADMIN` API-контракт с массовым выбором и безопасным удалением. Нейтральные `Search` и `CursorPagination` уже общие для Dashboard и Admin; типы строк, checkbox-выбор, подтверждение удаления и админские права останутся в отдельном admin-container.
 
 Маршрут `/api/v1/convert` уже выполняет доступные Core-конвертации, а жизненный цикл API-ключей реализован session-защищёнными маршрутами Dashboard.
+
+После первой guest-конвертации `GET /api/guest/conversions` дополнительно отдаёт
+`supportCode`, а POST — тот же code в `X-Guest-Support-Code`. Он вычисляется HMAC
+из HttpOnly visitor cookie, календарного месяца и отдельного server-only
+`GUEST_SUPPORT_CODE_SECRET`; PostgreSQL хранит лишь SHA-256-хеш для restricted
+operator job. Это не публичный reset API и не credential пользователя.
 
 Лимитер MVP хранит окно запросов в памяти процесса. До запуска нескольких инстансов Next.js его необходимо заменить общим Redis-совместимым хранилищем, чтобы лимит сохранялся между экземплярами и перезапусками.
 

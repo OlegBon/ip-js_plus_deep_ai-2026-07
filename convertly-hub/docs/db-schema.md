@@ -44,6 +44,20 @@ transaction обновляет обязательный `User.plan` и `Subscrip
 чтобы старый Mock Checkout не расходился с вручную назначенным доступом. Это
 операционный demo-инструмент, а не замена платёжному webhook.
 
+### `GuestConversionQuota`
+
+Месячный счётчик гостевого браузера. `id`, `visitorHash`, `periodStart`,
+`imageCount`, `documentCount` и `updatedAt` — обязательные поля; первичный ключ
+— UUID `id`. `visitorHash` — SHA-256 от HttpOnly visitor-cookie, а не сам cookie.
+Составной unique index `[visitorHash, periodStart]` гарантирует одну квоту на
+браузер и календарный месяц.
+
+`supportCodeHash` — nullable unique index, содержащий только SHA-256 от видимого
+месячного `GUEST-…` кода. Новые записи получают его при первой guest-конвертации,
+а старые строки могут оставаться `NULL` до следующего обращения браузера. Поле не
+является логином, паролем или публичным reset token: оно используется лишь
+операторским one-off job для точного поиска и обнуления двух счётчиков.
+
 ### `ApiKey`
 
 Ключ публичного API. Секрет ключа хранится только в виде `keyHash`; `keyPrefix` предназначен для безопасного отображения в UI.
