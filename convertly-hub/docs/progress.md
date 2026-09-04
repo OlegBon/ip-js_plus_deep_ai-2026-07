@@ -2,6 +2,26 @@
 
 # 2026-09-04
 
+- **Задача:** Добавить Guest support code и ограниченный one-off reset гостевой квоты.
+- **Изменённые файлы:** `app/api/guest/conversions/route.ts`, `app/page.tsx`,
+  `components/core/GuestConversionSummary.tsx`, `lib/guest/support-code.ts`,
+  `prisma/schema.prisma`, миграция `20260904130000_guest_support_code`,
+  `scripts/reset-guest-quota.mjs`, `scripts/guest-quota-reset-core.cjs`,
+  `Dockerfile`, `.env*.example`, документация и новые Jest-тесты.
+- **Результат:** После первой guest-конвертации UI показывает месячный
+  `GUEST-…` code и позволяет скопировать его. Code детерминированно создаётся
+  server-side как HMAC visitor-cookie и текущего месяца; в PostgreSQL хранится
+  только SHA-256-хеш. Ручной `admin:reset-guest-quota`/Northflank migration job
+  принимает code только как run-only variable, находит ровно одну quota row и
+  атомарно обнуляет image/document counters без публичного reset endpoint.
+- **Проверки:** целевые Jest, Prisma validate/generate, TypeScript, ESLint,
+  Prettier и Playwright desktop/mobile visual QA выполняются перед финальным
+  коммитом.
+- **Новые переменные окружения:** server-only `GUEST_SUPPORT_CODE_SECRET` в app
+  runtime; run-only `GUEST_SUPPORT_CODE` для manual reset job.
+
+# 2026-09-04
+
 - **Задача:** Исправить migration Docker image для one-off plan sync.
 - **Изменённые файлы:** `Dockerfile`, `docs/progress.md`.
 - **Результат:** stage `migration` теперь получает как entry script

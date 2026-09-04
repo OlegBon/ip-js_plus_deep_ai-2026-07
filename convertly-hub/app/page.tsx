@@ -38,6 +38,7 @@ export default function Home() {
     image: 3,
     document: 2,
     resetsAt: null as string | null,
+    supportCode: null as string | null,
   });
   const [guestResults, setGuestResults] = useState<GuestConversionResult[]>([]);
   const [now, setNow] = useState(0);
@@ -51,6 +52,7 @@ export default function Home() {
               remainingImage: number;
               remainingDocument: number;
               resetsAt?: string;
+              supportCode?: string | null;
             }>)
           : null,
       )
@@ -60,6 +62,7 @@ export default function Home() {
             image: quota.remainingImage,
             document: quota.remainingDocument,
             resetsAt: quota.resetsAt ?? null,
+            supportCode: quota.supportCode ?? null,
           });
       })
       .catch(() => undefined);
@@ -140,6 +143,7 @@ export default function Home() {
             resultResponse.headers.get('X-Guest-Document-Remaining') ?? guestQuota.document,
           ),
           resetsAt: guestQuota.resetsAt,
+          supportCode: resultResponse.headers.get('X-Guest-Support-Code') ?? guestQuota.supportCode,
         });
         await saveGuestConversionResult(guestResult);
         setNow(Date.now());
@@ -221,6 +225,7 @@ export default function Home() {
               remainingImage={guestQuota.image}
               remainingDocument={guestQuota.document}
               resetsAt={guestQuota.resetsAt}
+              supportCode={guestQuota.supportCode}
               results={guestResults}
               now={now}
               onDownload={downloadGuestResult}

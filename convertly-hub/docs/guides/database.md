@@ -38,7 +38,7 @@ erDiagram
 | `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                                      |
 | `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                                    |
 | `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation                |
-| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                            |
+| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, `supportCodeHash`, image/document counters                         |
 | `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                                 |
 
 Файлы в PostgreSQL не хранятся: `ConversionLog` содержит metadata, а результат —
@@ -124,15 +124,16 @@ await prisma.$transaction(async (transaction) => {
 
 ## 6. Индексы и реальные запросы
 
-| Индекс                                                      | Для чего                              |
-| ----------------------------------------------------------- | ------------------------------------- |
-| `User @@index([status])`                                    | быстро отфильтровать active/suspended |
-| `ConversionLog @@index([userId, createdAt])`                | Dashboard history за billing month    |
-| `ConversionLog @@index([userId, expiresAt])`                | availability и cleanup/retention      |
-| `ConversionLog @@index([status, createdAt])`                | мониторинг completed/failed за период |
-| `ApiKey @@index([userId, revokedAt])`                       | список активных ключей пользователя   |
-| `GuestConversionQuota @@unique([visitorHash, periodStart])` | один счётчик на visitor/месяц         |
-| `RoleChangeAudit` indexes                                   | хронология роли по target/actor       |
+| Индекс                                                      | Для чего                                                       |
+| ----------------------------------------------------------- | -------------------------------------------------------------- |
+| `User @@index([status])`                                    | быстро отфильтровать active/suspended                          |
+| `ConversionLog @@index([userId, createdAt])`                | Dashboard history за billing month                             |
+| `ConversionLog @@index([userId, expiresAt])`                | availability и cleanup/retention                               |
+| `ConversionLog @@index([status, createdAt])`                | мониторинг completed/failed за период                          |
+| `ApiKey @@index([userId, revokedAt])`                       | список активных ключей пользователя                            |
+| `GuestConversionQuota @@unique([visitorHash, periodStart])` | один счётчик на visitor/месяц                                  |
+| `GuestConversionQuota supportCodeHash @unique`              | точный поиск квоты для manual reset; nullable для старых строк |
+| `RoleChangeAudit` indexes                                   | хронология роли по target/actor                                |
 
 Поиск админов по подстроке имени/email на большой БД потребует отдельного решения
 с `pg_trgm` и `EXPLAIN ANALYZE`; преждевременно добавлять индекс без измерений не

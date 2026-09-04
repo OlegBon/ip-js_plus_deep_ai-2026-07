@@ -53,16 +53,20 @@ localhost URLs, локальные MinIO credentials и dev `NEXTAUTH_SECRET` н
 
 ### 1.1. Создать новый secret для приложения
 
-В PowerShell можно получить только **новое** значение:
+В PowerShell можно получить только **новое** значение (OpenSSL не требуется):
 
 ```powershell
-openssl rand -base64 48
+$bytes = [byte[]]::new(48)
+[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+[Convert]::ToBase64String($bytes)
 ```
 
 Скопируйте его сразу в password manager как `Convertly Hub / Northflank /
 NEXTAUTH_SECRET`. Не отправляйте в чат, issue, commit, screenshot или GitHub
 Actions secret. Если значение когда-либо раскрылось, создайте новое и
 перезапустите app: существующие сессии станут недействительными — это ожидаемо.
+Для `GUEST_SUPPORT_CODE_SECRET` выполните ту же команду второй раз и сохраните
+новое независимое значение под отдельным именем.
 
 ## 2. Регистрация и базовая защита аккаунтов
 
@@ -186,25 +190,28 @@ Storage.
 Привяжите группу **только** к будущему `convertly-app`. Добавьте эти runtime
 variables:
 
-| Variable                                | Значение                                 |
-| --------------------------------------- | ---------------------------------------- |
-| `NODE_ENV`                              | `production`                             |
-| `HOSTNAME`                              | `0.0.0.0`                                |
-| `PORT`                                  | `3001`                                   |
-| `NEXTAUTH_URL`                          | тот же HTTPS origin без завершающего `/` |
-| `NEXTAUTH_SECRET`                       | secret из шага 1.1                       |
-| `DATABASE_URL`                          | Supabase Session pooler URI              |
-| `MINIO_ENDPOINT`                        | Supabase S3 endpoint                     |
-| `S3_REGION`                             | region Supabase project                  |
-| `MINIO_ACCESS_KEY`                      | Supabase S3 access key                   |
-| `MINIO_SECRET_KEY`                      | Supabase S3 secret                       |
-| `MINIO_BUCKET`                          | `convertly-files`                        |
-| `GOTENBERG_URL`                         | `http://convertly-gotenberg:3000`        |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | точные настройки uh.ua SMTP              |
-| `SMTP_FROM`                             | `Convertly Hub <support@bon.kharkov.ua>` |
-| `SMTP_USER`, `SMTP_PASSWORD`            | учётные данные ящика                     |
+| Variable                                | Значение                                     |
+| --------------------------------------- | -------------------------------------------- |
+| `NODE_ENV`                              | `production`                                 |
+| `HOSTNAME`                              | `0.0.0.0`                                    |
+| `PORT`                                  | `3001`                                       |
+| `NEXTAUTH_URL`                          | тот же HTTPS origin без завершающего `/`     |
+| `NEXTAUTH_SECRET`                       | secret из шага 1.1                           |
+| `GUEST_SUPPORT_CODE_SECRET`             | отдельный random secret для HMAC guest codes |
+| `DATABASE_URL`                          | Supabase Session pooler URI                  |
+| `MINIO_ENDPOINT`                        | Supabase S3 endpoint                         |
+| `S3_REGION`                             | region Supabase project                      |
+| `MINIO_ACCESS_KEY`                      | Supabase S3 access key                       |
+| `MINIO_SECRET_KEY`                      | Supabase S3 secret                           |
+| `MINIO_BUCKET`                          | `convertly-files`                            |
+| `GOTENBERG_URL`                         | `http://convertly-gotenberg:3000`            |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | точные настройки uh.ua SMTP                  |
+| `SMTP_FROM`                             | `Convertly Hub <support@bon.kharkov.ua>`     |
+| `SMTP_USER`, `SMTP_PASSWORD`            | учётные данные ящика                         |
 
-`APP_DOMAIN` не добавляйте: он нужен Oracle-варианту с Caddy, но не используется
+`GUEST_SUPPORT_CODE_SECRET` генерируйте отдельно от `NEXTAUTH_SECRET` и не
+добавляйте его в migration job. Он не является browser variable: `NEXT_PUBLIC_`
+префикс здесь запрещён. `APP_DOMAIN` не добавляйте: он нужен Oracle-варианту с Caddy, но не используется
 Northflank/Next.js runtime. `NEXTAUTH_URL` не должен быть `localhost`, plain
 HTTP или URL Supabase. До создания public app service его generated HTTPS domain
 ещё неизвестен — добавьте эту переменную сразу после создания service. После DNS
@@ -410,6 +417,46 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
 отдельный manual-only `convertly-sync-user-plan` с тем же source/target
 `migration`, той же узкой `DATABASE_URL` group и постоянной командой выше. Для
 каждого Run всё равно передавайте email и plan как run-only overrides.
+
+### 9.2. Сбросить guest quota по support code
+
+Гость после первой конвертации видит в карточке allowance месячный код формата
+`GUEST-XXXX-XXXX-XXXX-XXXX`. Он привязан к cookie этого браузера и текущему
+календарному месяцу. Это не пароль, не API key и не самостоятельный способ
+сброса: сначала проверьте обращение пользователя, затем выполните действие как
+operator с доступом к Northflank.
+
+На Sandbox не создавайте третий постоянный job. Используйте `convertly-migrate`
+с его существующей узкой group `convertly-migration-runtime`:
+
+1. Убедитесь, что migration `20260904130000_guest_support_code` уже применена,
+   а выбранный build latest `main` содержит `scripts/reset-guest-quota.mjs`.
+2. Нажмите **Run**, выберите этот build и добавьте только для текущего запуска:
+
+   ```dotenv
+   GUEST_SUPPORT_CODE=GUEST-XXXX-XXXX-XXXX-XXXX
+   ```
+
+   Не сохраняйте code в secret group, job settings, GitHub или ticket.
+
+3. В **Advanced Docker options** задайте разовую **Custom command**:
+
+   ```text
+   node scripts/reset-guest-quota.mjs
+   ```
+
+   Не меняйте постоянный CMD migration job (`npx prisma migrate deploy`).
+
+4. Дождитесь exit code `0` и строки `Guest quota reset completed.`. Лог не
+   выводит code, visitor hash, cookie или connection string.
+5. Попросите гостя обновить страницу в том же браузере: оба месячных счётчика
+   станут `3` images и `2` documents. Результаты, срок их скачивания и любые
+   другие браузеры reset не затрагиваются.
+
+Операция идемпотентна: повторный reset того же кода оставляет счётчики нулевыми.
+Если code не найден, job завершится до записи в БД. Код перестанет совпадать с
+новым месяцем; для старых quota rows без `supportCodeHash` попросите пользователя
+открыть главную страницу с исходным cookie, чтобы приложение обновило запись.
 
 ## 10. Подключить собственный domain и SMTP
 

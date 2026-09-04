@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import type { GuestConversionResult } from '@/lib/client/guest-conversion-cache';
 
 type Props = {
   remainingImage: number;
   remainingDocument: number;
   resetsAt: string | null;
+  supportCode?: string | null;
   results: GuestConversionResult[];
   now: number;
   onDownload: (result: GuestConversionResult) => void;
@@ -15,10 +17,23 @@ export default function GuestConversionSummary({
   remainingImage,
   remainingDocument,
   resetsAt,
+  supportCode = null,
   results,
   now,
   onDownload,
 }: Props) {
+  const [isCopied, setIsCopied] = useState(false);
+
+  async function handleCopySupportCode() {
+    if (!supportCode || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(supportCode);
+      setIsCopied(true);
+    } catch {
+      setIsCopied(false);
+    }
+  }
+
   return (
     <section
       className="mx-auto mt-6 max-w-4xl rounded-lg border border-border bg-white p-6"
@@ -45,6 +60,28 @@ export default function GuestConversionSummary({
           ? `Allowance resets on ${new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(new Date(resetsAt))}.`
           : 'Allowance resets on the first day of next month.'}
       </p>
+      {supportCode && (
+        <div className="mt-4 flex flex-col gap-3 rounded-md border border-border bg-background-secondary p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-text-primary">Guest support code</h3>
+            <p className="mt-1 text-sm text-text-secondary">
+              Share it with support if you need help with this browser&apos;s monthly allowance.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 self-start sm:flex-row sm:items-center sm:self-auto">
+            <code className="self-start whitespace-nowrap rounded bg-white px-2 py-1 text-sm font-medium tracking-wide text-text-primary">
+              {supportCode}
+            </code>
+            <button
+              className="rounded-md border border-border bg-white px-3 py-1 text-sm font-medium text-text-primary hover:bg-background focus:outline-none focus:ring-2 focus:ring-accent"
+              type="button"
+              onClick={handleCopySupportCode}
+            >
+              {isCopied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="mt-5 border-t border-border pt-4">
         <h3 className="font-medium text-text-primary">Guest conversions ({results.length})</h3>
         {results.length === 0 ? (

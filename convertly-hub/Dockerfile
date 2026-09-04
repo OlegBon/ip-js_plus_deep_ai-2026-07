@@ -20,6 +20,8 @@ COPY prisma.config.ts ./
 COPY scripts/seed-first-admin.mjs ./scripts/seed-first-admin.mjs
 COPY scripts/plan-sync-core.cjs ./scripts/plan-sync-core.cjs
 COPY scripts/sync-user-plan.mjs ./scripts/sync-user-plan.mjs
+COPY scripts/guest-quota-reset-core.cjs ./scripts/guest-quota-reset-core.cjs
+COPY scripts/reset-guest-quota.mjs ./scripts/reset-guest-quota.mjs
 RUN npx prisma generate
 
 FROM node:22-bookworm-slim AS runner

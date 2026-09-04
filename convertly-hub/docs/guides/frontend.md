@@ -112,6 +112,12 @@ if (result.expiresAt <= currentTime) {
 Это намеренно не даёт гостю server-side history: cookie-квота контролируется
 сервером, а сам результат остаётся только в текущем браузере.
 
+В той же карточке `GuestConversionSummary` после первой успешной guest-конвертации
+показывается `Guest support code` и кнопка Copy. На desktop описание и код идут в
+одну строку, на mobile — в колонку. Это не пароль и не способ самостоятельно
+сбросить лимит: пользователь передаёт код только support, а оператор запускает
+ограниченный manual job.
+
 ## 4. Dashboard: данные, таблицы и общие controls
 
 [`components/dashboard/ConversionHistory.tsx`](../../components/dashboard/ConversionHistory.tsx)
