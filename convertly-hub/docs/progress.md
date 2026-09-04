@@ -2,6 +2,18 @@
 
 # 2026-09-04
 
+- **Задача:** Исправить migration Docker image для one-off plan sync.
+- **Изменённые файлы:** `Dockerfile`, `docs/progress.md`.
+- **Результат:** stage `migration` теперь получает как entry script
+  `sync-user-plan.mjs`, так и его CJS dependency `plan-sync-core.cjs`.
+  Ранее image копировал только seed-first-admin script, поэтому Northflank job
+  завершался `MODULE_NOT_FOUND` до подключения к базе.
+- **Проверки:** Docker target `migration` build/file preflight, TypeScript,
+  ESLint, Jest и Prettier выполняются перед финальным коммитом.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-04
+
 - **Задача:** Исправить lint-совместимость Jest-теста one-off plan sync.
 - **Изменённые файлы:** `scripts/__tests__/plan-sync-core.test.js`,
   `docs/progress.md`.
