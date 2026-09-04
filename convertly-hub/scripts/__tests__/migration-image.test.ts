@@ -11,7 +11,7 @@ describe('migration Docker image', () => {
     expect(dockerfile).toContain('COPY scripts/plan-sync-core.cjs ./scripts/plan-sync-core.cjs');
     expect(dockerfile).toContain('COPY scripts/sync-user-plan.mjs ./scripts/sync-user-plan.mjs');
     expect(dockerfile).toContain(
-      'COPY scripts/guest-quota-reset-core.cjs ./scripts/guest-quota-reset-core.cjs',
+      'COPY scripts/guest-quota-reset-core.mjs ./scripts/guest-quota-reset-core.mjs',
     );
     expect(dockerfile).toContain(
       'COPY scripts/reset-guest-quota.mjs ./scripts/reset-guest-quota.mjs',

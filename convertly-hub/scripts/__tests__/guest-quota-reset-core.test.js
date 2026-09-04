@@ -1,11 +1,9 @@
-import guestQuotaResetCore from '../guest-quota-reset-core.cjs';
-
-const {
+import {
   GuestSupportCodeNotFoundError,
   parseGuestQuotaResetEnvironment,
   resetGuestQuota,
   supportCodeHash,
-} = guestQuotaResetCore;
+} from '../guest-quota-reset-core.mjs';
 
 describe('one-off guest quota reset', () => {
   const code = 'GUEST-1234-ABCD-5678-EF90';

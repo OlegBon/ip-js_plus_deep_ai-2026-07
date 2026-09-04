@@ -2,6 +2,19 @@
 
 # 2026-09-04
 
+- **Задача:** Исправить CI lint для one-off guest quota reset.
+- **Изменённые файлы:** `scripts/guest-quota-reset-core.mjs`,
+  `scripts/reset-guest-quota.mjs`, его Jest-тест, `Dockerfile`, migration-image
+  test и `docs/progress.md`.
+- **Результат:** core reset-логики переведён с CommonJS на ESM. Поэтому
+  `@typescript-eslint/no-require-imports` больше не останавливает GitHub Actions;
+  public command и поведение Northflank job не меняются.
+- **Проверки:** целевой Jest (2 suites / 5 tests), ESLint, TypeScript, Prettier
+  и `git diff --check` — успешно.
+- **Новые переменные окружения:** нет.
+
+# 2026-09-04
+
 - **Задача:** Добавить Guest support code и ограниченный one-off reset гостевой квоты.
 - **Изменённые файлы:** `app/api/guest/conversions/route.ts`, `app/page.tsx`,
   `components/core/GuestConversionSummary.tsx`, `lib/guest/support-code.ts`,
