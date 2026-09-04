@@ -1,5 +1,23 @@
 # Журнал изменений проекта
 
+# 2026-09-04
+
+- **Задача:** Устранить минимальные browser warnings: отсутствующий `robots.txt`
+  и autocomplete-подсказки Dashboard.
+- **Изменённые файлы:** `app/robots.ts`, его Jest-тест, `components/ui/Search.tsx`,
+  component-тест, `components/dashboard/EditProfileModal.tsx`, `e2e/critical-flows.spec.ts`,
+  `docs/architecture.md`, `docs/progress.md`.
+- **Результат:** Next.js file-based metadata route теперь отдаёт `GET /robots.txt`
+  вместо `404`. Поле поиска явно отключает неуместное browser autofill, а Name и
+  Email в profile modal используют семантические `name`/`email` autocomplete tokens.
+  Console проверяется Playwright в чистом Chromium-профиле: browser extensions туда
+  не загружаются, поэтому ошибки `extension_content.js` не относятся к приложению.
+  Pricing E2E ожидает фактический ответ NextAuth session до выбора тарифа, устраняя
+  race между client hydration и переходом для неавторизованного пользователя.
+- **Проверки:** целевые Jest, TypeScript, ESLint, critical Playwright flows и
+  отдельная проверка console/`/robots.txt` выполняются перед финальным коммитом.
+- **Новые переменные окружения:** не добавлялись.
+
 # 2026-09-03
 
 - **Задача:** Унифицировать вертикальные отступы всех страниц приложения.

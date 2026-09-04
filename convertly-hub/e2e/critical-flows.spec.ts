@@ -20,7 +20,13 @@ test('страница входа отображает форму учётных
 test('неавторизированный пользователь выбирает тариф и переходит к регистрации', async ({
   page,
 }) => {
+  const sessionResponse = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === '/api/auth/session' &&
+      response.request().method() === 'GET',
+  );
   await page.goto('/pricing');
+  await sessionResponse;
 
   await expect(page.getByRole('button', { name: 'Create free account' })).toBeVisible();
   await page

@@ -109,6 +109,7 @@ services:
 │   │   └── health/                   # Состояние PostgreSQL, S3 и Gotenberg
 │   ├── docs/, pricing/               # Публичные страницы API-документации и тарифов
 │   ├── layout.tsx, page.tsx          # Корневой layout и browser-конвертация
+│   ├── robots.ts                     # File-based metadata route для /robots.txt
 │   └── not-found.tsx, globals.css
 ├── components/
 │   ├── auth/                         # SessionProvider, формы auth и PasswordField

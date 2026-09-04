@@ -16,6 +16,7 @@ const Search: React.FC<SearchProps> = ({
   debounce = 300,
   value,
   onValueChange,
+  autoComplete = 'off',
   ...props
 }) => {
   const [uncontrolledQuery, setUncontrolledQuery] = React.useState('');
@@ -36,6 +37,7 @@ const Search: React.FC<SearchProps> = ({
       <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
       <input
         type="text"
+        autoComplete={autoComplete}
         value={query}
         onChange={(e) => {
           const nextQuery = e.target.value;
