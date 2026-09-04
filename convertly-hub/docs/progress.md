@@ -2,6 +2,17 @@
 
 # 2026-09-04
 
+- **Задача:** Исправить lint-совместимость Jest-теста one-off plan sync.
+- **Изменённые файлы:** `scripts/__tests__/plan-sync-core.test.js`,
+  `docs/progress.md`.
+- **Результат:** CommonJS `require()` в тесте заменён на ES import, поэтому
+  `@typescript-eslint/no-require-imports` больше не останавливает GitHub Actions.
+- **Проверки:** целевой Jest, ESLint, TypeScript и Prettier выполняются перед
+  финальным коммитом.
+- **Новые переменные окружения:** не добавлялись.
+
+# 2026-09-04
+
 - **Задача:** Добавить безопасный one-off sync тарифа тестового пользователя.
 - **Изменённые файлы:** `scripts/sync-user-plan.mjs`,
   `scripts/plan-sync-core.cjs`, его Jest-тест, `package.json`,
