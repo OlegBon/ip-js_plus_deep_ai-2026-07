@@ -76,6 +76,7 @@ npm run dev
 - [Функциональный demo MVP: Northflank Free + Supabase Free](./docs/northflank-supabase-demo.md)
 - [Пошаговый запуск Northflank + Supabase](./docs/northflank-supabase-setup.md)
 - [Операционный one-off sync тарифа](./docs/northflank-supabase-setup.md#91-разово-синхронизировать-тариф-тестового-пользователя)
+- [Отключение или полное удаление Guest support code](./docs/guest-support-code-removal.md)
 - [Подробные руководства по frontend, backend и database](./docs/guides/README.md)
 
 ## 🧪 Проверки
