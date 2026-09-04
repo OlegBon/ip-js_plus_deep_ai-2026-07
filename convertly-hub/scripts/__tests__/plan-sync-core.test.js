@@ -1,8 +1,6 @@
-const {
-  PlanSyncUserNotFoundError,
-  parsePlanSyncEnvironment,
-  synchronizeUserPlan,
-} = require('../plan-sync-core.cjs');
+import planSyncCore from '../plan-sync-core.cjs';
+
+const { PlanSyncUserNotFoundError, parsePlanSyncEnvironment, synchronizeUserPlan } = planSyncCore;
 
 describe('one-off plan synchronization', () => {
   const allowedPlans = ['FREE', 'BASIC', 'PRO', 'ENTERPRISE'];
