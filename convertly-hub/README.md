@@ -75,6 +75,7 @@ npm run dev
 - [План развёртывания на Render Paid / Free demo](./docs/render-production-deployment.md)
 - [Функциональный demo MVP: Northflank Free + Supabase Free](./docs/northflank-supabase-demo.md)
 - [Пошаговый запуск Northflank + Supabase](./docs/northflank-supabase-setup.md)
+- [Операционный one-off sync тарифа](./docs/northflank-supabase-setup.md#91-разово-синхронизировать-тариф-тестового-пользователя)
 - [Подробные руководства по frontend, backend и database](./docs/guides/README.md)
 
 ## 🧪 Проверки

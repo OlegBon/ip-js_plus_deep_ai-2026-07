@@ -36,6 +36,14 @@
 
 `id` — первичный UUID; `userId` — обязательный уникальный внешний ключ на `User` с каскадным удалением. `activePlan` обязателен и имеет default `FREE`; `requestedPlan` необязателен и хранит последнюю смену; `status`, `createdAt` и `updatedAt` обязательны. Mock Checkout не сохраняет поля формы или платёжные данные.
 
+До подключения настоящего payment provider ручная поддержка использует только
+one-off script `scripts/sync-user-plan.mjs`. Он в одной короткой Prisma
+transaction обновляет обязательный `User.plan` и `Subscription.activePlan`;
+если one-to-one `Subscription` по обязательному уникальному `userId` отсутствует,
+создаёт её. Скрипт также очищает `requestedPlan` и переводит `status` в `ACTIVE`,
+чтобы старый Mock Checkout не расходился с вручную назначенным доступом. Это
+операционный demo-инструмент, а не замена платёжному webhook.
+
 ### `ApiKey`
 
 Ключ публичного API. Секрет ключа хранится только в виде `keyHash`; `keyPrefix` предназначен для безопасного отображения в UI.

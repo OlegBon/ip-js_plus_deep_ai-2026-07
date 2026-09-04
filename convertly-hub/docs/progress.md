@@ -2,6 +2,26 @@
 
 # 2026-09-04
 
+- **Задача:** Добавить безопасный one-off sync тарифа тестового пользователя.
+- **Изменённые файлы:** `scripts/sync-user-plan.mjs`,
+  `scripts/plan-sync-core.cjs`, его Jest-тест, `package.json`,
+  `docs/northflank-supabase-setup.md`, `docs/db-schema.md`,
+  `docs/architecture.md`, `docs/work_plan.md`, `README.md`, `docs/progress.md`.
+- **Результат:** оператор передаёт `PLAN_SYNC_EMAIL` и
+  `PLAN_SYNC_ACTIVE_PLAN` только текущему manual job run. Скрипт валидирует
+  email и ровно четыре тарифных значения, не создаёт неизвестного пользователя
+  и одной Prisma transaction синхронизирует `User.plan` с
+  `Subscription.activePlan`, очищая старый Mock Checkout request. Для
+  Northflank Sandbox описано безопасное переиспользование migration job без
+  создания третьего постоянного job.
+- **Проверки:** Jest для валидации, unknown user и атомарной синхронизации,
+  TypeScript, ESLint и Prettier выполняются перед финальным коммитом.
+- **Новые переменные окружения:** run-only `PLAN_SYNC_EMAIL` и
+  `PLAN_SYNC_ACTIVE_PLAN`; они не добавляются в `.env`, app service или
+  persistent secret group.
+
+# 2026-09-04
+
 - **Задача:** Устранить минимальные browser warnings: отсутствующий `robots.txt`
   и autocomplete-подсказки Dashboard.
 - **Изменённые файлы:** `app/robots.ts`, его Jest-тест, `components/ui/Search.tsx`,

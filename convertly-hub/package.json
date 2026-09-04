@@ -22,6 +22,7 @@
     "format:check": "prettier --check .",
     "audit:api": "node scripts/audit-api.mjs",
     "admin:seed-first": "node scripts/seed-first-admin.mjs",
+    "admin:sync-plan": "node scripts/sync-user-plan.mjs",
     "db:generate": "pnpm --filter @convertly-hub/api db:generate",
     "db:migrate": "pnpm --filter @convertly-hub/api db:migrate",
     "db:deploy": "pnpm --filter @convertly-hub/api db:deploy",
