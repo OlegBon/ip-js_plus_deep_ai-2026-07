@@ -42,6 +42,8 @@ describe('UI interactions', () => {
       </>,
     );
 
+    expect(screen.getByRole('textbox', { name: 'Search' })).toHaveAttribute('autocomplete', 'off');
+
     await user.type(screen.getByRole('textbox', { name: 'Search' }), 'invoice');
     act(() => jest.advanceTimersByTime(250));
     expect(onSearch).toHaveBeenLastCalledWith('invoice');
