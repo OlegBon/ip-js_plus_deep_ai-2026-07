@@ -2,6 +2,13 @@
 
 # 2026-09-04
 
+- **Задача:** Добавить отдельный runbook для отключения или полного удаления Guest support code.
+- **Изменённые файлы:** `docs/guest-support-code-removal.md`, `README.md`, `docs/progress.md`.
+- **Результат:** Документированы обратимое cloud-отключение без миграции и отдельный безопасный путь полного удаления через новую Prisma migration; применённую production migration изменять запрещено.
+- **Проверки:** Markdown-ссылки и команды сверены с текущими файлами, job и Northflank-конфигурацией.
+
+# 2026-09-04
+
 - **Задача:** Исправить CI lint для one-off guest quota reset.
 - **Изменённые файлы:** `scripts/guest-quota-reset-core.mjs`,
   `scripts/reset-guest-quota.mjs`, его Jest-тест, `Dockerfile`, migration-image
