@@ -358,6 +358,59 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
 постоянных secrets. Для обычной смены роли в будущем используйте отдельный
 админский процесс, а не повторяйте seed вслепую.
 
+### 9.1. Разово синхронизировать тариф тестового пользователя
+
+Пока нет настоящего billing provider, назначайте Basic/Pro/Enterprise только
+контролируемым one-off запуском. Новый script не принимает plan из HTTP, не
+создаёт пользователя и не выводит email или connection string в logs. В одной
+короткой database transaction он синхронизирует оба исторических поля:
+`User.plan` и `Subscription.activePlan`.
+
+На Sandbox не создавайте для этого третий постоянный job: лимит jobs ограничен.
+Используйте уже существующий ручной `convertly-migrate`, потому что его image
+имеет target `migration` и получает только `DATABASE_URL` из узкой группы
+`convertly-migration-runtime`.
+
+1. Убедитесь, что latest `main` build job уже содержит
+   `scripts/sync-user-plan.mjs`. При необходимости создайте новый build из
+   latest `main`; не используйте старый image.
+2. В `convertly-migrate` нажмите **Run**, выберите этот build и раскройте
+   **Environment variables**. Добавьте значения только для текущего запуска:
+
+   ```dotenv
+   PLAN_SYNC_EMAIL=<registered-user-email>
+   PLAN_SYNC_ACTIVE_PLAN=BASIC
+   ```
+
+   Допустимы ровно `FREE`, `BASIC`, `PRO`, `ENTERPRISE`. Email нормализуется к
+   lowercase; не сохраняйте эти две переменные в job settings или secret group.
+
+3. В **Advanced Docker options** выберите разовый **Custom command** и укажите:
+
+   ```text
+   node scripts/sync-user-plan.mjs
+   ```
+
+   Не меняйте сохранённый CMD override job: его обычная команда должна остаться
+   `npx prisma migrate deploy`.
+
+4. Запустите job и дождитесь exit code `0`. Успешный log имеет только форму
+   `Plan synchronized: <old>/<old> -> <new>.` и не раскрывает email.
+5. В Supabase Table Editor или Prisma Studio убедитесь, что у нужного пользователя
+   одинаковое значение в `User.plan` и `Subscription.activePlan`; затем
+   перелогиньтесь этим пользователем и проверьте Dashboard/API access.
+
+Скрипт идемпотентен: повторный запуск с теми же input безопасен. Если email не
+найден или plan неверный, transaction не начнёт запись. Он намеренно очищает
+старый demo-запрос тарифа (`requestedPlan`) и делает subscription `ACTIVE`.
+Не применяйте этот путь после подключения настоящей оплаты: тогда тариф должен
+менять только проверенный webhook провайдера.
+
+На платном Northflank plan можно вместо переиспользования migration job создать
+отдельный manual-only `convertly-sync-user-plan` с тем же source/target
+`migration`, той же узкой `DATABASE_URL` group и постоянной командой выше. Для
+каждого Run всё равно передавайте email и plan как run-only overrides.
+
 ## 10. Подключить собственный domain и SMTP
 
 ### 10.1. Domain
@@ -397,9 +450,8 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
 технические поля `kind`, `errorName`, `code`, `command`, `responseCode`; пароль,
 получатель, одноразовая ссылка и полный ответ SMTP в лог не попадают. Этих полей
 достаточно, чтобы отличить ошибку авторизации (`EAUTH`/`535`) от сетевой
-недоступности (`ETIMEDOUT`, `ECONNREFUSED` или `ESOCKET`).
-5. Если провайдер предоставляет SPF/DKIM/DMARC записи, внесите их до приглашения
-   реальных пользователей.
+недоступности (`ETIMEDOUT`, `ECONNREFUSED` или `ESOCKET`). 5. Если провайдер предоставляет SPF/DKIM/DMARC записи, внесите их до приглашения
+реальных пользователей.
 
 MailHog — исключительно локальный сервис. В Northflank его не создают и не
 делают публичным.

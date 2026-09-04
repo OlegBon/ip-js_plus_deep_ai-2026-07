@@ -136,7 +136,7 @@ services:
 ├── prisma/
 │   ├── schema.prisma                 # Модели и перечисления
 │   └── migrations/                   # Отслеживаемые SQL-миграции
-├── scripts/                          # API audit, первый администратор и integration/E2E runner
+├── scripts/                          # API audit, one-off admin/plan scripts и integration/E2E runner
 ├── e2e/                              # Browser critical flows и real backend integration/E2E spec
 ├── playwright.config.ts              # Конфигурация критических browser E2E на порту 3001
 ├── playwright.integration.config.ts  # Изолированные backend integration/E2E на порту 3101
