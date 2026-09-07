@@ -182,7 +182,7 @@ export default function UserProfile() {
           ) : null}
         </div>
         <div className="border-t" />
-        <div className="flex justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <p className="text-lg font-semibold">Reset Password</p>
             <p className="text-sm text-gray-500">Change your password.</p>
@@ -211,9 +211,10 @@ export default function UserProfile() {
               <p className="mt-1 text-sm text-red-700">{deletionRequest.failureReason}</p>
             )}
           </div>
-          <div className="flex w-full flex-col gap-2 md:w-[150px]">
+          <div className="flex w-full gap-2 md:w-auto">
             <Button
               variant="secondary"
+              className="flex-1 whitespace-nowrap md:flex-none"
               onClick={() => setRemove(true)}
               disabled={
                 sending ||
@@ -228,7 +229,12 @@ export default function UserProfile() {
                   : 'Delete Account'}
             </Button>
             {deletionRequest?.status === 'PENDING' && (
-              <Button variant="outline" onClick={cancelDeletionRequest} disabled={sending}>
+              <Button
+                variant="outline"
+                className="flex-1 whitespace-nowrap md:flex-none"
+                onClick={cancelDeletionRequest}
+                disabled={sending}
+              >
                 Cancel request
               </Button>
             )}
