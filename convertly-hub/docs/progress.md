@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Актуализировать статусы выполненных deployment-задач в историческом `work_plan.md`.
+- **Изменённые файлы:** `docs/work_plan.md`, `docs/progress.md`.
+- **Результат:** Northflank + Supabase public demo явно отмечен выполненным, а Oracle, backup/restore, monitoring, CD и multi-instance rate limit сохранены как отдельные незавершённые инфраструктурные направления со ссылкой на тематический backlog. Выполненные задачи больше не выглядят как ожидающие запуска.
+- **Проверки:** Статусы сверены с Northflank/Supabase runbook, текущим domain/SMTP/migration flow и cloud portability документом.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Провести двухпроходный audit документации, добавить PowerShell API/backup-инструкции, тематический backlog и единый cloud portability runbook.
 - **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/northflank-supabase-setup.md`, новые `docs/api-powershell.md`, `docs/supabase-logical-backup.md`, `docs/cloud-portability.md`, `docs/backlog/*`, `docs/audits/documentation-audit-2026-09-07.md`, `docs/progress.md`.
 - **Результат:** Документация синхронизирована с текущим публичным Northflank + Supabase demo. Добавлены полный PowerShell flow `POST → 202 → polling download`, логический Supabase CLI backup, независимый runbook переноса PostgreSQL/S3/secrets/DNS между providers и единственный активный тематический backlog. Выполненные задачи остаются в Git и `progress.md`, поэтому отдельная дублирующая папка `done/` не создаётся.
