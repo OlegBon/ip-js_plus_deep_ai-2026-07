@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Исправить CI lint для первичной загрузки списка запросов на удаление аккаунта.
+- **Изменённые файлы:** `components/admin/AccountDeletionRequests.tsx`, `docs/progress.md`.
+- **Результат:** Начальная загрузка списка теперь выполняет fetch непосредственно в `useEffect`, а обновление state происходит только в асинхронном callback. Это устраняет ошибку `react-hooks/set-state-in-effect`, не меняя API, UI или обработку ручного Refresh.
+- **Проверки:** ESLint, TypeScript и Jest (50 suites / 149 tests) успешно.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Реализовать управляемое удаление аккаунта через запрос пользователя и подтверждение администратора.
 - **Изменённые файлы:** Prisma schema и migration `20260907150000_account_deletion_workflow`, account-deletion service, authenticated account/admin API routes, Profile и Admin Panel UI, SMTP notifications, `.env*.example`, `docs/account-deletion-workflow.md`, `docs/db-schema.md`, Northflank guide и `README.md`.
 - **Результат:** Пользователь создаёт защищённый от дублей request; активный admin видит запрос, подтверждает отдельной модалкой и не может подтвердить своё удаление. Сервер сначала удаляет все известные S3 conversion objects, затем User и каскадные записи. `AccountDeletionRequest` и append-only events сохраняются после удаления пользователя с `userId = NULL`; при сбое request становится `FAILED` и безопасно повторяется. Support mailbox получает уведомления о создании, успехе или сбое, но SMTP не меняет состояние удаления.

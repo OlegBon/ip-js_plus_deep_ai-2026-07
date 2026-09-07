@@ -31,11 +31,16 @@ export default function AccountDeletionRequests() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void refresh(controller.signal).catch((error: unknown) => {
-      if ((error as { name?: string }).name !== 'AbortError') setRequests([]);
-    });
+    fetch('/api/admin/account-deletion-requests', { signal: controller.signal })
+      .then(async (response) =>
+        response.ok ? (response.json() as Promise<{ requests: DeletionRequest[] }>) : null,
+      )
+      .then((payload) => setRequests(payload?.requests ?? []))
+      .catch((error: unknown) => {
+        if ((error as { name?: string }).name !== 'AbortError') setRequests([]);
+      });
     return () => controller.abort();
-  }, [refresh]);
+  }, []);
 
   function processRequest() {
     if (!selected) return;
