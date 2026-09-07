@@ -28,6 +28,7 @@ jest.mock('@/lib/mail/send-auth-email', () => ({
   sendAccountDeletionRequestedNotification: jest.fn(),
   sendAccountDeletionCompletedNotification: jest.fn(),
   sendAccountDeletionFailedNotification: jest.fn(),
+  sendAccountDeletionCancelledNotification: jest.fn(),
 }));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: false });

@@ -4,6 +4,7 @@ import { AdminAccessDeniedError } from '@/lib/admin/user-management';
 import { getStorageService } from '@/lib/storage/s3';
 import {
   sendAccountDeletionCompletedNotification,
+  sendAccountDeletionCancelledNotification,
   sendAccountDeletionFailedNotification,
   sendAccountDeletionRequestedNotification,
 } from '@/lib/mail/send-auth-email';
@@ -108,7 +109,9 @@ export async function listAccountDeletionRequests(
 
 export async function cancelAccountDeletionRequest(actorUserId: string, requestId: string) {
   const actor = await getActiveAdmin(actorUserId);
-  return cancelDeletionRequest(requestId, actorUserId, actor.email);
+  const request = await cancelDeletionRequest(requestId, actorUserId, actor.email);
+  await notifyWithoutBlocking('cancelled', request.id, request.userEmail);
+  return request;
 }
 
 export async function cancelOwnAccountDeletionRequest(userId: string) {
@@ -117,7 +120,9 @@ export async function cancelOwnAccountDeletionRequest(userId: string) {
     select: { email: true, status: true },
   });
   if (!user || user.status !== 'ACTIVE') throw new AccountDeletionRequestNotFoundError();
-  return cancelDeletionRequestForStatuses(userId, userId, user.email, ['PENDING']);
+  const request = await cancelDeletionRequestForStatuses(userId, userId, user.email, ['PENDING']);
+  await notifyWithoutBlocking('cancelled', request.id, request.userEmail);
+  return request;
 }
 
 export async function processAccountDeletionRequest(actorUserId: string, requestId: string) {
@@ -266,7 +271,7 @@ async function markAccountDeletionFailed(
 }
 
 async function notifyWithoutBlocking(
-  kind: 'requested' | 'completed' | 'failed',
+  kind: 'requested' | 'completed' | 'failed' | 'cancelled',
   requestId: string,
   userEmail: string,
 ) {
@@ -274,7 +279,9 @@ async function notifyWithoutBlocking(
     if (kind === 'requested') await sendAccountDeletionRequestedNotification(requestId, userEmail);
     else if (kind === 'completed')
       await sendAccountDeletionCompletedNotification(requestId, userEmail);
-    else await sendAccountDeletionFailedNotification(requestId, userEmail);
+    else if (kind === 'failed') await sendAccountDeletionFailedNotification(requestId, userEmail);
+    else await sendAccountDeletionCancelledNotification(requestId, userEmail);
+    console.info('Account deletion support notification sent.', { kind, requestId });
   } catch {
     console.error('Account deletion support notification failed.', { kind, requestId });
   }

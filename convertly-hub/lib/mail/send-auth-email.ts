@@ -35,7 +35,8 @@ async function sendEmail(
     | 'email-verification'
     | 'account-deletion-request'
     | 'account-deletion-completed'
-    | 'account-deletion-failed',
+    | 'account-deletion-failed'
+    | 'account-deletion-cancelled',
   to: string,
   subject: string,
   text: string,
@@ -116,5 +117,17 @@ export async function sendAccountDeletionFailedNotification(requestId: string, u
     supportEmail(),
     'Convertly Hub account deletion needs attention',
     `Account deletion could not be completed.\nRequest ID: ${requestId}\nUser email: ${userEmail}\nRetry it from the Admin Panel.`,
+  );
+}
+
+export async function sendAccountDeletionCancelledNotification(
+  requestId: string,
+  userEmail: string,
+) {
+  await sendEmail(
+    'account-deletion-cancelled',
+    supportEmail(),
+    'Convertly Hub account deletion cancelled',
+    `Account deletion request was cancelled.\nRequest ID: ${requestId}\nUser email: ${userEmail}`,
   );
 }
