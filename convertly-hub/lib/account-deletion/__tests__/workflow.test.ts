@@ -1,5 +1,6 @@
 import {
   AccountDeletionSelfApprovalError,
+  cancelOwnAccountDeletionRequest,
   processAccountDeletionRequest,
   requestAccountDeletion,
 } from '../workflow';
@@ -27,6 +28,7 @@ jest.mock('@/lib/mail/send-auth-email', () => ({
   sendAccountDeletionRequestedNotification: jest.fn(),
   sendAccountDeletionCompletedNotification: jest.fn(),
   sendAccountDeletionFailedNotification: jest.fn(),
+  sendAccountDeletionCancelledNotification: jest.fn(),
 }));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: false });
@@ -81,6 +83,29 @@ describe('account deletion workflow', () => {
     });
     expect(mockedPrisma.accountDeletionRequest.create).not.toHaveBeenCalled();
     expect(mockedRequestNotification).not.toHaveBeenCalled();
+  });
+
+  it('lets the owner cancel only a pending deletion request and records an audit event', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      email: 'user@example.com',
+      status: 'ACTIVE',
+    } as never);
+    mockedPrisma.accountDeletionRequest.findUnique.mockResolvedValue({
+      id: 'request-1',
+      status: 'PENDING',
+    } as never);
+    mockedPrisma.accountDeletionRequest.updateMany.mockResolvedValue({ count: 1 } as never);
+    mockedPrisma.accountDeletionRequest.update.mockResolvedValue({
+      id: 'request-1',
+      status: 'CANCELLED',
+    } as never);
+
+    await expect(cancelOwnAccountDeletionRequest('user-1')).resolves.toMatchObject({
+      status: 'CANCELLED',
+    });
+    expect(mockedPrisma.accountDeletionRequest.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: 'CANCELLED' }) }),
+    );
   });
 
   it('forbids an administrator from confirming their own request', async () => {

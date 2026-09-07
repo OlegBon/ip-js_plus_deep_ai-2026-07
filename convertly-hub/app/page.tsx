@@ -17,6 +17,7 @@ import {
   saveGuestConversionResult,
   type GuestConversionResult,
 } from '@/lib/client/guest-conversion-cache';
+import { toast } from '@/lib/hooks/use-toast';
 
 const conversionTargets: Record<string, { format: string; extension: string }> = {
   'image/jpeg': { format: 'png', extension: 'png' },
@@ -41,6 +42,11 @@ export default function Home() {
   });
   const [guestResults, setGuestResults] = useState<GuestConversionResult[]>([]);
   const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('accountDeleted') !== '1') return;
+    toast.success('Your account has been deleted.');
+    window.history.replaceState({}, '', '/');
+  }, []);
   useEffect(() => {
     if (isAuthenticated) return;
     const controller = new AbortController();

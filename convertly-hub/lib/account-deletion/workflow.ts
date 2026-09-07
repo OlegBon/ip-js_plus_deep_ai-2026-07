@@ -1,8 +1,10 @@
 import { prisma } from '@/lib/prisma';
+import type { AccountDeletionStatus, Prisma } from '@prisma/client';
 import { AdminAccessDeniedError } from '@/lib/admin/user-management';
 import { getStorageService } from '@/lib/storage/s3';
 import {
   sendAccountDeletionCompletedNotification,
+  sendAccountDeletionCancelledNotification,
   sendAccountDeletionFailedNotification,
   sendAccountDeletionRequestedNotification,
 } from '@/lib/mail/send-auth-email';
@@ -23,7 +25,7 @@ export async function requestAccountDeletion(userId: string) {
     if (!user || user.status !== 'ACTIVE') throw new AccountDeletionRequestNotFoundError();
 
     const existing = await tx.accountDeletionRequest.findUnique({ where: { userId } });
-    if (existing && existing.status !== 'FAILED') {
+    if (existing && existing.status !== 'FAILED' && existing.status !== 'CANCELLED') {
       return { request: existing, alreadyRequested: true };
     }
 
@@ -35,9 +37,12 @@ export async function requestAccountDeletion(userId: string) {
             requestedAt: new Date(),
             processingStartedAt: null,
             completedAt: null,
+            cancelledAt: null,
             failureReason: null,
             processedByUserId: null,
             processedByEmail: null,
+            cancelledByUserId: null,
+            cancelledByEmail: null,
             events: { create: { type: 'REQUESTED', actorUserId: user.id, actorEmail: user.email } },
           },
         })
@@ -60,18 +65,64 @@ export async function requestAccountDeletion(userId: string) {
 
 export async function getAccountDeletionRequestForUser(userId: string) {
   return prisma.accountDeletionRequest.findUnique({
-    where: { userId },
+    where: { userId, status: { not: 'CANCELLED' } },
     select: requestSelect,
   });
 }
 
-export async function listAccountDeletionRequests(actorUserId: string) {
+const deletionStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'] as const;
+
+export function parseAccountDeletionRequestSearch(searchParams: URLSearchParams) {
+  const rawLimit = Number(searchParams.get('limit') ?? '10');
+  const limit = Number.isInteger(rawLimit) ? Math.min(Math.max(rawLimit, 1), 50) : 10;
+  const query = (searchParams.get('query') ?? '').trim().slice(0, 100);
+  const rawStatus = searchParams.get('status');
+  const status = deletionStatuses.includes(rawStatus as AccountDeletionStatus)
+    ? (rawStatus as AccountDeletionStatus)
+    : undefined;
+  return { limit, query, status, cursor: searchParams.get('cursor') || undefined };
+}
+
+export async function listAccountDeletionRequests(
+  actorUserId: string,
+  options: ReturnType<typeof parseAccountDeletionRequestSearch>,
+) {
   await getActiveAdmin(actorUserId);
-  return prisma.accountDeletionRequest.findMany({
-    select: requestSelect,
-    orderBy: [{ status: 'asc' }, { requestedAt: 'desc' }],
-    take: 50,
+  const where: Prisma.AccountDeletionRequestWhereInput = {
+    ...(options.status ? { status: options.status } : {}),
+    ...(options.query ? { userEmail: { contains: options.query, mode: 'insensitive' } } : {}),
+  };
+  const [requests, total] = await Promise.all([
+    prisma.accountDeletionRequest.findMany({
+      where,
+      select: requestSelect,
+      orderBy: [{ requestedAt: 'desc' }, { id: 'desc' }],
+      take: options.limit + 1,
+      ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
+    }),
+    prisma.accountDeletionRequest.count({ where }),
+  ]);
+  const hasNextPage = requests.length > options.limit;
+  const page = hasNextPage ? requests.slice(0, options.limit) : requests;
+  return { requests: page, nextCursor: hasNextPage ? (page.at(-1)?.id ?? null) : null, total };
+}
+
+export async function cancelAccountDeletionRequest(actorUserId: string, requestId: string) {
+  const actor = await getActiveAdmin(actorUserId);
+  const request = await cancelDeletionRequest(requestId, actorUserId, actor.email);
+  await notifyWithoutBlocking('cancelled', request.id, request.userEmail);
+  return request;
+}
+
+export async function cancelOwnAccountDeletionRequest(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, status: true },
   });
+  if (!user || user.status !== 'ACTIVE') throw new AccountDeletionRequestNotFoundError();
+  const request = await cancelDeletionRequestForStatuses(userId, userId, user.email, ['PENDING']);
+  await notifyWithoutBlocking('cancelled', request.id, request.userEmail);
+  return request;
 }
 
 export async function processAccountDeletionRequest(actorUserId: string, requestId: string) {
@@ -157,6 +208,53 @@ async function getActiveAdmin(userId: string) {
   return user;
 }
 
+async function cancelDeletionRequest(requestId: string, actorUserId: string, actorEmail: string) {
+  const request = await prisma.accountDeletionRequest.findUnique({
+    where: { id: requestId },
+    select: { id: true, userId: true, status: true },
+  });
+  if (!request) throw new AccountDeletionRequestNotFoundError();
+  if (!request.userId) throw new AccountDeletionRequestStateError();
+  return cancelDeletionRequestForStatuses(
+    request.userId,
+    actorUserId,
+    actorEmail,
+    ['PENDING', 'FAILED'],
+    request.id,
+  );
+}
+
+async function cancelDeletionRequestForStatuses(
+  userId: string,
+  actorUserId: string,
+  actorEmail: string,
+  statuses: AccountDeletionStatus[],
+  requestId?: string,
+) {
+  const request = requestId
+    ? await prisma.accountDeletionRequest.findUnique({ where: { id: requestId } })
+    : await prisma.accountDeletionRequest.findUnique({ where: { userId } });
+  if (!request) throw new AccountDeletionRequestNotFoundError();
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.accountDeletionRequest.updateMany({
+      where: { id: request.id, status: { in: statuses } },
+      data: {
+        status: 'CANCELLED',
+        cancelledAt: new Date(),
+        cancelledByUserId: actorUserId,
+        cancelledByEmail: actorEmail,
+      },
+    });
+    if (!result.count) throw new AccountDeletionRequestStateError();
+    return tx.accountDeletionRequest.update({
+      where: { id: request.id },
+      data: { events: { create: { type: 'CANCELLED', actorUserId, actorEmail } } },
+      select: requestSelect,
+    });
+  });
+  return updated;
+}
+
 async function markAccountDeletionFailed(
   requestId: string,
   actorUserId: string,
@@ -173,7 +271,7 @@ async function markAccountDeletionFailed(
 }
 
 async function notifyWithoutBlocking(
-  kind: 'requested' | 'completed' | 'failed',
+  kind: 'requested' | 'completed' | 'failed' | 'cancelled',
   requestId: string,
   userEmail: string,
 ) {
@@ -181,7 +279,9 @@ async function notifyWithoutBlocking(
     if (kind === 'requested') await sendAccountDeletionRequestedNotification(requestId, userEmail);
     else if (kind === 'completed')
       await sendAccountDeletionCompletedNotification(requestId, userEmail);
-    else await sendAccountDeletionFailedNotification(requestId, userEmail);
+    else if (kind === 'failed') await sendAccountDeletionFailedNotification(requestId, userEmail);
+    else await sendAccountDeletionCancelledNotification(requestId, userEmail);
+    console.info('Account deletion support notification sent.', { kind, requestId });
   } catch {
     console.error('Account deletion support notification failed.', { kind, requestId });
   }
@@ -194,8 +294,10 @@ const requestSelect = {
   requestedAt: true,
   processingStartedAt: true,
   completedAt: true,
+  cancelledAt: true,
   failureReason: true,
   processedByEmail: true,
+  cancelledByEmail: true,
   events: {
     select: { id: true, type: true, actorEmail: true, createdAt: true },
     orderBy: { createdAt: 'desc' },

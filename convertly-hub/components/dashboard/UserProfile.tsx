@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useState, useTransition } from 'react';
+import { signOut } from 'next-auth/react';
 import ConfirmationModal from '@/components/core/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
 import { toast } from '@/lib/hooks/use-toast';
@@ -16,10 +17,21 @@ type Profile = {
 };
 type DeletionRequest = {
   id: string;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   requestedAt: string;
   failureReason: string | null;
 };
+type DeletionRequestResponse = { request: DeletionRequest | null; accountDeleted: boolean } | null;
+
+async function fetchDeletionRequest(signal?: AbortSignal): Promise<DeletionRequestResponse> {
+  const response = await fetch('/api/account/deletion-request', { signal, cache: 'no-store' });
+  if (response.status === 410) return { request: null, accountDeleted: true };
+  if (!response.ok) return null;
+  return {
+    ...((await response.json()) as { request: DeletionRequest | null }),
+    accountDeleted: false,
+  };
+}
 function Badge({ ok }: { ok: boolean }) {
   return (
     <span
@@ -39,6 +51,18 @@ export default function UserProfile() {
     [remove, setRemove] = useState(false),
     [deletionRequest, setDeletionRequest] = useState<DeletionRequest | null>(null),
     [sending, startSending] = useTransition();
+  const refreshDeletionRequest = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const result = await fetchDeletionRequest(signal);
+      if (result?.accountDeleted) {
+        await signOut({ callbackUrl: '/?accountDeleted=1' });
+        return;
+      }
+      if (result) setDeletionRequest(result.request);
+    } catch (error) {
+      if ((error as { name?: string }).name !== 'AbortError') setDeletionRequest(null);
+    }
+  }, []);
   async function refresh() {
     const r = await fetch('/api/account/profile');
     if (r.ok) setProfile((await r.json()) as Profile);
@@ -49,15 +73,20 @@ export default function UserProfile() {
       .then(async (response) => (response.ok ? response.json() : null))
       .then((result: Profile | null) => setProfile(result))
       .catch(() => setProfile(null));
-    const deletionRequest = fetch('/api/account/deletion-request', { signal: controller.signal })
-      .then(async (response) => (response.ok ? response.json() : null))
-      .then((result: { request: DeletionRequest | null } | null) =>
-        setDeletionRequest(result?.request ?? null),
-      )
+    const deletionRequest = fetchDeletionRequest(controller.signal)
+      .then(async (result) => {
+        if (result?.accountDeleted) await signOut({ callbackUrl: '/?accountDeleted=1' });
+        else if (result) setDeletionRequest(result.request);
+      })
       .catch(() => setDeletionRequest(null));
     void Promise.all([profileRequest, deletionRequest]);
     return () => controller.abort();
   }, []);
+  useEffect(() => {
+    if (!deletionRequest?.status) return;
+    const timer = window.setInterval(() => void refreshDeletionRequest(), 30_000);
+    return () => window.clearInterval(timer);
+  }, [deletionRequest?.status, refreshDeletionRequest]);
   function verify() {
     startSending(async () => {
       const r = await fetch('/api/account/email-verification', { method: 'POST' });
@@ -85,6 +114,18 @@ export default function UserProfile() {
           ? 'Your deletion request is already awaiting an administrator.'
           : 'Deletion request submitted to the administrator.',
       );
+    });
+  }
+  function cancelDeletionRequest() {
+    startSending(async () => {
+      const response = await fetch('/api/account/deletion-request', { method: 'DELETE' });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        toast.error(payload.error ?? 'Unable to cancel the deletion request.');
+        return;
+      }
+      setDeletionRequest(null);
+      toast.success('Deletion request cancelled.');
     });
   }
   if (!profile) return <div className="rounded-lg bg-white p-6 shadow-md">Loading profile…</div>;
@@ -159,7 +200,7 @@ export default function UserProfile() {
             <p className="text-lg font-semibold">Delete Account</p>
             <p className="text-sm text-gray-500">
               {deletionRequest?.status === 'PENDING'
-                ? 'Your request is awaiting an administrator.'
+                ? `Request submitted ${new Date(deletionRequest.requestedAt).toLocaleString()}. An administrator will review it.`
                 : deletionRequest?.status === 'PROCESSING'
                   ? 'Your deletion request is being processed.'
                   : deletionRequest?.status === 'FAILED'
@@ -170,18 +211,28 @@ export default function UserProfile() {
               <p className="mt-1 text-sm text-red-700">{deletionRequest.failureReason}</p>
             )}
           </div>
-          <Button
-            variant="secondary"
-            onClick={() => setRemove(true)}
-            disabled={
-              sending ||
-              deletionRequest?.status === 'PENDING' ||
-              deletionRequest?.status === 'PROCESSING'
-            }
-            className="w-full md:w-[150px]"
-          >
-            {deletionRequest?.status === 'FAILED' ? 'Request again' : 'Delete Account'}
-          </Button>
+          <div className="flex w-full flex-col gap-2 md:w-[150px]">
+            <Button
+              variant="secondary"
+              onClick={() => setRemove(true)}
+              disabled={
+                sending ||
+                deletionRequest?.status === 'PENDING' ||
+                deletionRequest?.status === 'PROCESSING'
+              }
+            >
+              {deletionRequest?.status === 'PENDING'
+                ? 'Request submitted'
+                : deletionRequest?.status === 'FAILED'
+                  ? 'Request again'
+                  : 'Delete Account'}
+            </Button>
+            {deletionRequest?.status === 'PENDING' && (
+              <Button variant="outline" onClick={cancelDeletionRequest} disabled={sending}>
+                Cancel request
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       <EditProfileModal
