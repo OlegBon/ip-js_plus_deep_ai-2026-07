@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Сделать `Subscription.activePlan` единственным источником истины тарифа и добавить OpenSSL в Prisma migration image.
+- **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907140000_subscription_plan_source_of_truth`, billing/API/admin services, one-off plan sync, audit script, `Dockerfile`, integration/Jest tests, `docs/subscription-plan-migration.md` и связанные guides.
+- **Результат:** Migration создаёт Subscription отсутствующим пользователям из legacy `User.plan`, сохраняет уже существующий `Subscription.activePlan` при расхождении и удаляет legacy-колонку. Регистрация, quota/API checks, Admin и one-off plan sync читают/меняют только Subscription. В migration target добавлен `openssl`, что устраняет Prisma warning в Northflank job.
+- **Проверки:** Prisma validate/generate, TypeScript, Jest, Playwright, real integration/E2E и Docker migration-target build выполняются перед merge. Перед production migration обязательны логический Supabase backup и read-only `node scripts/audit-subscription-plans.mjs`.
+- **Новые переменные окружения:** нет; `PLAN_SYNC_EMAIL` и `PLAN_SYNC_ACTIVE_PLAN` остаются только run-time overrides one-off job.
+
 - **Задача:** Удалить legacy-схему отменённой Guest support code feature.
 - **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907130000_remove_guest_support_code`, `docs/db-schema.md`, `docs/guides/database.md`, `docs/progress.md`.
 - **Результат:** Новая Prisma migration сначала удаляет unique index `GuestConversionQuota_supportCodeHash_key`, затем nullable-колонку `supportCodeHash`. Применённая migration добавления не редактируется.

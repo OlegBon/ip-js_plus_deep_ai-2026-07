@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
-  if (!getPlanDefinition(principal.plan ?? 'FREE').apiAccess) {
+  if (!getPlanDefinition(principal.plan).apiAccess) {
     return NextResponse.json(
       { error: 'API access requires a Basic plan or higher.' },
       { status: 403 },
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     targetFormat: requestValidation.targetFormat,
     userId: principal.userId,
     storeResult: principal.storeConversions,
-    plan: principal.plan ?? 'FREE',
+    plan: principal.plan,
   };
 
   if (!principal.storeConversions) {

@@ -42,8 +42,6 @@ model User {
   name     String?
   role     UserRole         @default(USER)
   status   UserStatus       @default(ACTIVE)
-  plan     SubscriptionPlan @default(FREE)
-
   storeConversions Boolean   @default(true)
   lastLoginAt      DateTime? @db.Timestamptz(3)
   createdAt        DateTime  @default(now()) @db.Timestamptz(3)

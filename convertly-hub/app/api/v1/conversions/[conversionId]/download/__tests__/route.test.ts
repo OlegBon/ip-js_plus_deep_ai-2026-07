@@ -34,6 +34,7 @@ describe("GET /api/v1/conversions/:conversionId/download", () => {
       apiKeyId: "key-1",
       userId: "user-1",
       storeConversions: true,
+      plan: "BASIC",
     });
     mockedDownloadStoredConversion.mockResolvedValue({
       body: new ReadableStream({ start(controller) { controller.enqueue(Buffer.from("png")); controller.close(); } }),
@@ -52,7 +53,7 @@ describe("GET /api/v1/conversions/:conversionId/download", () => {
   });
 
   it("returns 404 without disclosing another user's result", async () => {
-    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true });
+    mockedAuthenticateApiKey.mockResolvedValue({ apiKeyId: "key-1", userId: "user-1", storeConversions: true, plan: "BASIC" });
     mockedDownloadStoredConversion.mockRejectedValue(new StoredConversionNotFoundError());
 
     const response = await GET(new Request("http://localhost/api/v1/conversions/other/download"), {

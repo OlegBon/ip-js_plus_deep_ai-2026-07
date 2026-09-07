@@ -96,17 +96,9 @@ async function registerAndSignIn(request: APIRequestContext) {
   await waitForVerificationEmail(email);
 
   const user = await prisma.user.findUniqueOrThrow({ where: { email } });
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      plan: 'BASIC',
-      subscription: {
-        upsert: {
-          create: { activePlan: 'BASIC' },
-          update: { activePlan: 'BASIC', requestedPlan: null, status: 'ACTIVE' },
-        },
-      },
-    },
+  await prisma.subscription.update({
+    where: { userId: user.id },
+    data: { activePlan: 'BASIC', requestedPlan: null, status: 'ACTIVE' },
   });
 
   const csrfResponse = await request.get('/api/auth/csrf');

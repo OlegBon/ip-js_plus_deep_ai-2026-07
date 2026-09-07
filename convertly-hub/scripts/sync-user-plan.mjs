@@ -18,7 +18,7 @@ const prisma = new PrismaClient({
 try {
   const result = await synchronizeUserPlan(prisma, email, plan);
   console.info(
-    `Plan synchronized: ${result.previousUserPlan}/${result.previousSubscriptionPlan ?? 'none'} -> ${result.activePlan}.`,
+    `Plan synchronized: ${result.previousActivePlan} -> ${result.activePlan}.`,
   );
 } finally {
   await prisma.$disconnect();

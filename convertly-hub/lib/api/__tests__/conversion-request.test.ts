@@ -15,7 +15,7 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: false });
-const principal = { apiKeyId: 'key-1', userId: 'user-1', storeConversions: true };
+const principal = { apiKeyId: 'key-1', userId: 'user-1', storeConversions: true, plan: 'FREE' as const };
 
 function makeFile(name = 'image.png', type = 'image/png', size = 4) {
   return { name, type, size } as File;
@@ -32,7 +32,7 @@ describe('conversion request service', () => {
       id: 'key-1',
       userId: 'user-1',
       revokedAt: null,
-      user: { status: 'ACTIVE', storeConversions: true },
+      user: { status: 'ACTIVE', storeConversions: true, subscription: { activePlan: 'FREE' } },
     } as never);
 
     await expect(authenticateApiKey('Bearer secret-api-key')).resolves.toEqual(principal);
@@ -49,7 +49,7 @@ describe('conversion request service', () => {
       id: 'key-1',
       userId: 'user-1',
       revokedAt: new Date(),
-      user: { status: 'ACTIVE', storeConversions: true },
+      user: { status: 'ACTIVE', storeConversions: true, subscription: { activePlan: 'FREE' } },
     } as never);
     await expect(authenticateApiKey('Bearer revoked-key')).resolves.toBeNull();
   });

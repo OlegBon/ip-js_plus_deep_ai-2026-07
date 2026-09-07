@@ -25,21 +25,19 @@ async function synchronizeUserPlan(prisma, email, plan) {
   return prisma.$transaction(async (transaction) => {
     const user = await transaction.user.findUnique({
       where: { email },
-      select: { id: true, plan: true, subscription: { select: { activePlan: true } } },
+      select: { id: true, subscription: { select: { activePlan: true } } },
     });
     if (!user) throw new PlanSyncUserNotFoundError();
 
-    await transaction.user.update({ where: { id: user.id }, data: { plan } });
-    const subscription = await transaction.subscription.upsert({
+    if (!user.subscription) throw new Error('The user is missing a subscription. Run the subscription audit before plan sync.');
+    const subscription = await transaction.subscription.update({
       where: { userId: user.id },
-      create: { userId: user.id, activePlan: plan, status: 'ACTIVE' },
-      update: { activePlan: plan, requestedPlan: null, status: 'ACTIVE' },
+      data: { activePlan: plan, requestedPlan: null, status: 'ACTIVE' },
       select: { activePlan: true },
     });
 
     return {
-      previousUserPlan: user.plan,
-      previousSubscriptionPlan: user.subscription?.activePlan ?? null,
+      previousActivePlan: user.subscription.activePlan,
       activePlan: subscription.activePlan,
     };
   });

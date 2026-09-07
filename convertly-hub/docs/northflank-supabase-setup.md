@@ -364,7 +364,7 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
 контролируемым one-off запуском. Новый script не принимает plan из HTTP, не
 создаёт пользователя и не выводит email или connection string в logs. В одной
 короткой database transaction он синхронизирует оба исторических поля:
-`User.plan` и `Subscription.activePlan`.
+`Subscription.activePlan`; `User.plan` больше не существует.
 
 На Sandbox не создавайте для этого третий постоянный job: лимит jobs ограничен.
 Используйте уже существующий ручной `convertly-migrate`, потому что его image
@@ -394,11 +394,11 @@ S3 key pair. Если `gotenberg: down`, сверяйте private port `3000`, �
    Не меняйте сохранённый CMD override job: его обычная команда должна остаться
    `npx prisma migrate deploy`.
 
-4. Запустите job и дождитесь exit code `0`. Успешный log имеет только форму
-   `Plan synchronized: <old>/<old> -> <new>.` и не раскрывает email.
-5. В Supabase Table Editor или Prisma Studio убедитесь, что у нужного пользователя
-   одинаковое значение в `User.plan` и `Subscription.activePlan`; затем
-   перелогиньтесь этим пользователем и проверьте Dashboard/API access.
+4. Запустите job и дождитесь exit code `0`. Успешный log имеет форму
+   `Plan synchronized: <old> -> <new>.` и не раскрывает email.
+5. В Supabase Table Editor или Prisma Studio убедитесь, что меняется только
+   `Subscription.activePlan`; затем перелогиньтесь этим пользователем и проверьте
+   Dashboard/API access.
 
 Скрипт идемпотентен: повторный запуск с теми же input безопасен. Если email не
 найден или plan неверный, transaction не начнёт запись. Он намеренно очищает
