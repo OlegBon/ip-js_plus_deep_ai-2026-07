@@ -21,7 +21,9 @@ GitHub main (папка /convertly-hub)
   └─ DNS: convertly-hub.bon.kharkov.ua → Northflank
 ```
 
-Не пропускайте migration job и не вводите реальные значения в Git. На каждом
+Не пропускайте migration job и не вводите реальные значения в Git. Перед каждой
+production migration создавайте логический SQL backup по
+[supabase-logical-backup.md](./supabase-logical-backup.md). На каждом
 этапе ниже есть контрольный результат: если он не достигнут, исправьте его до
 перехода дальше.
 
