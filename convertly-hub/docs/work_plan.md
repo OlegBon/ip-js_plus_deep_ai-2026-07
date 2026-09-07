@@ -41,10 +41,11 @@ PowerShell API-сценарий вынесен в
    - [x] Реальный HTTP-сценарий проверяет auth/session, API-ключ, сохранение/скачивание из S3, режим без хранения, guest-квоты, `DOCX → PDF` и admin API.
    - [x] GitHub Actions запускает набор отдельной job без изменения существующих Jest и browser Playwright проверок.
 
-6. **(-, 8) Полноценное восстановление пароля через Telegram**
-   - **Почему не завершено:** текущая привязка хранит только защищённый chat ID после `/start link_…`; пароль можно восстановить по email, а ввод `@username` лишь валидируется. У бота нет сохранённого username и нет исходящей доставки reset-ссылки, поэтому нельзя создавать видимость работающего Telegram-reset.
-   - **Как выполнить:** при webhook-привязке безопасно сохранять нормализованный публичный Telegram username (если он есть), сопоставлять только подтверждённый аккаунт, создавать уже существующий одноразовый хешированный токен и отправлять ссылку в связанный chat через Bot API. Нужны нейтральные ответы против user enumeration, общий rate limit, сценарий отсутствующего username, тесты webhook/Bot API и отдельные integration/E2E-проверки.
-   - **Когда:** после согласования Telegram как канала восстановления и до production-релиза; не блокирует текущий локальный MVP, где надёжным каналом остаётся email.
+6. **Полноценное восстановление пароля через Telegram** (реализовано; ожидается финальный ручной smoke-test)
+   - [x] Webhook сохраняет нормализованный public username только вместе с подтверждённым chat ID, а recovery по `@username` создаёт одноразовый hashed token и отправляет reset URL Bot API исключительно в активный подтверждённый chat.
+   - [x] Используются нейтральные ответы против user enumeration, локальный rate limit, обработка отсутствующего username и Jest-тесты webhook/Bot API.
+   - [x] В production применена migration, развёрнут app, настроен `setWebhook` и проверена привязка из Dashboard.
+   - [ ] Последний acceptance-step: запросить reset по привязанному `@username`, открыть ссылку из private chat, сменить пароль и войти. До этого момента актуальный checklist находится в [050-telegram-and-account.md](./backlog/050-telegram-and-account.md).
 
 7. **Прочие задачи‑3 — cloud deployment** (Northflank + Supabase demo выполнено)
    - [x] Развёрнут публичный функциональный demo `convertly-hub.bon.kharkov.ua`: Northflank public Next.js app, private Gotenberg, Supabase PostgreSQL и private S3-compatible Storage. Настроены DNS, TLS, SMTP, controlled Prisma migration job и smoke-tests.
@@ -149,7 +150,7 @@ PowerShell API-сценарий вынесен в
     - [x] Реализовать серверную RBAC-проверку: `USER` и `ADMIN` имеют доступ к Dashboard, а `/management` — только `ADMIN`.
     - [x] Добавить безопасный процесс назначения первого администратора и аудита последующих изменений роли.
     - [x] Реализовать привязку Telegram через одноразовый токен, верификацию webhook и подтверждение `telegramId` в профиле.
-    - [ ] Полноценное восстановление пароля через Telegram (см. приоритетный обзор): сохранять публичный username при привязке, отправлять одноразовую ссылку через Bot API в подтверждённый chat и покрыть поток rate-limit/integration-тестами.
+    - [x] Реализовать восстановление пароля через Telegram: сохранять public username при привязке, отправлять одноразовую ссылку через Bot API в подтверждённый chat и покрыть webhook/Bot API flow тестами. Финальный ручной reset по `@username` отслеживается в [активном Telegram checklist](./backlog/050-telegram-and-account.md).
 4.  **API для конвертации (`POST /api/v1/convert`):** (выполнено)
     - [x] Создать основной маршрут для приёма `multipart/form-data` запросов.
     - [x] Реализовать аутентификацию по Bearer токену (API-ключ).

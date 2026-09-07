@@ -4,7 +4,15 @@ import { useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
 import { toast } from '@/lib/hooks/use-toast';
 
-export function TelegramLinkButton({ label = 'Connect Telegram' }: { label?: string }) {
+type TelegramLinkButtonProps = {
+  label?: string;
+  onLinkStarted?: () => void;
+};
+
+export function TelegramLinkButton({
+  label = 'Connect Telegram',
+  onLinkStarted,
+}: TelegramLinkButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   function handleLinkTelegram() {
@@ -18,6 +26,7 @@ export function TelegramLinkButton({ label = 'Connect Telegram' }: { label?: str
       }
 
       window.open(payload.deepLink, '_blank', 'noopener,noreferrer');
+      onLinkStarted?.();
     });
   }
 
@@ -26,7 +35,7 @@ export function TelegramLinkButton({ label = 'Connect Telegram' }: { label?: str
       variant="secondary"
       onClick={handleLinkTelegram}
       disabled={isPending}
-      className="w-full md:w-[150px] whitespace-nowrap"
+      className="w-full whitespace-nowrap sm:w-auto"
     >
       {isPending ? 'Preparing...' : label}
     </Button>

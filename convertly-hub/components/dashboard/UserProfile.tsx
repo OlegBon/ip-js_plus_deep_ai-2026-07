@@ -23,6 +23,10 @@ type DeletionRequest = {
   failureReason: string | null;
 };
 type DeletionRequestResponse = { request: DeletionRequest | null; accountDeleted: boolean } | null;
+type TelegramLinkWatch = {
+  telegramId: string | null;
+  telegramUsername: string | null;
+};
 
 async function fetchDeletionRequest(signal?: AbortSignal): Promise<DeletionRequestResponse> {
   const response = await fetch('/api/account/deletion-request', { signal, cache: 'no-store' });
@@ -51,6 +55,7 @@ export default function UserProfile() {
     [edit, setEdit] = useState(false),
     [remove, setRemove] = useState(false),
     [deletionRequest, setDeletionRequest] = useState<DeletionRequest | null>(null),
+    [telegramLinkWatch, setTelegramLinkWatch] = useState<TelegramLinkWatch | null>(null),
     [sending, startSending] = useTransition();
   const refreshDeletionRequest = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -67,6 +72,12 @@ export default function UserProfile() {
   async function refresh() {
     const r = await fetch('/api/account/profile');
     if (r.ok) setProfile((await r.json()) as Profile);
+  }
+  function startTelegramLinkWatch() {
+    setTelegramLinkWatch({
+      telegramId: profile?.telegramId ?? null,
+      telegramUsername: profile?.telegramUsername ?? null,
+    });
   }
   useEffect(() => {
     const controller = new AbortController();
@@ -88,6 +99,37 @@ export default function UserProfile() {
     const timer = window.setInterval(() => void refreshDeletionRequest(), 30_000);
     return () => window.clearInterval(timer);
   }, [deletionRequest?.status, refreshDeletionRequest]);
+  useEffect(() => {
+    if (!telegramLinkWatch) return;
+
+    let active = true;
+    const refreshTelegramLink = async () => {
+      try {
+        const response = await fetch('/api/account/profile', { cache: 'no-store' });
+        if (!response.ok || !active) return;
+        const updatedProfile = (await response.json()) as Profile;
+        setProfile(updatedProfile);
+        const accountChanged =
+          updatedProfile.telegramId !== telegramLinkWatch.telegramId ||
+          updatedProfile.telegramUsername !== telegramLinkWatch.telegramUsername;
+        if (updatedProfile.telegramId && accountChanged) {
+          setTelegramLinkWatch(null);
+          toast.success('Telegram account connected.');
+        }
+      } catch {
+        // A temporary polling failure should not affect the profile currently on screen.
+      }
+    };
+
+    void refreshTelegramLink();
+    const timer = window.setInterval(() => void refreshTelegramLink(), 5_000);
+    const timeout = window.setTimeout(() => setTelegramLinkWatch(null), 2 * 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.clearTimeout(timeout);
+    };
+  }, [telegramLinkWatch]);
   function verify() {
     startSending(async () => {
       const r = await fetch('/api/account/email-verification', { method: 'POST' });
@@ -171,19 +213,24 @@ export default function UserProfile() {
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <p className="text-lg font-semibold">Telegram Account</p>
-            <p className="text-sm text-gray-500">
-              {profile.telegramId
-                ? profile.telegramUsername
-                  ? `Connected as @${profile.telegramUsername}`
-                  : 'Connected Telegram account'
-                : 'Not connected.'}
-            </p>
-            {profile.telegramId && <Badge ok={profile.telegramVerified} />}
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+              <p>
+                {profile.telegramId
+                  ? profile.telegramUsername
+                    ? `Connected as @${profile.telegramUsername}`
+                    : 'Connected Telegram account'
+                  : 'Not connected.'}
+              </p>
+              {profile.telegramId && <Badge ok={profile.telegramVerified} />}
+            </div>
+            {telegramLinkWatch && (
+              <p className="mt-1 text-sm text-gray-500">Waiting for confirmation in Telegram…</p>
+            )}
           </div>
           {profile.telegramId && !profile.telegramVerified ? (
-            <TelegramLinkButton label="Confirm Telegram" />
+            <TelegramLinkButton label="Confirm Telegram" onLinkStarted={startTelegramLinkWatch} />
           ) : !profile.telegramId ? (
-            <TelegramLinkButton />
+            <TelegramLinkButton onLinkStarted={startTelegramLinkWatch} />
           ) : null}
         </div>
         <div className="border-t" />
@@ -252,8 +299,11 @@ export default function UserProfile() {
         name={profile.name ?? ''}
         email={profile.email}
         telegramConnected={Boolean(profile.telegramId)}
+        telegramUsername={profile.telegramUsername}
+        telegramLinkInProgress={Boolean(telegramLinkWatch)}
         onClose={() => setEdit(false)}
         onProfileUpdated={refresh}
+        onTelegramLinkStarted={startTelegramLinkWatch}
       />
       <ConfirmationModal
         isOpen={remove}
