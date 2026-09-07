@@ -8,7 +8,7 @@ import type { SubscriptionPlan } from '@prisma/client';
 export type ConversionPrincipal = {
   userId: string;
   storeConversions: boolean;
-  plan?: SubscriptionPlan;
+  plan: SubscriptionPlan;
   apiKeyId?: string;
 };
 
@@ -41,23 +41,22 @@ export async function authenticateApiKey(
         select: {
           status: true,
           storeConversions: true,
-          plan: true,
           subscription: { select: { activePlan: true } },
         },
       },
     },
   });
 
-  if (!apiKey || apiKey.revokedAt || apiKey.user.status !== 'ACTIVE') return null;
+  if (!apiKey || apiKey.revokedAt || apiKey.user.status !== 'ACTIVE' || !apiKey.user.subscription) return null;
 
   return {
     apiKeyId: apiKey.id,
     userId: apiKey.userId,
     storeConversions: effectiveStoreConversions(
-      apiKey.user.subscription?.activePlan ?? apiKey.user.plan,
+      apiKey.user.subscription.activePlan,
       apiKey.user.storeConversions,
     ),
-    plan: apiKey.user.subscription?.activePlan ?? apiKey.user.plan,
+    plan: apiKey.user.subscription.activePlan,
   };
 }
 
@@ -70,14 +69,13 @@ export async function getSessionConversionPrincipal(
       id: true,
       status: true,
       storeConversions: true,
-      plan: true,
       subscription: { select: { activePlan: true } },
     },
   });
 
-  if (!user || user.status !== 'ACTIVE') return null;
+  if (!user || user.status !== 'ACTIVE' || !user.subscription) return null;
 
-  const plan = user.subscription?.activePlan ?? user.plan;
+  const plan = user.subscription.activePlan;
   return {
     userId: user.id,
     plan,
@@ -89,7 +87,7 @@ export async function createConversionRequest(
   principal: ConversionPrincipal,
   input: CreateConversionInput,
 ) {
-  const plan = getPlanDefinition(principal.plan ?? 'FREE');
+  const plan = getPlanDefinition(principal.plan);
   const validation = validateConversionRequest(input, plan.maxFileSizeBytes);
   if ('error' in validation) return validation;
 

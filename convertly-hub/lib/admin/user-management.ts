@@ -42,14 +42,20 @@ export async function listAdminUsers(
         ],
       }
     : undefined;
+  const orderBy = options.sort === 'plan'
+    ? [
+        { subscription: { activePlan: options.direction as Prisma.SortOrder } },
+        { id: options.direction as Prisma.SortOrder },
+      ]
+    : [
+        { [options.sort]: options.direction as Prisma.SortOrder },
+        { id: options.direction as Prisma.SortOrder },
+      ];
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
       select: adminUserSelect,
-      orderBy: [
-        { [options.sort]: options.direction as Prisma.SortOrder },
-        { id: options.direction as Prisma.SortOrder },
-      ],
+      orderBy,
       take: options.limit + 1,
       ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
     }),
@@ -59,10 +65,10 @@ export async function listAdminUsers(
   const hasNextPage = users.length > options.limit;
   const page = hasNextPage ? users.slice(0, options.limit) : users;
   return {
-    users: page.map(({ subscription, ...user }) => ({
-      ...user,
-      plan: subscription?.activePlan ?? user.plan,
-    })),
+    users: page.map(({ subscription, ...user }) => {
+      if (!subscription) throw new Error('User is missing a subscription.');
+      return { ...user, plan: subscription.activePlan };
+    }),
     nextCursor: hasNextPage ? (page.at(-1)?.id ?? null) : null,
     total,
   };
@@ -99,7 +105,6 @@ const adminUserSelect = {
   email: true,
   role: true,
   status: true,
-  plan: true,
   subscription: { select: { activePlan: true } },
   lastLoginAt: true,
   createdAt: true,

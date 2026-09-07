@@ -22,14 +22,13 @@ export async function getBillingOverview(userId: string): Promise<BillingOvervie
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
-      plan: true,
       storeConversions: true,
       subscription: { select: { activePlan: true, requestedPlan: true, status: true } },
     },
   });
-  if (!user) throw new BillingUserNotFoundError();
+  if (!user || !user.subscription) throw new BillingUserNotFoundError();
 
-  const activePlan = user.subscription?.activePlan ?? user.plan;
+  const activePlan = user.subscription.activePlan;
   const plan = getPlanDefinition(activePlan);
   const now = new Date();
   const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
@@ -45,8 +44,8 @@ export async function getBillingOverview(userId: string): Promise<BillingOvervie
 
   return {
     activePlan,
-    requestedPlan: user.subscription?.requestedPlan ?? null,
-    status: user.subscription?.status ?? "ACTIVE",
+    requestedPlan: user.subscription.requestedPlan,
+    status: user.subscription.status,
     usage: {
       conversions: { used: conversions, limit: plan.monthlyConversions },
       storageBytes: { used: storage._sum.resultSize ?? BigInt(0), limit: plan.storageBytes },
@@ -57,20 +56,17 @@ export async function getBillingOverview(userId: string): Promise<BillingOvervie
 
 export async function requestMockPlanChange(userId: string, input: unknown) {
   const details = parseMockCheckoutInput(input);
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true } });
-  if (!user) throw new BillingUserNotFoundError();
-
-  const subscription = await prisma.subscription.upsert({
+  const currentSubscription = await prisma.subscription.findUnique({
     where: { userId },
-    create: {
-      userId,
-      activePlan: user.plan,
-      requestedPlan: details.plan === user.plan ? null : details.plan,
-      status: details.plan === user.plan ? "ACTIVE" : "PENDING_DEMO",
-    },
-    update: {
-      requestedPlan: details.plan === user.plan ? null : details.plan,
-      status: details.plan === user.plan ? "ACTIVE" : "PENDING_DEMO",
+    select: { activePlan: true },
+  });
+  if (!currentSubscription) throw new BillingUserNotFoundError();
+
+  const subscription = await prisma.subscription.update({
+    where: { userId },
+    data: {
+      requestedPlan: details.plan === currentSubscription.activePlan ? null : details.plan,
+      status: details.plan === currentSubscription.activePlan ? "ACTIVE" : "PENDING_DEMO",
     },
     select: { activePlan: true, requestedPlan: true, status: true },
   });
@@ -81,10 +77,10 @@ export async function requestMockPlanChange(userId: string, input: unknown) {
 export async function getActivePlanForUser(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { plan: true, subscription: { select: { activePlan: true } } },
+    select: { subscription: { select: { activePlan: true } } },
   });
-  if (!user) throw new BillingUserNotFoundError();
-  return user.subscription?.activePlan ?? user.plan;
+  if (!user || !user.subscription) throw new BillingUserNotFoundError();
+  return user.subscription.activePlan;
 }
 
 export async function reserveStorageCapacity(userId: string, plan: SubscriptionPlan, conversionId: string, resultSize: bigint) {

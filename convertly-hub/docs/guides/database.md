@@ -32,14 +32,14 @@ erDiagram
   GuestConversionQuota }o--|| Visitor : "hashed browser token"
 ```
 
-| Модель                 | Смысл                                        | Важные поля                                                                                      |
-| ---------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `User`                 | аккаунт и security state                     | `email`, bcrypt `password`, `role`, `status`, `plan`, pending/verification/reset/Telegram fields |
-| `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                                      |
-| `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                                    |
-| `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation                |
-| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                            |
-| `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                                 |
+| Модель                 | Смысл                                        | Важные поля                                                                              |
+| ---------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `User`                 | аккаунт и security state                     | `email`, bcrypt `password`, `role`, `status`, pending/verification/reset/Telegram fields |
+| `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                              |
+| `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                            |
+| `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation        |
+| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                    |
+| `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                         |
 
 Файлы в PostgreSQL не хранятся: `ConversionLog` содержит metadata, а результат —
 в private S3/MinIO object, на который ссылается `storageKey`.
@@ -63,21 +63,18 @@ ApiKey.keyHash
 прочитать из Prisma Studio. `UserStatus.SUSPENDED` применяется в auth helpers,
 чтобы заблокированный пользователь не продолжал работу с ранее созданной сессией.
 
-## 4. Тарифы: почему есть `User.plan` и `Subscription.activePlan`
+## 4. Тарифы: единственный источник истины
 
-`User.plan` — историческое/совместимое поле, у нового пользователя `FREE`.
-`Subscription.activePlan` — канонический активный тариф, если subscription уже
-создан. Это выражено helper-ом:
+`Subscription.activePlan` — единственный активный тариф. Каждая регистрация
+создаёт subscription `FREE`; migration
+`20260907140000_subscription_plan_source_of_truth` создаёт их для legacy-пользователей
+и удаляет `User.plan`. Server-код не использует fallback к пользователю.
 
-```ts
-const activePlan = user.subscription?.activePlan ?? user.plan;
-```
-
-Такой fallback используется в [`lib/billing/subscriptions.ts`](../../lib/billing/subscriptions.ts)
-и должен применяться в новом server-коде. Не надо вручную менять только один из
-этих столбцов через Prisma Studio: mock checkout/update flow должен поддерживать
-согласованность. `requestedPlan` и `PENDING_DEMO` отражают выбранный в mock checkout
-тариф, который ещё не стал оплаченной подпиской.
+`requestedPlan` и `PENDING_DEMO` отражают выбранный в mock checkout тариф, который
+ещё не стал оплаченной подпиской. Для ручной demo-смены используйте ограниченный
+one-off `scripts/sync-user-plan.mjs`, а не Prisma Studio. Он меняет одну
+subscription в короткой transaction. Полный production-порядок и audit описаны в
+[subscription-plan-migration.md](../subscription-plan-migration.md).
 
 Free принудительно использует `storeConversions: true`; non-Free может изменять
 privacy preference. Плановые лимиты лежат не в базе, а в

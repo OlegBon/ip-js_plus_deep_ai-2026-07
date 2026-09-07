@@ -26,23 +26,23 @@
 | `password`               | `String`                | Обязательный хеш пароля; открытый пароль не хранится.                                                                                                                             |
 | `role`                   | `UserRole`              | Обязательное, по умолчанию `USER`.                                                                                                                                                |
 | `status`                 | `UserStatus`            | Обязательное, по умолчанию `ACTIVE`; индекс для административной фильтрации.                                                                                                      |
-| `plan`                   | `SubscriptionPlan`      | Обязательное, по умолчанию `FREE`.                                                                                                                                                |
 | `storeConversions`       | `Boolean`               | Обязательная настройка хранения результатов, по умолчанию `true`.                                                                                                                 |
 | auth и Telegram-поля     | `String?` / `DateTime?` | Хеши одноразовых токенов, сроки действия и даты подтверждения; `emailVerificationExpires` и `passwordResetExpires` дают email-ссылкам TTL 30 минут, хеши и Telegram ID уникальны. |
 | `apiKeys`, `conversions` | связи                   | Один пользователь имеет много API-ключей и записей конвертаций.                                                                                                                   |
-| `subscription`           | связь `Subscription?`   | One-to-one подписка; старые записи до миграции используют `plan` пользователя как fallback.                                                                                       |
+| `subscription`           | связь `Subscription?`   | One-to-one подписка; её `activePlan` — единственный источник активного тарифа.                                                                                                    |
 
 ### `Subscription`
 
 `id` — первичный UUID; `userId` — обязательный уникальный внешний ключ на `User` с каскадным удалением. `activePlan` обязателен и имеет default `FREE`; `requestedPlan` необязателен и хранит последнюю смену; `status`, `createdAt` и `updatedAt` обязательны. Mock Checkout не сохраняет поля формы или платёжные данные.
 
-До подключения настоящего payment provider ручная поддержка использует только
-one-off script `scripts/sync-user-plan.mjs`. Он в одной короткой Prisma
-transaction обновляет обязательный `User.plan` и `Subscription.activePlan`;
-если one-to-one `Subscription` по обязательному уникальному `userId` отсутствует,
-создаёт её. Скрипт также очищает `requestedPlan` и переводит `status` в `ACTIVE`,
-чтобы старый Mock Checkout не расходился с вручную назначенным доступом. Это
-операционный demo-инструмент, а не замена платёжному webhook.
+`Subscription.activePlan` — единственный источник активного тарифа. Migration
+`20260907140000_subscription_plan_source_of_truth` создаёт отсутствующие
+subscriptions из legacy-плана и затем удаляет `User.plan`; при расхождении
+побеждает уже существующий `Subscription.activePlan`. До подключения настоящего
+payment provider ручная поддержка использует one-off
+`scripts/sync-user-plan.mjs`: он меняет только subscription, очищает
+`requestedPlan` и переводит `status` в `ACTIVE`. Это операционный demo-инструмент,
+а не замена платёжному webhook.
 
 ### `GuestConversionQuota`
 

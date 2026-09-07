@@ -113,7 +113,7 @@ export async function POST(request: Request) {
 
   const validation = validateConversionRequest(
     { file, targetFormat },
-    getPlanDefinition(principal.plan ?? 'FREE').maxFileSizeBytes,
+    getPlanDefinition(principal.plan).maxFileSizeBytes,
   );
   if ('error' in validation) return conversionValidationError(validation.error);
 
@@ -168,7 +168,7 @@ export async function POST(request: Request) {
     targetFormat: validation.targetFormat,
     userId: principal.userId,
     storeResult: principal.storeConversions,
-    plan: principal.plan ?? 'FREE',
+    plan: principal.plan,
   };
 
   if (!principal.storeConversions) {

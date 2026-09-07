@@ -10,5 +10,7 @@ describe('migration Docker image', () => {
     );
     expect(dockerfile).toContain('COPY scripts/plan-sync-core.cjs ./scripts/plan-sync-core.cjs');
     expect(dockerfile).toContain('COPY scripts/sync-user-plan.mjs ./scripts/sync-user-plan.mjs');
+    expect(dockerfile).toContain('COPY scripts/audit-subscription-plans.mjs ./scripts/audit-subscription-plans.mjs');
+    expect(dockerfile).toContain('apt-get install -y --no-install-recommends openssl');
   });
 });

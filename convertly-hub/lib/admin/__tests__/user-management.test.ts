@@ -26,11 +26,10 @@ describe('admin user management service', () => {
       {
         id: 'user-3',
         email: 'third@example.com',
-        plan: 'FREE',
         subscription: { activePlan: 'PRO' },
       },
-      { id: 'user-2', email: 'second@example.com', plan: 'FREE', subscription: null },
-      { id: 'user-1', email: 'first@example.com', plan: 'FREE', subscription: null },
+      { id: 'user-2', email: 'second@example.com', subscription: { activePlan: 'FREE' } },
+      { id: 'user-1', email: 'first@example.com', subscription: { activePlan: 'FREE' } },
     ] as never);
     mockedPrisma.user.count.mockResolvedValue(3);
 
