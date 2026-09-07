@@ -1,6 +1,6 @@
 # 🛡️ Convertly Hub
 
-Operational account removal is documented in [Account deletion workflow](./docs/account-deletion-workflow.md).
+Рабочий процесс удаления аккаунта описан в [документации по удалению аккаунта](./docs/account-deletion-workflow.md).
 
 > Современный SaaS-сервис для конвертации документов и файлов с предоставлением публичного API. Разработан в рамках задания на курсе "Javascript + deep AI" (Ivan Petrychenko, 2026-07) для демонстрации навыков Full Stack разработки и системной архитектуры.
 

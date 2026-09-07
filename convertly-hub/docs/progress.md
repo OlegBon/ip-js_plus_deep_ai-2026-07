@@ -7,6 +7,7 @@
 - **Результат:** Пользователь создаёт защищённый от дублей request; активный admin видит запрос, подтверждает отдельной модалкой и не может подтвердить своё удаление. Сервер сначала удаляет все известные S3 conversion objects, затем User и каскадные записи. `AccountDeletionRequest` и append-only events сохраняются после удаления пользователя с `userId = NULL`; при сбое request становится `FAILED` и безопасно повторяется. Support mailbox получает уведомления о создании, успехе или сбое, но SMTP не меняет состояние удаления.
 - **Проверки:** Prisma validate/generate, TypeScript, ESLint, Jest, Playwright и real integration/E2E выполняются перед merge. Перед production migration — логический Supabase backup, migration job, затем app deployment и ручная проверка двумя разными аккаунтами.
 - **Новые переменные окружения:** `SUPPORT_EMAIL` (server-only, non-secret) — адрес мониторируемого support mailbox; в Northflank добавить в `convertly-app-runtime`.
+- **Документация:** новый runbook `docs/account-deletion-workflow.md` и ссылка на него в `README.md` приведены к русскому языку; англоязычными остаются только технические идентификаторы, имена UI-разделов и статусы БД.
 
 - **Задача:** Сделать `Subscription.activePlan` единственным источником истины тарифа и добавить OpenSSL в Prisma migration image.
 - **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907140000_subscription_plan_source_of_truth`, billing/API/admin services, one-off plan sync, audit script, `Dockerfile`, integration/Jest tests, `docs/subscription-plan-migration.md` и связанные guides.
