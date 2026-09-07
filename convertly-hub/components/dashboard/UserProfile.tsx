@@ -14,6 +14,12 @@ type Profile = {
   telegramId: string | null;
   telegramVerified: boolean;
 };
+type DeletionRequest = {
+  id: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  requestedAt: string;
+  failureReason: string | null;
+};
 function Badge({ ok }: { ok: boolean }) {
   return (
     <span
@@ -31,6 +37,7 @@ export default function UserProfile() {
   const [profile, setProfile] = useState<Profile | null>(null),
     [edit, setEdit] = useState(false),
     [remove, setRemove] = useState(false),
+    [deletionRequest, setDeletionRequest] = useState<DeletionRequest | null>(null),
     [sending, startSending] = useTransition();
   async function refresh() {
     const r = await fetch('/api/account/profile');
@@ -38,10 +45,17 @@ export default function UserProfile() {
   }
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/account/profile', { signal: controller.signal })
+    const profileRequest = fetch('/api/account/profile', { signal: controller.signal })
       .then(async (response) => (response.ok ? response.json() : null))
       .then((result: Profile | null) => setProfile(result))
       .catch(() => setProfile(null));
+    const deletionRequest = fetch('/api/account/deletion-request', { signal: controller.signal })
+      .then(async (response) => (response.ok ? response.json() : null))
+      .then((result: { request: DeletionRequest | null } | null) =>
+        setDeletionRequest(result?.request ?? null),
+      )
+      .catch(() => setDeletionRequest(null));
+    void Promise.all([profileRequest, deletionRequest]);
     return () => controller.abort();
   }, []);
   function verify() {
@@ -50,6 +64,27 @@ export default function UserProfile() {
       const p = (await r.json()) as { error?: string; message?: string };
       if (r.ok) toast.success(p.message ?? 'Verification email sent.');
       else toast.error(p.error ?? 'Unable to send verification email.');
+    });
+  }
+  function submitDeletionRequest() {
+    startSending(async () => {
+      const response = await fetch('/api/account/deletion-request', { method: 'POST' });
+      const payload = (await response.json()) as {
+        request?: DeletionRequest;
+        alreadyRequested?: boolean;
+        error?: string;
+      };
+      if (!response.ok || !payload.request) {
+        toast.error(payload.error ?? 'Unable to submit the deletion request.');
+        return;
+      }
+      setDeletionRequest(payload.request);
+      setRemove(false);
+      toast.success(
+        payload.alreadyRequested
+          ? 'Your deletion request is already awaiting an administrator.'
+          : 'Deletion request submitted to the administrator.',
+      );
     });
   }
   if (!profile) return <div className="rounded-lg bg-white p-6 shadow-md">Loading profile…</div>;
@@ -72,7 +107,12 @@ export default function UserProfile() {
           </div>
           <div className="flex gap-2">
             {needsEmailConfirmation && (
-              <Button variant="secondary" onClick={verify} disabled={sending} className="w-full whitespace-nowrap md:w-[150px]">
+              <Button
+                variant="secondary"
+                onClick={verify}
+                disabled={sending}
+                className="w-full whitespace-nowrap md:w-[150px]"
+              >
                 {sending
                   ? 'Sending…'
                   : profile.pendingEmail
@@ -80,7 +120,9 @@ export default function UserProfile() {
                     : 'Confirm email'}
               </Button>
             )}
-            <Button onClick={() => setEdit(true)} className="w-full md:w-[150px]">Edit</Button>
+            <Button onClick={() => setEdit(true)} className="w-full md:w-[150px]">
+              Edit
+            </Button>
           </div>
         </div>
         <div className="border-t" />
@@ -116,11 +158,29 @@ export default function UserProfile() {
           <div>
             <p className="text-lg font-semibold">Delete Account</p>
             <p className="text-sm text-gray-500">
-              Note: Account deletion will be handled by an administrator.
+              {deletionRequest?.status === 'PENDING'
+                ? 'Your request is awaiting an administrator.'
+                : deletionRequest?.status === 'PROCESSING'
+                  ? 'Your deletion request is being processed.'
+                  : deletionRequest?.status === 'FAILED'
+                    ? 'The request needs another administrator review. You can submit it again.'
+                    : 'An administrator will review and confirm account deletion.'}
             </p>
+            {deletionRequest?.status === 'FAILED' && deletionRequest.failureReason && (
+              <p className="mt-1 text-sm text-red-700">{deletionRequest.failureReason}</p>
+            )}
           </div>
-          <Button variant="secondary" onClick={() => setRemove(true)} className="w-full md:w-[150px]">
-            Delete Account
+          <Button
+            variant="secondary"
+            onClick={() => setRemove(true)}
+            disabled={
+              sending ||
+              deletionRequest?.status === 'PENDING' ||
+              deletionRequest?.status === 'PROCESSING'
+            }
+            className="w-full md:w-[150px]"
+          >
+            {deletionRequest?.status === 'FAILED' ? 'Request again' : 'Delete Account'}
           </Button>
         </div>
       </div>
@@ -136,12 +196,11 @@ export default function UserProfile() {
       <ConfirmationModal
         isOpen={remove}
         onClose={() => setRemove(false)}
-        onConfirm={() => {
-          setRemove(false);
-          toast.success('Contact an administrator to request account deletion.');
-        }}
+        onConfirm={submitDeletionRequest}
         title="Delete Account"
-        message="Account deletion is handled by an administrator."
+        message="This sends a deletion request to an administrator. Your account and stored files remain available until the request is approved."
+        confirmLabel="Request deletion"
+        isPending={sending}
       />
     </>
   );

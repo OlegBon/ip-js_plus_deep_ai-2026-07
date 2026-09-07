@@ -294,6 +294,15 @@ NEXTAUTH_URL=https://<generated-northflank-domain>
 
 и перезапустите зависимый service после сохранения group.
 
+Для workflow удаления аккаунта также добавьте в эту же group не-секретное значение:
+
+```dotenv
+SUPPORT_EMAIL=support@bon.kharkov.ua
+```
+
+Оно используется только как destination операционных уведомлений о запросе, успехе или сбое
+удаления; SMTP credentials по-прежнему остаются secret variables.
+
 **Контроль build:** в логах должны быть найдены `convertly-hub/package.json`,
 `prisma` и `next build`. Ошибка `package.json not found` почти всегда означает
 неверный build context. Не меняйте Dockerfile, пока не перепроверены оба пути из
