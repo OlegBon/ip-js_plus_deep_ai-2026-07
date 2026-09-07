@@ -2,10 +2,19 @@
 
 # 2026-09-07
 
+- **Задача:** Удалить legacy-схему отменённой Guest support code feature.
+- **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907130000_remove_guest_support_code`, `docs/db-schema.md`, `docs/guides/database.md`, `docs/progress.md`.
+- **Результат:** Новая Prisma migration сначала удаляет unique index `GuestConversionQuota_supportCodeHash_key`, затем nullable-колонку `supportCodeHash`. Применённая migration добавления не редактируется.
+- **Проверки:** Prisma validate/generate, lint, TypeScript, Jest и migration SQL review выполняются до merge. Production migration запускается только после backup Supabase.
+- **Новые переменные окружения:** нет.
+
+# 2026-09-07
+
 - **Задача:** Отменить Guest support code и ограниченный reset job.
 - **Изменённые файлы:** guest UI/API, reset scripts, конфигурация, тесты и документация.
 - **Результат:** Функция удалена из приложения обратимыми Git revert-изменениями. Уже применённые migration `20260904130000_guest_support_code`, nullable поле `supportCodeHash` и его индекс намеренно сохранены как legacy-состояние до отдельной задачи по очистке БД.
 - **Проверки:** lint, TypeScript, Jest и Playwright выполняются перед merge.
+- **Новые переменные окружения:** нет.
 
 # 2026-09-04
 

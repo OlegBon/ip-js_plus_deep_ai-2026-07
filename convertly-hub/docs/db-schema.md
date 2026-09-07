@@ -52,12 +52,6 @@ transaction обновляет обязательный `User.plan` и `Subscrip
 Составной unique index `[visitorHash, periodStart]` гарантирует одну квоту на
 браузер и календарный месяц.
 
-`supportCodeHash` — временное nullable legacy-поле и unique index от отменённой
-функции Guest support code. Текущий код приложения его не читает и не записывает.
-Оно оставлено в Prisma schema и уже применённой migration, чтобы production,
-локальные и новые базы не расходились; будет удалено отдельной задачей по очистке
-схемы БД.
-
 ### `ApiKey`
 
 Ключ публичного API. Секрет ключа хранится только в виде `keyHash`; `keyPrefix` предназначен для безопасного отображения в UI.
