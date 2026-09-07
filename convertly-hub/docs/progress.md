@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Подробно декомпозировать следующие product/backend задачи: Telegram password recovery и admin conversion history.
+- **Изменённые файлы:** `docs/backlog/README.md`, `docs/backlog/020-conversion-capabilities.md`, `docs/backlog/050-telegram-and-account.md`, новый `docs/backlog/060-admin-conversion-history.md`, `docs/progress.md`.
+- **Результат:** Telegram backlog теперь описывает текущую привязку, подготовку bot token/username/webhook secret, настройку webhook и безопасный recovery flow. Conversion history вынесена из общего work plan в самостоятельную задачу с UI, API, S3 cleanup, audit и тестовыми критериями.
+- **Проверки:** Требования сверены с существующими Telegram link/webhook route, `User` schema, `ConversionLog`, Dashboard history и System Monitoring.
+- **Новые переменные окружения:** сейчас нет; будущая Telegram-задача использует уже существующие `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`.
+
 - **Задача:** Актуализировать статусы выполненных deployment-задач в историческом `work_plan.md`.
 - **Изменённые файлы:** `docs/work_plan.md`, `docs/progress.md`.
 - **Результат:** Northflank + Supabase public demo явно отмечен выполненным, а Oracle, backup/restore, monitoring, CD и multi-instance rate limit сохранены как отдельные незавершённые инфраструктурные направления со ссылкой на тематический backlog. Выполненные задачи больше не выглядят как ожидающие запуска.
