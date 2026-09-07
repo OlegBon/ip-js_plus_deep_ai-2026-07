@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Реализовать управляемое удаление аккаунта через запрос пользователя и подтверждение администратора.
+- **Изменённые файлы:** Prisma schema и migration `20260907150000_account_deletion_workflow`, account-deletion service, authenticated account/admin API routes, Profile и Admin Panel UI, SMTP notifications, `.env*.example`, `docs/account-deletion-workflow.md`, `docs/db-schema.md`, Northflank guide и `README.md`.
+- **Результат:** Пользователь создаёт защищённый от дублей request; активный admin видит запрос, подтверждает отдельной модалкой и не может подтвердить своё удаление. Сервер сначала удаляет все известные S3 conversion objects, затем User и каскадные записи. `AccountDeletionRequest` и append-only events сохраняются после удаления пользователя с `userId = NULL`; при сбое request становится `FAILED` и безопасно повторяется. Support mailbox получает уведомления о создании, успехе или сбое, но SMTP не меняет состояние удаления.
+- **Проверки:** Prisma validate/generate, TypeScript, ESLint, Jest, Playwright и real integration/E2E выполняются перед merge. Перед production migration — логический Supabase backup, migration job, затем app deployment и ручная проверка двумя разными аккаунтами.
+- **Новые переменные окружения:** `SUPPORT_EMAIL` (server-only, non-secret) — адрес мониторируемого support mailbox; в Northflank добавить в `convertly-app-runtime`.
+
 - **Задача:** Сделать `Subscription.activePlan` единственным источником истины тарифа и добавить OpenSSL в Prisma migration image.
 - **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907140000_subscription_plan_source_of_truth`, billing/API/admin services, one-off plan sync, audit script, `Dockerfile`, integration/Jest tests, `docs/subscription-plan-migration.md` и связанные guides.
 - **Результат:** Migration создаёт Subscription отсутствующим пользователям из legacy `User.plan`, сохраняет уже существующий `Subscription.activePlan` при расхождении и удаляет legacy-колонку. Регистрация, quota/API checks, Admin и one-off plan sync читают/меняют только Subscription. В migration target добавлен `openssl`, что устраняет Prisma warning в Northflank job.

@@ -35,6 +35,20 @@ enum ConversionStatus {
   FAILED
 }
 
+enum AccountDeletionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AccountDeletionEventType {
+  REQUESTED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id       String           @id @default(uuid())
   email    String           @unique
@@ -62,8 +76,40 @@ model User {
   apiKeys      ApiKey[]
   conversions  ConversionLog[]
   subscription Subscription?
+  deletionRequest AccountDeletionRequest?
 
   @@index([status])
+}
+
+model AccountDeletionRequest {
+  id                  String                @id @default(uuid())
+  userId              String?               @unique
+  userEmail           String
+  status              AccountDeletionStatus @default(PENDING)
+  requestedAt         DateTime              @default(now()) @db.Timestamptz(3)
+  processingStartedAt DateTime?             @db.Timestamptz(3)
+  completedAt         DateTime?             @db.Timestamptz(3)
+  failureReason       String?
+  processedByUserId   String?
+  processedByEmail    String?
+
+  user   User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  events AccountDeletionEvent[]
+
+  @@index([status, requestedAt])
+}
+
+model AccountDeletionEvent {
+  id          String                   @id @default(uuid())
+  requestId   String
+  type        AccountDeletionEventType
+  actorUserId String?
+  actorEmail  String?
+  createdAt   DateTime                 @default(now()) @db.Timestamptz(3)
+
+  request AccountDeletionRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
 }
 
 model GuestConversionQuota {

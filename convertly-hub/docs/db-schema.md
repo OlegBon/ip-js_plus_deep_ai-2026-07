@@ -4,13 +4,15 @@
 
 ## Перечисления
 
-| Перечисление         | Значения                                       | Назначение                                                 |
-| -------------------- | ---------------------------------------------- | ---------------------------------------------------------- |
-| `UserRole`           | `USER`, `ADMIN`                                | Доступ к пользовательским и административным действиям.    |
-| `UserStatus`         | `ACTIVE`, `SUSPENDED`                          | Блокировка учётной записи без её удаления.                 |
-| `SubscriptionPlan`   | `FREE`, `BASIC`, `PRO`, `ENTERPRISE`           | Активный либо ожидающий тариф.                             |
-| `SubscriptionStatus` | `ACTIVE`, `PENDING_DEMO`                       | Активная подписка либо единственная ожидающая demo-заявка. |
-| `ConversionStatus`   | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED` | Состояние обработки файла.                                 |
+| Перечисление               | Значения                                         | Назначение                                                 |
+| -------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
+| `UserRole`                 | `USER`, `ADMIN`                                  | Доступ к пользовательским и административным действиям.    |
+| `UserStatus`               | `ACTIVE`, `SUSPENDED`                            | Блокировка учётной записи без её удаления.                 |
+| `SubscriptionPlan`         | `FREE`, `BASIC`, `PRO`, `ENTERPRISE`             | Активный либо ожидающий тариф.                             |
+| `SubscriptionStatus`       | `ACTIVE`, `PENDING_DEMO`                         | Активная подписка либо единственная ожидающая demo-заявка. |
+| `ConversionStatus`         | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`   | Состояние обработки файла.                                 |
+| `AccountDeletionStatus`    | `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`   | Состояние пользовательского запроса на удаление аккаунта.  |
+| `AccountDeletionEventType` | `REQUESTED`, `PROCESSING`, `COMPLETED`, `FAILED` | Тип неизменяемого события audit trail удаления.            |
 
 ## Модели
 
@@ -51,6 +53,20 @@ payment provider ручная поддержка использует one-off
 — UUID `id`. `visitorHash` — SHA-256 от HttpOnly visitor-cookie, а не сам cookie.
 Составной unique index `[visitorHash, periodStart]` гарантирует одну квоту на
 браузер и календарный месяц.
+
+### `AccountDeletionRequest` и `AccountDeletionEvent`
+
+`AccountDeletionRequest` создаётся только аутентифицированным активным пользователем и содержит
+snapshot `userEmail`, текущий `status`, моменты запроса/обработки/завершения, безопасную причину
+ошибки и snapshot администратора-обработчика. Nullable уникальный `userId` допускает один
+активный request на пользователя и использует `ON DELETE SET NULL`: после удаления `User` запись
+запроса остаётся для операционного аудита, но более не ссылается на удалённый аккаунт.
+
+`AccountDeletionEvent` — append-only события request с типом, временем и snapshot actor email.
+Связь с request каскадная. Индексы `[status, requestedAt]` и `[requestId, createdAt]` поддерживают
+очередь Admin Panel и просмотр audit trail. Миграция
+`20260907150000_account_deletion_workflow` создаёт обе модели. Полный порядок обработки и меры
+безопасности описаны в [account-deletion-workflow.md](./account-deletion-workflow.md).
 
 ### `ApiKey`
 
