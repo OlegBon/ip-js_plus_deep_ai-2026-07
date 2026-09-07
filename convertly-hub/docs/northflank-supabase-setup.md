@@ -212,7 +212,11 @@ HTTP или URL Supabase. До создания public app service его genera
 ещё неизвестен — добавьте эту переменную сразу после создания service. После DNS
 замените её на `https://convertly-hub.bon.kharkov.ua`.
 
-Не добавляйте `TELEGRAM_*`: Telegram ещё не является prerequisite этого demo.
+Для Telegram password recovery добавьте `TELEGRAM_BOT_TOKEN`,
+`TELEGRAM_BOT_USERNAME` и `TELEGRAM_WEBHOOK_SECRET` только в
+`convertly-app-runtime`, перед deploy приложения. После deploy настройте Bot API
+webhook на `https://convertly-hub.bon.kharkov.ua/api/telegram/webhook` с тем же
+secret token. Не добавляйте эти переменные в migration job.
 
 ### 5.2. `convertly-migration-runtime`
 

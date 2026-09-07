@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Реализовать восстановление пароля через подтверждённый Telegram chat.
+- **Изменённые файлы:** Prisma schema и migration `20260907170000_telegram_password_recovery`, `lib/telegram/bot.ts`, Telegram linking/webhook, recovery route/UI, Profile, Jest tests и актуальная документация.
+- **Результат:** Webhook сохраняет нормализованный public Telegram username только при подтверждённой привязке. Password reset принимает email или `@username`, всегда отвечает нейтрально и отправляет одноразовую 30-минутную ссылку Bot API исключительно в active user с подтверждённым chat ID. Username не служит доказательством владения; token, reset URL, chat ID и bot token не логируются.
+- **Проверки:** Prisma validate/generate, TypeScript, ESLint, Jest (51 suites / 155 tests), Playwright (5/5) и изолированный Docker integration migration preflight выполнены. Полный Telegram delivery требует production migration, app deployment, `setWebhook` и ручного smoke-test с личным test chat.
+- **Новые переменные окружения:** нет; используются уже подготовленные server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
+
 - **Задача:** Подробно декомпозировать следующие product/backend задачи: Telegram password recovery и admin conversion history.
 - **Изменённые файлы:** `docs/backlog/README.md`, `docs/backlog/020-conversion-capabilities.md`, `docs/backlog/050-telegram-and-account.md`, новый `docs/backlog/060-admin-conversion-history.md`, `docs/progress.md`.
 - **Результат:** Telegram backlog теперь описывает текущую привязку, подготовку bot token/username/webhook secret, настройку webhook и безопасный recovery flow. Conversion history вынесена из общего work plan в самостоятельную задачу с UI, API, S3 cleanup, audit и тестовыми критериями.

@@ -2,15 +2,17 @@
 
 ## Статус
 
-В MVP уже есть безопасная **привязка Telegram**: авторизованный пользователь
+Код Telegram password recovery подготовлен migration
+`20260907170000_telegram_password_recovery`; задача будет завершена после
+production migration, app deploy, настройки webhook и ручного smoke-test. В MVP есть безопасная **привязка Telegram**: авторизованный пользователь
 получает одноразовый deep link, открывает бота и отправляет `/start link_<token>`.
 Webhook проверяет отдельный secret header, привязывает `telegramId` (chat ID)
 однократно и сохраняет время подтверждения. Этот механизм не является
 восстановлением пароля: сейчас reset доступен только через email.
 
-## Цель следующей задачи
+## Реализованный recovery flow
 
-Добавить Telegram password recovery только для аккаунта с уже подтверждённой
+Telegram password recovery доступен только для аккаунта с уже подтверждённой
 привязкой. Пользователь начинает recovery обычной формой, получает нейтральный
 ответ независимо от существования аккаунта, а бот отправляет одноразовую
 ссылку в **уже подтверждённый chat**. Ссылка использует текущую модель
@@ -44,33 +46,14 @@ Webhook проверяет отдельный secret header, привязыва�
 
 ### Переменные окружения
 
-| Переменная | Где хранить | Назначение |
-| --- | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Только `convertly-app-runtime` secret group | Вызов Bot API и настройка webhook. |
-| `TELEGRAM_BOT_USERNAME` | `convertly-app-runtime`; не секрет | Deep link к боту без `@`. |
-| `TELEGRAM_WEBHOOK_SECRET` | Только `convertly-app-runtime` secret group | Проверка webhook header. |
+| Переменная                | Где хранить                                 | Назначение                         |
+| ------------------------- | ------------------------------------------- | ---------------------------------- |
+| `TELEGRAM_BOT_TOKEN`      | Только `convertly-app-runtime` secret group | Вызов Bot API и настройка webhook. |
+| `TELEGRAM_BOT_USERNAME`   | `convertly-app-runtime`; не секрет          | Deep link к боту без `@`.          |
+| `TELEGRAM_WEBHOOK_SECRET` | Только `convertly-app-runtime` secret group | Проверка webhook header.           |
 
 Не добавляйте эти значения в `convertly-migrate`: migration job не работает с
 Telegram и не должен получать лишние secrets.
-
-## План реализации
-
-1. Расширить `User` nullable полем нормализованного публичного username и
-   создать Prisma migration. Username сохранять только из webhook update, а не
-   из браузерного ввода.
-2. Вынести минимальный Bot API client: timeout, безопасная категоризация
-   network/API ошибок и запрет логирования token, chat ID и reset URL.
-3. Добавить начало Telegram recovery: найти только активного пользователя с
-   подтверждённым `telegramId`, создать тот же одноразовый reset token, что для
-   email, и отправить ссылку Bot API. Всегда вернуть пользователю одинаковое
-   нейтральное сообщение.
-4. Добавить rate limit по request/IP и user/chat, чтобы бот не стал каналом
-   спама. Повторная активная ссылка должна инвалидировать предыдущую.
-5. Обновить Dashboard: понятный статус linked/unlinked, username только как
-   display detail, действие перепривязки с новым one-time token.
-6. Покрыть unit/route tests, mocked Bot API, webhook security и integration
-   flow. E2E не должен использовать настоящий bot token; production smoke-test
-   выполняется отдельным test chat.
 
 ## Критерии готовности
 

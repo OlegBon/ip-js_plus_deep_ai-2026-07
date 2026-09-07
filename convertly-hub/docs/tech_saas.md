@@ -38,11 +38,13 @@ Convertly Hub — веб-сервис и API для конвертации фа�
 
 - NextAuth v4 использует JWT-сессии в HttpOnly cookies.
 - Credentials-вход хранит только bcrypt-хеш пароля. Email verification и password
-  reset используют одноразовые хешированные токены и SMTP.
+  reset используют одноразовые хешированные токены; reset-ссылка доставляется
+  через SMTP или в уже подтверждённый Telegram chat.
 - Роли: `USER` и `ADMIN`. Dashboard доступен обеим ролям; `/management` — только
   `ADMIN`.
-- Telegram linking реализован через одноразовую ссылку. Рабочий Telegram-reset
-  пока остаётся отдельной задачей.
+- Telegram linking реализован через одноразовую ссылку, а password recovery
+  работает только через подтверждённый chat ID; публичный username служит лишь
+  lookup-идентификатором и сохраняется из webhook update.
 - API-ключ показывается пользователю ровно один раз при создании; в базе хранится
   только SHA-256-хеш. API доступно тарифам, которые его предусматривают.
 
@@ -167,7 +169,6 @@ GitHub build context `convertly-hub`, находится в
 4. Полная админская история конвертаций, включая фильтр `FAILED`, детали ошибки и
    операции с файлами.
 5. Автоматические off-host backup/restore, внешний monitoring/alerting и CD.
-6. Telegram-reset flow.
 
 Порядок и причины отложенных работ описаны в
 [docs/backlog](./backlog/README.md). Перед любым public запуском также повторно

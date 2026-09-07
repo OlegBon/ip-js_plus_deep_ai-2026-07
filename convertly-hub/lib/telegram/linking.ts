@@ -1,24 +1,24 @@
-import { createHash, randomBytes, timingSafeEqual } from "crypto";
-import { prisma } from "@/lib/prisma";
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
+import { prisma } from '@/lib/prisma';
 
 const TOKEN_TTL_MINUTES = 15;
 
 function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
+  return createHash('sha256').update(token).digest('hex');
 }
 
 function getBotUsername() {
-  const username = process.env.TELEGRAM_BOT_USERNAME?.trim().replace(/^@/, "");
+  const username = process.env.TELEGRAM_BOT_USERNAME?.trim().replace(/^@/, '');
 
   if (!username || !/^[a-zA-Z0-9_]{5,32}$/.test(username)) {
-    throw new Error("Telegram bot username is not configured.");
+    throw new Error('Telegram bot username is not configured.');
   }
 
   return username;
 }
 
 export async function createTelegramLink(userId: string) {
-  const token = randomBytes(32).toString("base64url");
+  const token = randomBytes(32).toString('base64url');
   const expiresAt = new Date(Date.now() + TOKEN_TTL_MINUTES * 60 * 1000);
 
   await prisma.user.update({
@@ -36,14 +36,18 @@ export async function createTelegramLink(userId: string) {
   };
 }
 
-export async function verifyTelegramLink(chatId: string, token: string) {
+export async function verifyTelegramLink(chatId: string, token: string, username?: string) {
   const tokenHash = hashToken(token);
   const user = await prisma.user.findUnique({
     where: { telegramVerificationTokenHash: tokenHash },
     select: { id: true, telegramVerificationExpires: true },
   });
 
-  if (!user || !user.telegramVerificationExpires || user.telegramVerificationExpires <= new Date()) {
+  if (
+    !user ||
+    !user.telegramVerificationExpires ||
+    user.telegramVerificationExpires <= new Date()
+  ) {
     return false;
   }
 
@@ -52,6 +56,7 @@ export async function verifyTelegramLink(chatId: string, token: string) {
       where: { id: user.id },
       data: {
         telegramId: chatId,
+        telegramUsername: normalizeTelegramUsername(username),
         telegramVerified: new Date(),
         telegramVerificationTokenHash: null,
         telegramVerificationExpires: null,
@@ -66,6 +71,11 @@ export async function verifyTelegramLink(chatId: string, token: string) {
   }
 }
 
+export function normalizeTelegramUsername(username: string | undefined) {
+  const normalized = username?.trim().replace(/^@/, '').toLowerCase();
+  return normalized && /^[a-z0-9_]{5,32}$/.test(normalized) ? normalized : null;
+}
+
 export function isValidWebhookSecret(value: string | null) {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
 
@@ -76,9 +86,11 @@ export function isValidWebhookSecret(value: string | null) {
   const actualBuffer = Buffer.from(value);
   const expectedBuffer = Buffer.from(expected);
 
-  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
+  return (
+    actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer)
+  );
 }
 
 function isUniqueConstraintError(error: unknown) {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
 }
