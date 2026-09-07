@@ -2,10 +2,23 @@
 
 ## Статус
 
-Код Telegram password recovery подготовлен migration
-`20260907170000_telegram_password_recovery`; задача будет завершена после
-production migration, app deploy, настройки webhook и ручного smoke-test. В MVP есть безопасная **привязка Telegram**: авторизованный пользователь
-получает одноразовый deep link, открывает бота и отправляет `/start link_<token>`.
+Реализация и production-инфраструктура подготовлены 7 сентября 2026:
+
+- [x] migration `20260907170000_telegram_password_recovery` применена;
+- [x] `convertly-app` развёрнут с Telegram server-only variables;
+- [x] Bot API webhook настроен на
+      `https://convertly-hub.bon.kharkov.ua/api/telegram/webhook` и отвечает без
+      ошибок;
+- [x] Telegram-аккаунт успешно привязан из Dashboard; username сохранён;
+- [ ] вручную проверить recovery: выйти из аккаунта, запросить reset через
+      `@username`, получить от бота одноразовую ссылку и успешно задать новый
+      пароль.
+
+После последнего пункта файл удаляется из активного backlog согласно
+[правилам папки](./README.md): реализация останется в Git, `progress.md` и
+тематической документации. В MVP есть безопасная **привязка Telegram**:
+авторизованный пользователь получает одноразовый deep link, открывает бота и
+отправляет `/start link_<token>`.
 Webhook проверяет отдельный secret header, привязывает `telegramId` (chat ID)
 однократно и сохраняет время подтверждения. Этот механизм не является
 восстановлением пароля: сейчас reset доступен только через email.
@@ -22,27 +35,19 @@ Telegram password recovery доступен только для аккаунта
 меняться. Доказательством владения остаётся сохранённый подтверждённый chat ID,
 а не username, введённый в форме.
 
-## Что подготовить в Telegram
+## Production-конфигурация и проверка
 
-1. В `@BotFather` создать отдельного бота Convertly Hub или подтвердить, что
-   уже созданный бот предназначен для production. Сохранить username бота,
-   например `convertly_hub_bot`; он публичен и используется в deep link.
-2. Скопировать bot token. Это секрет уровня пароля: хранить только в password
-   manager и в Northflank secret group, никогда не присылать в чат, не коммитить
-   и не добавлять в скриншоты.
-3. Создать отдельный случайный webhook secret (длинная случайная строка).
-   Он отличается от bot token и проверяется в заголовке Telegram webhook.
-4. Убедиться, что production domain имеет рабочий HTTPS:
-   `https://convertly-hub.bon.kharkov.ua`. Telegram должен иметь возможность
-   выполнить HTTPS request к `/api/telegram/webhook`.
-5. После реализации вызвать Bot API `setWebhook` с URL
+1. Bot `@convertly_hub_bot`, token и независимый webhook secret хранятся в
+   password manager; секреты не попадают в Git, чат или скриншоты.
+2. Production domain использует HTTPS:
+   `https://convertly-hub.bon.kharkov.ua`.
+3. Вызов Bot API `setWebhook` выполнен с URL
    `https://convertly-hub.bon.kharkov.ua/api/telegram/webhook` и
-   `secret_token=<TELEGRAM_WEBHOOK_SECRET>`. Проверить `getWebhookInfo`:
-   URL должен совпадать, `last_error_message` — отсутствовать.
-6. Написать боту `/start` с тестового Telegram account и привязать его из
-   Dashboard. Privacy Mode можно оставить включённым: для команды `/start`
-   в личном чате это не препятствие. Не просите у пользователей пароль,
-   email или API key в Telegram.
+   `secret_token=<TELEGRAM_WEBHOOK_SECRET>`.
+4. `getWebhookInfo` возвращает этот URL без `last_error_message`.
+5. Пользователь привязывает аккаунт через Dashboard → **Connect Telegram** →
+   кнопку **Start** в открывшемся private chat. Privacy Mode можно оставить
+   включённым. Не просите у пользователей пароль, email или API key в Telegram.
 
 ### Переменные окружения
 
@@ -63,6 +68,8 @@ Telegram и не должен получать лишние secrets.
 - неверный webhook secret не изменяет БД;
 - токен/ссылка/password/chat ID не попадают в логи;
 - email recovery продолжает работать независимо от Telegram.
+- ручной recovery по `@username` доставляет ссылку именно в уже привязанный
+  private chat, а новая парольная пара даёт успешный вход.
 
 ## Account deletion
 

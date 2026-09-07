@@ -8,26 +8,26 @@ Dockerfile, Compose, scripts и GitHub/Northflank operational flow; затем
 
 ## Фактическая реализация
 
-| Область | Подтверждённое состояние |
-| --- | --- |
-| Web/API | Next.js 16 App Router, Route Handlers, Node.js runtime для конвертаций. |
-| Auth | NextAuth v4 Credentials, HttpOnly JWT, регистрация, reset password, email verification, `USER`/`ADMIN`. |
-| Billing | Источник тарифа — только `Subscription.activePlan`; `User.plan` удалён migration `20260907140000`. |
-| Конвертация | `JPG ↔ PNG` через sharp; `DOCX → PDF` через Gotenberg; `PDF → DOCX` не реализован. |
-| Storage | private S3-compatible bucket; ключи результатов user-scoped, публичные bucket URL не выдаются. |
-| API | `POST /api/v1/convert` с Bearer key, месячной квотой и in-memory 30 req/min limit; download через owner-scoped endpoint. |
-| Account deletion | request/cancel/process workflow, events audit trail, S3 cleanup, cascade delete, support SMTP notification. |
-| Production demo | Northflank public app + private Gotenberg; Supabase PostgreSQL + private Storage; домен `convertly-hub.bon.kharkov.ua`. |
+| Область          | Подтверждённое состояние                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Web/API          | Next.js 16 App Router, Route Handlers, Node.js runtime для конвертаций.                                                  |
+| Auth             | NextAuth v4 Credentials, HttpOnly JWT, регистрация, reset password, email verification, `USER`/`ADMIN`.                  |
+| Billing          | Источник тарифа — только `Subscription.activePlan`; `User.plan` удалён migration `20260907140000`.                       |
+| Конвертация      | `JPG ↔ PNG` через sharp; `DOCX → PDF` через Gotenberg; `PDF → DOCX` не реализован.                                       |
+| Storage          | private S3-compatible bucket; ключи результатов user-scoped, публичные bucket URL не выдаются.                           |
+| API              | `POST /api/v1/convert` с Bearer key, месячной квотой и in-memory 30 req/min limit; download через owner-scoped endpoint. |
+| Account deletion | request/cancel/process workflow, events audit trail, S3 cleanup, cascade delete, support SMTP notification.              |
+| Production demo  | Northflank public app + private Gotenberg; Supabase PostgreSQL + private Storage; домен `convertly-hub.bon.kharkov.ua`.  |
 
 ## Тесты
 
-| Набор | Команда | Что проверяет |
-| --- | --- | --- |
-| Lint | `npm run linteslint` | ESLint проекта. |
-| Типы | `npx tsc --noEmit` | TypeScript без emit. |
-| Unit/route/component | `npm test -- --runInBand` | Jest, React Testing Library и server contracts. |
-| Browser E2E | `npm run test:e2e` | Playwright critical browser flows. |
-| Реальная интеграция | `npm run test:integration` | Изолированные PostgreSQL, MinIO, Gotenberg, MailHog и HTTP scenario. |
+| Набор                | Команда                    | Что проверяет                                                        |
+| -------------------- | -------------------------- | -------------------------------------------------------------------- |
+| Lint                 | `npm run linteslint`       | ESLint проекта.                                                      |
+| Типы                 | `npx tsc --noEmit`         | TypeScript без emit.                                                 |
+| Unit/route/component | `npm test -- --runInBand`  | Jest, React Testing Library и server contracts.                      |
+| Browser E2E          | `npm run test:e2e`         | Playwright critical browser flows.                                   |
+| Реальная интеграция  | `npm run test:integration` | Изолированные PostgreSQL, MinIO, Gotenberg, MailHog и HTTP scenario. |
 
 `test-results/` — локальный Playwright artifact неуспешного запуска, он не
 должен попадать в Git. GitHub Actions запускают lint/types/Jest, Playwright E2E
@@ -39,15 +39,15 @@ Supabase БД, намеренно не добавлен: он требовал �
 
 ## Переменные окружения
 
-| Группа | Переменные |
-| --- | --- |
-| App origin/auth | `NODE_ENV`, `APP_DOMAIN`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET` |
-| PostgreSQL | `DATABASE_URL`; локально также `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` для Compose |
-| S3 | `MINIO_ENDPOINT`, `S3_REGION`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET` |
-| Conversion | `GOTENBERG_URL` |
-| Email/support | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD`, `SUPPORT_EMAIL` |
-| Telegram (опционально) | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` |
-| One-off only | `SEED_ADMIN_EMAIL`, `PLAN_SYNC_EMAIL`, `PLAN_SYNC_ACTIVE_PLAN`; никогда не persistent app secrets |
+| Группа                 | Переменные                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| App origin/auth        | `NODE_ENV`, `APP_DOMAIN`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`                                         |
+| PostgreSQL             | `DATABASE_URL`; локально также `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` для Compose      |
+| S3                     | `MINIO_ENDPOINT`, `S3_REGION`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`               |
+| Conversion             | `GOTENBERG_URL`                                                                                     |
+| Email/support          | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD`, `SUPPORT_EMAIL` |
+| Telegram (опционально) | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`                            |
+| One-off only           | `SEED_ADMIN_EMAIL`, `PLAN_SYNC_EMAIL`, `PLAN_SYNC_ACTIVE_PLAN`; никогда не persistent app secrets   |
 
 `NEXTAUTH_SECRET`, `DATABASE_URL`, S3 и SMTP credentials — server-only secrets.
 `SUPPORT_EMAIL` — не секрет. Шаблоны `.env.example` и
@@ -87,7 +87,10 @@ Supabase БД, намеренно не добавлен: он требовал �
 - Нет `PDF → DOCX`.
 - Rate limit не пригоден для нескольких app instances без Redis.
 - Нет автоматизированных off-host backup/restore, monitoring/alerting и CD.
-- Telegram recovery не реализован.
+- Telegram recovery реализован после исходного audit: migration, production
+  deploy, webhook и Dashboard-привязка выполнены. В активном checklist остаётся
+  только ручная проверка reset по `@username`; см.
+  [050-telegram-and-account.md](../backlog/050-telegram-and-account.md).
 
 Все пункты перенесены в тематический [backlog](../backlog/README.md), а не
 смешиваются с завершённой историей проекта.
