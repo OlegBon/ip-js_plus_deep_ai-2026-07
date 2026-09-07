@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma';
 import { isMultipartFormData, validateConversionRequest } from '@/lib/api/conversion-request';
 import { CoreConversionError, convertFile, validateCoreConversion } from '@/lib/core/conversion';
 import { allowGuestRequest } from '@/lib/guest/rate-limit';
-import { guestSupportCodeForPeriod, hashGuestSupportCode } from '@/lib/guest/support-code';
 
 const COOKIE = 'convertly_guest';
 const MAX_SIZE = 1024 * 1024;
@@ -17,24 +16,16 @@ export const runtime = 'nodejs';
 export async function GET() {
   const visitor = (await cookies()).get(COOKIE)?.value;
   if (!visitor) return quotaResponse({ imageCount: 0, documentCount: 0 });
-  const periodStart = currentPeriodStart();
-  const supportCode = guestSupportCodeForPeriod(visitor, periodStart);
   const quota = await prisma.guestConversionQuota.findUnique({
     where: {
       visitorHash_periodStart: {
         visitorHash: visitorHash(visitor),
-        periodStart,
+        periodStart: currentPeriodStart(),
       },
     },
-    select: { id: true, imageCount: true, documentCount: true },
+    select: { imageCount: true, documentCount: true },
   });
-  if (quota && supportCode) {
-    await prisma.guestConversionQuota.update({
-      where: { id: quota.id },
-      data: { supportCodeHash: hashGuestSupportCode(supportCode) },
-    });
-  }
-  return quotaResponse(quota ?? { imageCount: 0, documentCount: 0 }, quota ? supportCode : null);
+  return quotaResponse(quota ?? { imageCount: 0, documentCount: 0 });
 }
 
 export async function POST(request: Request) {
@@ -76,22 +67,16 @@ export async function POST(request: Request) {
   let visitor = store.get(COOKIE)?.value;
   const isNewVisitor = !visitor;
   if (!visitor) visitor = randomBytes(32).toString('base64url');
-  const periodStart = currentPeriodStart();
-  const supportCode = guestSupportCodeForPeriod(visitor, periodStart);
 
   const quota = await prisma.guestConversionQuota.upsert({
     where: {
       visitorHash_periodStart: {
         visitorHash: visitorHash(visitor),
-        periodStart,
+        periodStart: currentPeriodStart(),
       },
     },
-    create: {
-      visitorHash: visitorHash(visitor),
-      periodStart,
-      ...(supportCode ? { supportCodeHash: hashGuestSupportCode(supportCode) } : {}),
-    },
-    update: supportCode ? { supportCodeHash: hashGuestSupportCode(supportCode) } : {},
+    create: { visitorHash: visitorHash(visitor), periodStart: currentPeriodStart() },
+    update: {},
     select: { id: true },
   });
   const reserved = await prisma.guestConversionQuota.updateMany({
@@ -128,7 +113,6 @@ export async function POST(request: Request) {
         'Cache-Control': 'no-store',
         'X-Guest-Image-Remaining': String(Math.max(0, IMAGE_LIMIT - counts.imageCount)),
         'X-Guest-Document-Remaining': String(Math.max(0, DOCUMENT_LIMIT - counts.documentCount)),
-        ...(supportCode ? { 'X-Guest-Support-Code': supportCode } : {}),
       },
     });
     if (isNewVisitor)
@@ -187,16 +171,12 @@ async function quotaExceeded(kind: 'image' | 'document', quotaId: string) {
   );
 }
 
-function quotaResponse(
-  counts: { imageCount: number; documentCount: number },
-  supportCode: string | null = null,
-) {
+function quotaResponse(counts: { imageCount: number; documentCount: number }) {
   return NextResponse.json(
     {
       remainingImage: Math.max(0, IMAGE_LIMIT - counts.imageCount),
       remainingDocument: Math.max(0, DOCUMENT_LIMIT - counts.documentCount),
       resetsAt: nextPeriodStart().toISOString(),
-      supportCode,
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );

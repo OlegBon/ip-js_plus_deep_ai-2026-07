@@ -38,7 +38,7 @@ erDiagram
 | `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                                      |
 | `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                                    |
 | `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation                |
-| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, `supportCodeHash`, image/document counters                         |
+| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, legacy `supportCodeHash`, image/document counters                    |
 | `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                                 |
 
 Файлы в PostgreSQL не хранятся: `ConversionLog` содержит metadata, а результат —
@@ -132,7 +132,7 @@ await prisma.$transaction(async (transaction) => {
 | `ConversionLog @@index([status, createdAt])`                | мониторинг completed/failed за период                          |
 | `ApiKey @@index([userId, revokedAt])`                       | список активных ключей пользователя                            |
 | `GuestConversionQuota @@unique([visitorHash, periodStart])` | один счётчик на visitor/месяц                                  |
-| `GuestConversionQuota supportCodeHash @unique`              | точный поиск квоты для manual reset; nullable для старых строк |
+| `GuestConversionQuota supportCodeHash @unique`              | legacy-индекс отменённой feature; будет удалён отдельной migration |
 | `RoleChangeAudit` indexes                                   | хронология роли по target/actor                                |
 
 Поиск админов по подстроке имени/email на большой БД потребует отдельного решения
