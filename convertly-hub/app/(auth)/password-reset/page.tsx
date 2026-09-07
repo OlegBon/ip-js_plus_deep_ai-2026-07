@@ -54,17 +54,11 @@ export default function PasswordResetPage() {
       return;
     }
 
-    if (contact.trim().startsWith('@')) {
-      toast.error(
-        'Telegram password recovery is not available yet. Use the verified email address for this account.',
-      );
-      return;
-    }
     startTransition(async () => {
       const response = await fetch('/api/auth/password-reset/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: contact }),
+        body: JSON.stringify({ contact }),
       });
       const payload = (await response.json()) as { error?: string; message?: string };
       if (!response.ok) {
@@ -73,7 +67,7 @@ export default function PasswordResetPage() {
       }
       toast.success(
         payload.message ??
-          'If an account with that email exists, a password reset link has been sent.',
+          'If an account with that contact method exists, a password reset link has been sent.',
       );
     });
   };
@@ -89,9 +83,8 @@ export default function PasswordResetPage() {
               Forgot Your Password?
             </CardTitle>
             <CardDescription>
-              Enter your email address and we&apos;ll send you a one-time link to reset your
-              password. Telegram handles are validated here, but Telegram password recovery is not
-              available yet.
+              Enter your verified email address or linked Telegram handle and we&apos;ll send a
+              one-time password reset link.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,7 +95,7 @@ export default function PasswordResetPage() {
                   id="contact"
                   name="contact"
                   type="text"
-                  autoComplete="email"
+                  autoComplete="username"
                   required
                   value={contact}
                   onChange={handleContactChange}

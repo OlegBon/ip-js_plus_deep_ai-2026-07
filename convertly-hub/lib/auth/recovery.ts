@@ -42,6 +42,25 @@ export async function createPasswordReset(email: string) {
   return { email: user.email, token, expiresAt: tokenExpiresAt };
 }
 
+export async function createTelegramPasswordReset(username: string) {
+  const normalizedUsername = username.trim().replace(/^@/, '').toLowerCase();
+  const user = await prisma.user.findUnique({
+    where: { telegramUsername: normalizedUsername },
+    select: { id: true, telegramId: true, telegramVerified: true, status: true },
+  });
+
+  if (!user?.telegramId || !user.telegramVerified || user.status !== 'ACTIVE') return null;
+
+  const token = createToken();
+  const tokenExpiresAt = expiresAt();
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordResetTokenHash: hashToken(token), passwordResetExpires: tokenExpiresAt },
+  });
+
+  return { chatId: user.telegramId, token, expiresAt: tokenExpiresAt };
+}
+
 export async function resetPassword(token: string, password: string) {
   if (!isValidPassword(password) || !token || token.length > 256) {
     return false;

@@ -71,6 +71,7 @@ model User {
   passwordResetExpires       DateTime? @db.Timestamptz(3)
 
   telegramId                    String?   @unique
+  telegramUsername              String?   @unique
   telegramVerified              DateTime? @db.Timestamptz(3)
   telegramVerificationTokenHash String?   @unique
   telegramVerificationExpires   DateTime? @db.Timestamptz(3)

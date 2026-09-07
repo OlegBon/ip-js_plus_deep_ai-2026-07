@@ -13,6 +13,7 @@ type Profile = {
   pendingEmail: string | null;
   emailVerified: boolean;
   telegramId: string | null;
+  telegramUsername: string | null;
   telegramVerified: boolean;
 };
 type DeletionRequest = {
@@ -171,7 +172,11 @@ export default function UserProfile() {
           <div>
             <p className="text-lg font-semibold">Telegram Account</p>
             <p className="text-sm text-gray-500">
-              {profile.telegramId ? 'Connected Telegram account' : 'Not connected.'}
+              {profile.telegramId
+                ? profile.telegramUsername
+                  ? `Connected as @${profile.telegramUsername}`
+                  : 'Connected Telegram account'
+                : 'Not connected.'}
             </p>
             {profile.telegramId && <Badge ok={profile.telegramVerified} />}
           </div>

@@ -105,7 +105,7 @@ Playwright-запуска сохраняются в локальной `test-res
 
 ## ⚠️ Текущий статус
 
-Реализованы аутентификация через HttpOnly-сессию, восстановление пароля и подтверждение email через одноразовые ссылки, роли `USER`/`ADMIN`, API-ключи, Telegram linking, тарифные квоты и Mock Checkout, приватное хранение в MinIO и доступные Core-конвертации. Гость может выполнить до трёх image- и двух document-конвертаций в месяц (до 1 МБ, без S3 и истории); зарегистрированный пользователь работает через сессию и получает тарифные возможности Dashboard.
+Реализованы аутентификация через HttpOnly-сессию, восстановление пароля по email или подтверждённому Telegram, подтверждение email через одноразовые ссылки, роли `USER`/`ADMIN`, API-ключи, тарифные квоты и Mock Checkout, приватное хранение в MinIO и доступные Core-конвертации. Гость может выполнить до трёх image- и двух document-конвертаций в месяц (до 1 МБ, без S3 и истории); зарегистрированный пользователь работает через сессию и получает тарифные возможности Dashboard.
 
 Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. Текущий demo развёрнут как Northflank app + private Gotenberg, Supabase PostgreSQL и private Supabase S3 bucket. Oracle, Vercel и Render остаются подготовленными вариантами переноса. Перед migration или сменой provider создавайте [логический backup](./docs/supabase-logical-backup.md), а порядок cutover берите только из [cloud portability runbook](./docs/cloud-portability.md). Активные отложенные задачи находятся в [docs/backlog](./docs/backlog/README.md).
 

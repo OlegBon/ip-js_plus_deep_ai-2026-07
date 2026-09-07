@@ -192,15 +192,15 @@ Handler проверяет владельца `userId`, завершённый �
 
 ## 6. Другие server domains
 
-| Domain             | Основные файлы                                                              | Ответственность                                           |
-| ------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Регистрация/пароль | `lib/auth/users.ts`, `recovery.ts`, `password-policy.ts`, `app/api/auth/**` | bcrypt, one-time tokens, neutral reset responses          |
-| Письма             | `lib/mail/send-auth-email.ts`                                               | verification/reset SMTP; MailHog только локально          |
-| Профиль            | `app/api/account/profile`, `email`, `password`, `preferences`               | current-password confirmation, pending email, privacy     |
-| Telegram           | `lib/telegram/linking.ts`, `app/api/telegram/webhook`                       | one-time secure linking; Telegram reset ещё не реализован |
-| Тарифы             | `lib/billing/plans.ts`, `subscriptions.ts`, `quota-lock.ts`                 | plan definition, mock checkout, monthly/storage quota     |
-| Админ              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics             |
-| Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 и Gotenberg status               |
+| Domain             | Основные файлы                                                              | Ответственность                                             |
+| ------------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Регистрация/пароль | `lib/auth/users.ts`, `recovery.ts`, `password-policy.ts`, `app/api/auth/**` | bcrypt, one-time tokens, neutral reset responses            |
+| Письма             | `lib/mail/send-auth-email.ts`                                               | verification/reset SMTP; MailHog только локально            |
+| Профиль            | `app/api/account/profile`, `email`, `password`, `preferences`               | current-password confirmation, pending email, privacy       |
+| Telegram           | `lib/telegram/linking.ts`, `bot.ts`, `app/api/telegram/webhook`             | one-time secure linking; reset только в подтверждённый chat |
+| Тарифы             | `lib/billing/plans.ts`, `subscriptions.ts`, `quota-lock.ts`                 | plan definition, mock checkout, monthly/storage quota       |
+| Админ              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics               |
+| Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 и Gotenberg status                 |
 
 ## 7. Безопасный порядок backend-изменения
 
