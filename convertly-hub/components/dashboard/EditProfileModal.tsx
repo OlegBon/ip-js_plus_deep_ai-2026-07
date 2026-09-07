@@ -10,16 +10,22 @@ type Props = {
   name: string;
   email: string;
   telegramConnected: boolean;
+  telegramUsername: string | null;
+  telegramLinkInProgress: boolean;
   onClose: () => void;
   onProfileUpdated: () => Promise<void>;
+  onTelegramLinkStarted: () => void;
 };
 export default function EditProfileModal({
   isOpen,
   name,
   email,
   telegramConnected,
+  telegramUsername,
+  telegramLinkInProgress,
   onClose,
   onProfileUpdated,
+  onTelegramLinkStarted,
 }: Props) {
   const [displayName, setDisplayName] = useState(name),
     [nextEmail, setNextEmail] = useState(email),
@@ -92,12 +98,18 @@ export default function EditProfileModal({
           <p className="font-semibold">Telegram Account</p>
           <p className="mb-3 text-sm text-gray-500">
             {telegramConnected
-              ? 'Replace the connected account with a one-time link.'
+              ? telegramUsername
+                ? `Connected as @${telegramUsername}. Replace it with a one-time link.`
+                : 'A Telegram account is connected. Replace it with a one-time link.'
               : 'Connect an account with a one-time link.'}
           </p>
           <TelegramLinkButton
             label={telegramConnected ? 'Change Telegram account' : 'Connect Telegram'}
+            onLinkStarted={onTelegramLinkStarted}
           />
+          {telegramLinkInProgress && (
+            <p className="mt-3 text-sm text-gray-500">Waiting for confirmation in Telegram…</p>
+          )}
         </div>
         <div className="space-y-3 border-t pt-4">
           <PasswordField

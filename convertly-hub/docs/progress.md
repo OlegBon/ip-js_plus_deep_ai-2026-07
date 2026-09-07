@@ -2,6 +2,12 @@
 
 # 2026-09-07
 
+- **Задача:** Улучшить отображение и обновление Telegram-привязки в Dashboard.
+- **Изменённые файлы:** `components/dashboard/UserProfile.tsx`, `components/dashboard/EditProfileModal.tsx`, `components/dashboard/TelegramLinkButton.tsx`, `components/dashboard/__tests__/EditProfileModal.test.tsx`, `docs/progress.md`.
+- **Результат:** В Dashboard badge `Verified` расположен в строке с `Connected as @username`; Edit profile показывает текущий username, а широкая на малом экране и естественная на desktop кнопка `Change Telegram account` не обрезает текст. После создания deep link профиль опрашивается раз в 5 секунд не дольше двух минут; при изменении привязки UI обновляется сам и показывает подтверждающее уведомление. Постоянного polling нет.
+- **Проверки:** TypeScript, ESLint без ошибок и Jest для EditProfileModal выполнены. Browser-плагин недоступен; Playwright выполнил два существующих guest-сценария, но полный локальный прогон был остановлен из-за зависания dev-server при недоступных Google Fonts — изменение Dashboard-авторизации он не покрывает.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Реализовать восстановление пароля через подтверждённый Telegram chat.
 - **Изменённые файлы:** Prisma schema и migration `20260907170000_telegram_password_recovery`, `lib/telegram/bot.ts`, Telegram linking/webhook, recovery route/UI, Profile, Jest tests и актуальная документация.
 - **Результат:** Webhook сохраняет нормализованный public Telegram username только при подтверждённой привязке. Password reset принимает email или `@username`, всегда отвечает нейтрально и отправляет одноразовую 30-минутную ссылку Bot API исключительно в active user с подтверждённым chat ID. Username не служит доказательством владения; token, reset URL, chat ID и bot token не логируются.
