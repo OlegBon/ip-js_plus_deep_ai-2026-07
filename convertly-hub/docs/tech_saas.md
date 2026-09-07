@@ -1,16 +1,18 @@
 # ⚙️ Convertly Hub — технологии и актуальный статус SaaS
 
 Convertly Hub — веб-сервис и API для конвертации файлов. Этот документ описывает
-**фактически реализованный локальный MVP** и допустимые варианты следующего
-production-этапа. Подробные маршруты и потоки приведены в
-[architecture.md](./architecture.md), а состояние задач — в
-[work_plan.md](./work_plan.md).
+**фактически реализованный MVP**, текущий demo-контур и допустимые варианты
+следующего production-этапа. Подробные маршруты и потоки приведены в
+[architecture.md](./architecture.md), а активные задачи — в
+[backlog](./backlog/README.md).
 
-> **Статус на 2 сентября 2026:** локальный MVP реализован и покрыт unit/route,
-> browser E2E и реальным backend integration/E2E-набором. Публичный production
-> ещё не развёрнут. Предпочтительный целевой вариант — один Oracle A1 server;
-> планы для Vercel и Render подготовлены как альтернативы, но не являются
-> готовой production-конфигурацией.
+> **Статус на 7 сентября 2026:** MVP реализован и покрыт unit/route, browser
+> E2E и реальным backend integration/E2E-набором. Функциональный публичный
+> demo работает на Northflank + Supabase: Next.js app и private Gotenberg в
+> Northflank, PostgreSQL и private S3-compatible Storage в Supabase. Это не
+> заменяет полноценный production-план с проверенным backup/restore,
+> monitoring/alerting и SLA. Oracle A1, Vercel и Render остаются альтернативами
+> по [runbook переноса](./cloud-portability.md).
 
 ---
 
@@ -167,8 +169,8 @@ GitHub build context `convertly-hub`, находится в
 5. Автоматические off-host backup/restore, внешний monitoring/alerting и CD.
 6. Telegram-reset flow.
 
-Порядок и причины отложенных работ описаны в верхнем блоке
-[work_plan.md](./work_plan.md). Перед любым public запуском также повторно
+Порядок и причины отложенных работ описаны в
+[docs/backlog](./backlog/README.md). Перед любым public запуском также повторно
 проверяются GitHub Actions, `npm audit --omit=dev` и production smoke-tests.
 
 ---
@@ -182,5 +184,8 @@ GitHub build context `convertly-hub`, находится в
 - [Vercel Pro runbook-план](./vercel-production-deployment.md)
 - [Render Paid / Free demo runbook-план](./render-production-deployment.md)
 - [Northflank Free + Supabase Free demo MVP](./northflank-supabase-demo.md)
+- [PowerShell: публичный API](./api-powershell.md)
+- [Логический backup Supabase PostgreSQL](./supabase-logical-backup.md)
+- [Перенос между cloud providers](./cloud-portability.md)
 - [Подробные руководства по слоям](./guides/README.md)
-- [План работ](./work_plan.md)
+- [Активный backlog](./backlog/README.md)
