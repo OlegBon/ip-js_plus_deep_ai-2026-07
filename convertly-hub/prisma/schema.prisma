@@ -40,6 +40,7 @@ enum AccountDeletionStatus {
   PROCESSING
   COMPLETED
   FAILED
+  CANCELLED
 }
 
 enum AccountDeletionEventType {
@@ -47,6 +48,7 @@ enum AccountDeletionEventType {
   PROCESSING
   COMPLETED
   FAILED
+  CANCELLED
 }
 
 model User {
@@ -89,9 +91,12 @@ model AccountDeletionRequest {
   requestedAt         DateTime              @default(now()) @db.Timestamptz(3)
   processingStartedAt DateTime?             @db.Timestamptz(3)
   completedAt         DateTime?             @db.Timestamptz(3)
+  cancelledAt         DateTime?             @db.Timestamptz(3)
   failureReason       String?
   processedByUserId   String?
   processedByEmail    String?
+  cancelledByUserId   String?
+  cancelledByEmail    String?
 
   user   User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
   events AccountDeletionEvent[]
