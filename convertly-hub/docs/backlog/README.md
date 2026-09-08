@@ -18,3 +18,5 @@
 | [030-security-and-scale.md](./030-security-and-scale.md)                 | Redis rate limit, поиск и рост базы.                      |
 | [040-operations-and-reliability.md](./040-operations-and-reliability.md) | Backup, monitoring, production hardening и portability.   |
 | [060-admin-conversion-history.md](./060-admin-conversion-history.md)     | Операционная история конвертаций и обработка failed jobs. |
+| [070-telegram-account-security.md](./070-telegram-account-security.md)  | Отвязка Telegram, безопасная замена и защита recovery.    |
+| [080-telegram-bot-experience.md](./080-telegram-bot-experience.md)      | Welcome UX, команды и операционная политика бота.         |
