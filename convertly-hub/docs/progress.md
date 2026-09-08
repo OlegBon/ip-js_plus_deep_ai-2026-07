@@ -1,5 +1,13 @@
 # Журнал изменений проекта
 
+# 2026-09-08
+
+- **Задача:** Провести повторный documentation audit и расширить практические guides по слоям.
+- **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/audits/dependency-security-latest.md`, `docs/guides/*` и `docs/progress.md`.
+- **Результат:** README явно отделяет публичный Northflank + Supabase MVP от billing-ready production; architecture содержит краткий фактический поток удаления аккаунта. Guides дополнены единой политикой UI-состояний и polling, server-потоками password reset/Telegram/account deletion, Prisma advisory lock и safe queries, а также порядком backup → migration job → app deploy. Обновлён стек supporting UI packages и уточнено, что `npm audit --omit=dev` выполняется отдельно от текущего CI workflow.
+- **Проверки:** Утверждения сверены с `package.json`, Prisma schema, Route Handlers, `lib/**`, Docker/Compose, GitHub Actions и active backlog. `npx prettier --check` для всех изменённых Markdown-файлов и `git diff --check` успешно.
+- **Новые переменные окружения:** нет.
+
 # 2026-09-07
 
 - **Задача:** Завершить production smoke-test Telegram recovery и финально актуализировать документацию.

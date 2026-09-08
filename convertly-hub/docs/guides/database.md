@@ -27,19 +27,23 @@ erDiagram
   User ||--o| Subscription : has
   User ||--o{ ApiKey : owns
   User ||--o{ ConversionLog : creates
+  User ||--o| AccountDeletionRequest : requests
+  AccountDeletionRequest ||--o{ AccountDeletionEvent : records
   ApiKey ||--o{ ConversionLog : initiates
   User ||--o{ RoleChangeAudit : actor_or_target
   GuestConversionQuota }o--|| Visitor : "hashed browser token"
 ```
 
-| Модель                 | Смысл                                        | Важные поля                                                                                                         |
-| ---------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `User`                 | аккаунт и security state                     | `email`, bcrypt `password`, `role`, `status`, pending/verification/reset/Telegram fields, unique `telegramUsername` |
-| `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                                                         |
-| `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                                                       |
-| `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation                                   |
-| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                                               |
-| `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                                                    |
+| Модель                   | Смысл                                        | Важные поля                                                                                                         |
+| ------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `User`                   | аккаунт и security state                     | `email`, bcrypt `password`, `role`, `status`, pending/verification/reset/Telegram fields, unique `telegramUsername` |
+| `Subscription`           | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                                                         |
+| `ApiKey`                 | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                                                       |
+| `ConversionLog`          | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation                                   |
+| `GuestConversionQuota`   | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                                               |
+| `AccountDeletionRequest` | request на контролируемое удаление           | `status`, snapshot `userEmail`, `requestedAt`, `processedAt`, nullable `userId` после удаления                      |
+| `AccountDeletionEvent`   | неизменяемый audit trail удаления            | `type`, `actorEmail`, `createdAt`, `requestId`                                                                      |
+| `RoleChangeAudit`        | аудит выдачи/смены роли                      | actor, target, previous/new role                                                                                    |
 
 Файлы в PostgreSQL не хранятся: `ConversionLog` содержит metadata, а результат —
 в private S3/MinIO object, на который ссылается `storageKey`.
@@ -138,7 +142,32 @@ await prisma.$transaction(async (transaction) => {
 с `pg_trgm` и `EXPLAIN ANALYZE`; преждевременно добавлять индекс без измерений не
 нужно. Это остаётся в work plan.
 
-## 7. Миграции и безопасная работа
+## 7. Транзакции, locks и safe queries
+
+Транзакция должна быть короткой: она защищает изменение данных, но не должна
+охватывать внешние HTTP-вызовы к Gotenberg, S3, SMTP или Telegram. Например,
+quota lock использует PostgreSQL advisory lock, существующий ровно до конца
+transaction:
+
+```ts
+await transaction.$executeRaw`
+  SELECT pg_advisory_xact_lock(hashtext(${`convertly:user-quota:${userId}`}))
+`;
+```
+
+После lock в одной transaction выполняются quota calculation и claim/reservation.
+Сама конвертация и upload происходят уже после commit; при ошибке
+`processConversionJob` делает compensating cleanup. По той же причине deletion
+workflow сначала фиксирует `PROCESSING`, а S3 cleanup выполняет вне длительной
+transaction.
+
+Для чтения всегда выбирайте минимальный `select` и проверяйте ownership в query,
+а не после выдачи объекта браузеру. Пример download route — выборка по
+`{ id: conversionId, userId }`; API-ключ не даёт доступа к conversion другого
+пользователя. Не используйте raw SQL, если Prisma выражает запрос; исключение
+здесь — документированный advisory lock.
+
+## 8. Миграции и безопасная работа
 
 ### Локально
 

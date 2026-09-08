@@ -202,6 +202,54 @@ Handler проверяет владельца `userId`, завершённый �
 | Админ              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics                                               |
 | Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 и Gotenberg status                                                 |
 
+### 6.1. Password reset и Telegram: два delivery channel, один security contract
+
+`app/api/auth/password-reset/request/route.ts` принимает email или
+`@username`, нормализует contact и всегда возвращает нейтральный `202`: нельзя
+по HTTP-ответу узнать, существует ли пользователь. При разрешённом запросе
+`lib/auth/recovery.ts` сохраняет только hash одноразового токена и TTL. Затем
+route выбирает канал доставки:
+
+```text
+email → lib/mail/send-auth-email.ts → SMTP
+@username → verified telegramId → lib/telegram/bot.ts → Telegram Bot API
+```
+
+Username сам по себе не доказывает владение chat: `createTelegramPasswordReset`
+требует одновременно `telegramId`, `telegramVerified` и `UserStatus.ACTIVE`.
+Webhook `POST /api/telegram/webhook` сначала проверяет заголовок
+`x-telegram-bot-api-secret-token`, и только затем передаёт `/start link_<token>`
+в `verifyTelegramLink`. Токены, bot token, chat ID, URL reset-ссылки и provider
+response не должны попадать в пользовательский JSON или обычные логи.
+
+### 6.2. Account deletion: request не равен немедленному удалению
+
+Пользовательский `POST /api/account/deletion-request` вызывает
+`createAccountDeletionRequest`. Он создаёт `PENDING` request и append-only
+`REQUESTED` event; повторный активный request не создаётся. Отмена разрешена
+только пока request `PENDING`.
+
+Админские endpoints используют `lib/account-deletion/workflow.ts` и делают
+состояния явными:
+
+```text
+PENDING → PROCESSING → COMPLETED
+                     └→ FAILED
+PENDING → CANCELLED
+```
+
+`processAccountDeletionRequest` сначала атомарно claim-ит request в
+`PROCESSING`, затем удаляет private S3 objects пользователя и только после этого
+удаляет `User`. Prisma каскадно удаляет связанные account records, а
+`AccountDeletionRequest` сохраняется с `userId = null` для audit trail. Если
+storage или удаление не завершилось, request становится `FAILED`, создаётся
+event и администратор может выполнить controlled retry. SMTP-уведомления на
+support mailbox best-effort: их ошибка логируется, но не отменяет уже корректно
+выполненную операцию с данными.
+
+Полные статусы, права и ручная проверка находятся в
+[account-deletion-workflow.md](../account-deletion-workflow.md).
+
 ## 7. Безопасный порядок backend-изменения
 
 1. Опишите вход/выход и auth requirement в `docs/architecture.md` и UI docs.

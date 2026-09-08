@@ -1,4 +1,4 @@
-# Dependency security update — 2026-09-01
+# Dependency security update — 2026-09-08
 
 ## Выполненное адресное обновление
 
@@ -21,7 +21,16 @@
 ## Результат audit
 
 До обновления `npm audit --omit=dev` сообщал 5 finding: 4 high и 1 moderate.
-После адресных обновлений `npm audit --omit=dev` сообщает **0 vulnerabilities**.
+После адресных обновлений на 1 сентября `npm audit --omit=dev` сообщал **0
+vulnerabilities**. Повторная проверка 8 сентября сообщает **3 транзитивных
+findings** в графе `prisma@7.10.0`: они проходят через его development tooling и
+`mysql2`, хотя приложение использует PostgreSQL. Автоматический предложенный
+fix требует несовместимого изменения Prisma, поэтому его нельзя применять
+командой `npm audit fix --force`.
+
+До отдельного compatibility-аудита Prisma findings считаются известным риском:
+проверяйте результат audit перед deployment, отслеживайте адресное обновление
+Prisma и не скрывайте его устаревшим утверждением о нулевом audit.
 
 ## Совместимость Auth/email и дальнейшие проверки
 
