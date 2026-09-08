@@ -53,7 +53,7 @@ describe('dashboard settings', () => {
     render(<PrivacySettings />);
     await user.click(screen.getByRole('button', { name: 'Toggle file storage' }));
 
-    expect(screen.getByText('Saving file storage preference…')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Saving…');
     expect(screen.getByRole('button', { name: 'Toggle file storage' })).toBeDisabled();
     expect(global.fetch).toHaveBeenCalledTimes(2);
 
