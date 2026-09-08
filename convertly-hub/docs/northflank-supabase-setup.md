@@ -216,7 +216,9 @@ HTTP или URL Supabase. До создания public app service его genera
 `TELEGRAM_BOT_USERNAME` и `TELEGRAM_WEBHOOK_SECRET` только в
 `convertly-app-runtime`, перед deploy приложения. После deploy настройте Bot API
 webhook на `https://convertly-hub.bon.kharkov.ua/api/telegram/webhook` с тем же
-secret token. Не добавляйте эти переменные в migration job.
+secret token и проверьте `getWebhookInfo`, Dashboard linking, reset по
+`@username`, смену пароля и повторный вход. Не добавляйте эти переменные в
+migration job.
 
 ### 5.2. `convertly-migration-runtime`
 

@@ -192,15 +192,15 @@ Handler проверяет владельца `userId`, завершённый �
 
 ## 6. Другие server domains
 
-| Domain             | Основные файлы                                                              | Ответственность                                             |
-| ------------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Регистрация/пароль | `lib/auth/users.ts`, `recovery.ts`, `password-policy.ts`, `app/api/auth/**` | bcrypt, one-time tokens, neutral reset responses            |
-| Письма             | `lib/mail/send-auth-email.ts`                                               | verification/reset SMTP; MailHog только локально            |
-| Профиль            | `app/api/account/profile`, `email`, `password`, `preferences`               | current-password confirmation, pending email, privacy       |
-| Telegram           | `lib/telegram/linking.ts`, `bot.ts`, `app/api/telegram/webhook`             | one-time secure linking; reset только в подтверждённый chat |
-| Тарифы             | `lib/billing/plans.ts`, `subscriptions.ts`, `quota-lock.ts`                 | plan definition, mock checkout, monthly/storage quota       |
-| Админ              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics               |
-| Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 и Gotenberg status                 |
+| Domain             | Основные файлы                                                              | Ответственность                                                                             |
+| ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Регистрация/пароль | `lib/auth/users.ts`, `recovery.ts`, `password-policy.ts`, `app/api/auth/**` | bcrypt, one-time tokens, neutral reset responses                                            |
+| Письма             | `lib/mail/send-auth-email.ts`                                               | verification/reset SMTP; MailHog только локально                                            |
+| Профиль            | `app/api/account/profile`, `email`, `password`, `preferences`               | current-password confirmation, pending email, privacy                                       |
+| Telegram           | `lib/telegram/linking.ts`, `bot.ts`, `app/api/telegram/webhook`             | one-time secure linking, username normalization и reset только в подтверждённый active chat |
+| Тарифы             | `lib/billing/plans.ts`, `subscriptions.ts`, `quota-lock.ts`                 | plan definition, mock checkout, monthly/storage quota                                       |
+| Админ              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics                                               |
+| Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 и Gotenberg status                                                 |
 
 ## 7. Безопасный порядок backend-изменения
 
@@ -209,7 +209,10 @@ Handler проверяет владельца `userId`, завершённый �
 3. Валидируйте input на HTTP-границе, но повторите критичные проверки в Core.
 4. Не возвращайте password hash, verification/reset token, API secret или
    provider error в JSON/log, доступный пользователю.
-5. Если меняются данные — сначала Prisma schema/migration и database guide.
-6. Добавьте route/unit test, затем при сквозном контракте — integration/E2E.
+5. Для Telegram recovery сопоставляйте `@username` лишь как удобный lookup:
+   право доставки reset-ссылки подтверждает сохранённый chat ID, а не имя
+   пользователя. Bot token, webhook secret, chat ID и reset URL не логируются.
+6. Если меняются данные — сначала Prisma schema/migration и database guide.
+7. Добавьте route/unit test, затем при сквозном контракте — integration/E2E.
 
 Связанные модели и транзакции: [database.md](./database.md).

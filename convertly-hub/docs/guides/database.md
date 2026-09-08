@@ -32,14 +32,14 @@ erDiagram
   GuestConversionQuota }o--|| Visitor : "hashed browser token"
 ```
 
-| Модель                 | Смысл                                        | Важные поля                                                                              |
-| ---------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `User`                 | аккаунт и security state                     | `email`, bcrypt `password`, `role`, `status`, pending/verification/reset/Telegram fields |
-| `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                              |
-| `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                            |
-| `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation        |
-| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                    |
-| `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                         |
+| Модель                 | Смысл                                        | Важные поля                                                                                                         |
+| ---------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `User`                 | аккаунт и security state                     | `email`, bcrypt `password`, `role`, `status`, pending/verification/reset/Telegram fields, unique `telegramUsername` |
+| `Subscription`         | тарифный источник для billing                | `activePlan`, `requestedPlan`, `status`; ровно одна на user                                                         |
+| `ApiKey`               | metadata API credential                      | `keyHash`, `keyPrefix`, `revokedAt`, `userId`                                                                       |
+| `ConversionLog`        | жизненный цикл одной account/API конвертации | source/result metadata, `status`, private `storageKey`, expiry, quota reservation                                   |
+| `GuestConversionQuota` | месячная guest quota                         | `visitorHash`, `periodStart`, image/document counters                                                               |
+| `RoleChangeAudit`      | аудит выдачи/смены роли                      | actor, target, previous/new role                                                                                    |
 
 Файлы в PostgreSQL не хранятся: `ConversionLog` содержит metadata, а результат —
 в private S3/MinIO object, на который ссылается `storageKey`.
@@ -62,6 +62,9 @@ ApiKey.keyHash
 Их значения являются хешами; исходные email/reset tokens и API secret невозможно
 прочитать из Prisma Studio. `UserStatus.SUSPENDED` применяется в auth helpers,
 чтобы заблокированный пользователь не продолжал работу с ранее созданной сессией.
+`telegramUsername` нормализуется при подтверждённой webhook-привязке и служит
+только lookup для Password Reset; доказательство владения остаётся в
+`telegramId` и `telegramVerified`.
 
 ## 4. Тарифы: единственный источник истины
 

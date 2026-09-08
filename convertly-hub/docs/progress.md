@@ -2,10 +2,16 @@
 
 # 2026-09-07
 
+- **Задача:** Завершить production smoke-test Telegram recovery и финально актуализировать документацию.
+- **Изменённые файлы:** `docs/backlog/README.md`, удалённый `docs/backlog/050-telegram-and-account.md`, `docs/work_plan.md`, `docs/audits/documentation-audit-2026-09-07.md`, deployment/layer guides и `docs/progress.md`.
+- **Результат:** В production вручную подтверждены привязка Telegram, запрос reset по `@username`, доставка одноразовой ссылки в private chat, смена пароля и повторный вход. Telegram-задача удалена из активного backlog по правилам проекта; решение сохранено в Git, guides и журнале изменений.
+- **Проверки:** `getWebhookInfo` подтверждает production URL без ошибки; полный пользовательский flow Telegram recovery завершён успешно.
+- **Новые переменные окружения:** нет; используются существующие server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
+
 - **Задача:** Актуализировать документацию после production-настройки Telegram recovery.
 - **Изменённые файлы:** `docs/backlog/050-telegram-and-account.md`, `docs/work_plan.md`, `docs/audits/documentation-audit-2026-09-07.md`, `docs/progress.md`.
-- **Результат:** Зафиксировано, что migration, app deploy, `setWebhook` и привязка Telegram из Dashboard завершены. `050` сохранён в активном backlog только до финального smoke-test reset по `@username`; после успешной смены пароля и повторного входа файл будет удалён из backlog по принятому правилу без папки `done/`.
-- **Проверки:** `getWebhookInfo` подтвердил production URL без ошибки; ручная Telegram-привязка успешна. Password reset по `@username` ещё не проверен и остаётся единственным незакрытым критерием.
+- **Результат:** Зафиксировано, что migration, app deploy, `setWebhook` и привязка Telegram из Dashboard завершены. На момент этой записи `050` был сохранён в активном backlog до финального smoke-test reset по `@username`.
+- **Проверки:** `getWebhookInfo` подтвердил production URL без ошибки; ручная Telegram-привязка успешна. Финальный reset по `@username` отмечен отдельной последующей записью выше.
 - **Новые переменные окружения:** нет; используются существующие server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
 
 - **Задача:** Улучшить отображение и обновление Telegram-привязки в Dashboard.
@@ -17,7 +23,7 @@
 - **Задача:** Реализовать восстановление пароля через подтверждённый Telegram chat.
 - **Изменённые файлы:** Prisma schema и migration `20260907170000_telegram_password_recovery`, `lib/telegram/bot.ts`, Telegram linking/webhook, recovery route/UI, Profile, Jest tests и актуальная документация.
 - **Результат:** Webhook сохраняет нормализованный public Telegram username только при подтверждённой привязке. Password reset принимает email или `@username`, всегда отвечает нейтрально и отправляет одноразовую 30-минутную ссылку Bot API исключительно в active user с подтверждённым chat ID. Username не служит доказательством владения; token, reset URL, chat ID и bot token не логируются.
-- **Проверки:** Prisma validate/generate, TypeScript, ESLint, Jest (51 suites / 155 tests), Playwright (5/5) и изолированный Docker integration migration preflight выполнены. Production migration, app deploy, `setWebhook` и ручная привязка с личным chat выполнены; остаётся smoke-test reset по `@username`.
+- **Проверки:** Prisma validate/generate, TypeScript, ESLint, Jest (51 suites / 155 tests), Playwright (5/5) и изолированный Docker integration migration preflight выполнены. Production migration, app deploy, `setWebhook`, ручная привязка с личным chat и reset по `@username` выполнены; итоговый статус зафиксирован отдельной записью выше.
 - **Новые переменные окружения:** нет; используются уже подготовленные server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
 
 - **Задача:** Подробно декомпозировать следующие product/backend задачи: Telegram password recovery и admin conversion history.

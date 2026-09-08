@@ -181,20 +181,20 @@ Gotenberg нет public domain/port: открытый Gotenberg стал бы н
 - `convertly-app-runtime` — только к service `convertly-app`;
 - `convertly-migration-runtime` — только к migration/seed jobs.
 
-| Переменная                             | Откуда           | Примечание                                                                                     |
-| -------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                             | вручную          | `production`; нужен обоим groups                                                               |
-| `HOSTNAME`, `PORT`                     | вручную          | `0.0.0.0`, `3001`                                                                              |
-| `NEXTAUTH_URL`                         | вручную          | `https://convertly-hub.bon.kharkov.ua` только после DNS/TLS; до этого generated Northflank URL |
-| `NEXTAUTH_SECRET`                      | новый random     | отличается от локального                                                                       |
-| `DATABASE_URL`                         | Supabase         | server-only direct/pooler URI; никогда не admin URI; нужен обоим groups                        |
-| `MINIO_ENDPOINT`                       | Supabase Storage | S3 endpoint, несмотря на историческое имя variable                                             |
-| `S3_REGION`                            | Supabase         | точное значение из project configuration                                                       |
-| `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` | Supabase Storage | S3 key pair, только server-side                                                                |
-| `MINIO_BUCKET`                         | вручную          | `convertly-files`                                                                              |
-| `GOTENBERG_URL`                        | Northflank       | `http://convertly-gotenberg:3000`                                                              |
-| `SMTP_*`                               | uh.ua            | production SMTP; MailHog не разворачивается                                                    |
-| `TELEGRAM_*`                           | позже            | не заполнять до готовности bot/webhook                                                         |
+| Переменная                             | Откуда                       | Примечание                                                                                     |
+| -------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                             | вручную                      | `production`; нужен обоим groups                                                               |
+| `HOSTNAME`, `PORT`                     | вручную                      | `0.0.0.0`, `3001`                                                                              |
+| `NEXTAUTH_URL`                         | вручную                      | `https://convertly-hub.bon.kharkov.ua` только после DNS/TLS; до этого generated Northflank URL |
+| `NEXTAUTH_SECRET`                      | новый random                 | отличается от локального                                                                       |
+| `DATABASE_URL`                         | Supabase                     | server-only direct/pooler URI; никогда не admin URI; нужен обоим groups                        |
+| `MINIO_ENDPOINT`                       | Supabase Storage             | S3 endpoint, несмотря на историческое имя variable                                             |
+| `S3_REGION`                            | Supabase                     | точное значение из project configuration                                                       |
+| `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` | Supabase Storage             | S3 key pair, только server-side                                                                |
+| `MINIO_BUCKET`                         | вручную                      | `convertly-files`                                                                              |
+| `GOTENBERG_URL`                        | Northflank                   | `http://convertly-gotenberg:3000`                                                              |
+| `SMTP_*`                               | uh.ua                        | production SMTP; MailHog не разворачивается                                                    |
+| `TELEGRAM_*`                           | BotFather / password manager | только `convertly-app-runtime`; Bot API, deep link и webhook verification                      |
 
 `convertly-migration-runtime` содержит только `NODE_ENV`, `DATABASE_URL` и при
 отдельном назначении первого админа временный `SEED_ADMIN_EMAIL`.
@@ -248,8 +248,11 @@ secrets). Запускайте его вручную после backup/пров�
    перезапустите app. Проверьте ссылки verification/reset заново.
 4. SMTP ящик уже создан, но до public demo подтвердите его реальные TLS settings,
    отправку наружу и SPF/DKIM/DMARC. Не открывайте MailHog в интернете.
-5. Telegram webhook настраивайте лишь после успешного HTTPS domain и заполнения
-   `TELEGRAM_WEBHOOK_SECRET`; он не является prerequisite demo.
+5. После успешного HTTPS domain заполните `TELEGRAM_BOT_TOKEN`,
+   `TELEGRAM_BOT_USERNAME` и `TELEGRAM_WEBHOOK_SECRET` только в
+   `convertly-app-runtime`, затем настройте Bot API webhook. Для текущего demo
+   этот flow настроен и вручную проверен; повторяйте его при переносе бота или
+   смене provider.
 
 ## 9. Эксплуатационные ограничения demo
 
