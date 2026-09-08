@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   Database,
@@ -21,27 +21,38 @@ type Metrics = {
   services: { database: 'up' | 'down'; gotenberg: 'up' | 'down'; storage: 'up' | 'down' };
 };
 
+async function fetchMetrics(signal?: AbortSignal): Promise<Metrics> {
+  const response = await fetch('/api/admin/metrics', { signal });
+  if (!response.ok) throw new Error('Unable to load system metrics.');
+  return (await response.json()) as Metrics;
+}
+
 export default function SystemMonitoring() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
-  const loadMetrics = useCallback(async (signal?: AbortSignal) => {
-    setStatus('loading');
-    try {
-      const response = await fetch('/api/admin/metrics', { signal });
-      if (!response.ok) throw new Error('Unable to load system metrics.');
-      setMetrics((await response.json()) as Metrics);
-      setStatus('ready');
-    } catch {
-      if (!signal?.aborted) setStatus('error');
-    }
-  }, []);
-
   useEffect(() => {
     const controller = new AbortController();
-    void loadMetrics(controller.signal);
+    void fetchMetrics(controller.signal)
+      .then((result) => {
+        setMetrics(result);
+        setStatus('ready');
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setStatus('error');
+      });
     return () => controller.abort();
-  }, [loadMetrics]);
+  }, []);
+
+  const retryLoad = async () => {
+    setStatus('loading');
+    try {
+      setMetrics(await fetchMetrics());
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  };
 
   if (status === 'loading' && !metrics) {
     return (
@@ -56,7 +67,7 @@ export default function SystemMonitoring() {
     return (
       <div className="rounded-lg bg-white p-6 shadow-md" role="alert">
         <p>Unable to load system metrics.</p>
-        <Button className="mt-3" variant="secondary" onClick={() => void loadMetrics()}>
+        <Button className="mt-3" variant="secondary" onClick={() => void retryLoad()}>
           <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
           Retry
         </Button>
@@ -113,7 +124,7 @@ export default function SystemMonitoring() {
       {status === 'error' && (
         <div className="mt-3 flex items-center gap-3 text-sm text-red-700" role="alert">
           <span>Unable to refresh system metrics. Showing the last available values.</span>
-          <Button variant="link" size="sm" onClick={() => void loadMetrics()}>
+          <Button variant="link" size="sm" onClick={() => void retryLoad()}>
             Retry
           </Button>
         </div>

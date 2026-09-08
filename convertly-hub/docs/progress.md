@@ -2,6 +2,12 @@
 
 # 2026-09-08
 
+- **Задача:** Исправить GitHub Actions ESLint failure в начальной загрузке System Monitoring.
+- **Изменённые файлы:** `components/admin/SystemMonitoring.tsx`, `components/dashboard/__tests__/settings.test.tsx`, `docs/progress.md`.
+- **Результат:** Initial metrics load теперь вызывает pure `fetchMetrics` в asynchronous callback эффекта; state обновляется после завершения promise, а retry по click сохраняет явный loading/error flow. Удалены два неиспользуемых параметра из новых test mocks.
+- **Проверки:** Prettier, ESLint, TypeScript, targeted Jest (5 tests) и `git diff --check` успешно.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Устранить Jest discovery warning и унифицировать feedback асинхронных действий Dashboard/Admin.
 - **Изменённые файлы:** `jest.config.ts`, `components/ui/Button.tsx`, `components/dashboard/PrivacySettings.tsx`, `components/dashboard/ApiKeyManager.tsx`, `components/admin/SystemMonitoring.tsx`, component-тесты и `docs/progress.md`.
 - **Результат:** Jest ограничен исходными test roots и больше не сканирует `.next/standalone`. Базовая кнопка получила единый disabled-style. File Storage показывает saving и блокирует toggle, API keys показывают creating/revoking/copying и исключают параллельные мутации, а System Monitoring различает initial loading, error с Retry и stale metrics после неуспешного refresh.
