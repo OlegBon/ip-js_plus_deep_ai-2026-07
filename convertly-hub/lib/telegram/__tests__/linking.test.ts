@@ -32,6 +32,7 @@ describe('Telegram linking', () => {
         telegramVerificationExpires: expect.any(Date),
       }),
     });
+    expect(mockedPrisma.user.update.mock.calls[0][0].data).not.toHaveProperty('telegramVerified');
   });
 
   it('links an unexpired token once and removes its hash', async () => {

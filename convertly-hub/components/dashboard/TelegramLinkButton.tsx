@@ -7,11 +7,13 @@ import { toast } from '@/lib/hooks/use-toast';
 type TelegramLinkButtonProps = {
   label?: string;
   onLinkStarted?: () => void;
+  className?: string;
 };
 
 export function TelegramLinkButton({
   label = 'Connect Telegram',
   onLinkStarted,
+  className,
 }: TelegramLinkButtonProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -35,7 +37,7 @@ export function TelegramLinkButton({
       variant="secondary"
       onClick={handleLinkTelegram}
       disabled={isPending}
-      className="w-full whitespace-nowrap sm:w-auto"
+      className={className ?? 'w-full whitespace-nowrap sm:w-auto'}
     >
       {isPending ? 'Preparing...' : label}
     </Button>

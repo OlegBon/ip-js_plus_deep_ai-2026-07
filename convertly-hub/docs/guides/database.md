@@ -68,7 +68,10 @@ ApiKey.keyHash
 чтобы заблокированный пользователь не продолжал работу с ранее созданной сессией.
 `telegramUsername` нормализуется при подтверждённой webhook-привязке и служит
 только lookup для Password Reset; доказательство владения остаётся в
-`telegramId` и `telegramVerified`.
+`telegramId` и `telegramVerified`. Начало новой pending-привязки меняет только
+hash/TTL token, поэтому не лишает пользователя ранее подтверждённого recovery
+channel. Owner-scoped unlink очищает все Telegram и pending-token поля одной
+мутацией.
 
 ## 4. Тарифы: единственный источник истины
 

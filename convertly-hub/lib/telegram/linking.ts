@@ -26,7 +26,6 @@ export async function createTelegramLink(userId: string) {
     data: {
       telegramVerificationTokenHash: hashToken(token),
       telegramVerificationExpires: expiresAt,
-      telegramVerified: null,
     },
   });
 

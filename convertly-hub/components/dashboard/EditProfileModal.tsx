@@ -15,6 +15,7 @@ type Props = {
   onClose: () => void;
   onProfileUpdated: () => Promise<void>;
   onTelegramLinkStarted: () => void;
+  onTelegramDisconnectRequested: () => void;
 };
 export default function EditProfileModal({
   isOpen,
@@ -26,6 +27,7 @@ export default function EditProfileModal({
   onClose,
   onProfileUpdated,
   onTelegramLinkStarted,
+  onTelegramDisconnectRequested,
 }: Props) {
   const [displayName, setDisplayName] = useState(name),
     [nextEmail, setNextEmail] = useState(email),
@@ -103,10 +105,23 @@ export default function EditProfileModal({
                 : 'A Telegram account is connected. Replace it with a one-time link.'
               : 'Connect an account with a one-time link.'}
           </p>
-          <TelegramLinkButton
-            label={telegramConnected ? 'Change Telegram account' : 'Connect Telegram'}
-            onLinkStarted={onTelegramLinkStarted}
-          />
+          <div className={telegramConnected ? 'flex w-full gap-2 sm:w-auto' : undefined}>
+            <TelegramLinkButton
+              label={telegramConnected ? 'Change Telegram account' : 'Connect Telegram'}
+              onLinkStarted={onTelegramLinkStarted}
+              className={telegramConnected ? 'flex-1 whitespace-nowrap sm:flex-none' : undefined}
+            />
+            {telegramConnected && (
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 whitespace-nowrap sm:flex-none"
+                onClick={onTelegramDisconnectRequested}
+              >
+                Disconnect Telegram
+              </Button>
+            )}
+          </div>
           {telegramLinkInProgress && (
             <p className="mt-3 text-sm text-gray-500">Waiting for confirmation in Telegram…</p>
           )}

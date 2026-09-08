@@ -3,7 +3,7 @@ import { isValidWebhookSecret, verifyTelegramLink } from '@/lib/telegram/linking
 
 type TelegramUpdate = {
   message?: {
-    chat?: { id?: number | string };
+    chat?: { id?: number | string; type?: string };
     from?: { username?: string };
     text?: string;
   };
@@ -24,7 +24,11 @@ export async function POST(request: Request) {
   const token = parseLinkToken(update.message?.text);
   const chatId = update.message?.chat?.id;
 
-  if (!token || (typeof chatId !== 'number' && typeof chatId !== 'string')) {
+  if (
+    !token ||
+    update.message?.chat?.type !== 'private' ||
+    (typeof chatId !== 'number' && typeof chatId !== 'string')
+  ) {
     return NextResponse.json({ ok: true });
   }
 
