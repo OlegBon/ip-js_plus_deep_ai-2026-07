@@ -38,11 +38,14 @@ describe('Telegram linking', () => {
   it('links an unexpired token once and removes its hash', async () => {
     mockedPrisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
+      telegramId: null,
       telegramVerificationExpires: new Date(Date.now() + 60_000),
     } as never);
     mockedPrisma.user.update.mockResolvedValue({} as never);
 
-    await expect(verifyTelegramLink('123456', 'test-token', 'Convertly_User')).resolves.toBe(true);
+    await expect(verifyTelegramLink('123456', 'test-token', 'Convertly_User')).resolves.toBe(
+      'linked',
+    );
     expect(mockedPrisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-1' },
       data: expect.objectContaining({
@@ -51,6 +54,26 @@ describe('Telegram linking', () => {
         telegramVerificationTokenHash: null,
         telegramVerificationExpires: null,
       }),
+    });
+  });
+
+  it('does not rewrite an account already linked to the same chat', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      telegramId: '123456',
+      telegramVerificationExpires: new Date(Date.now() + 60_000),
+    } as never);
+    mockedPrisma.user.update.mockResolvedValue({} as never);
+
+    await expect(verifyTelegramLink('123456', 'test-token', 'Convertly_User')).resolves.toBe(
+      'already-linked',
+    );
+    expect(mockedPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: {
+        telegramVerificationTokenHash: null,
+        telegramVerificationExpires: null,
+      },
     });
   });
 

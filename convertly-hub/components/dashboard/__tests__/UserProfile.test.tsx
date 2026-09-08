@@ -13,6 +13,7 @@ const profile = {
   telegramId: '123456',
   telegramUsername: 'ada_lovelace',
   telegramVerified: true,
+  telegramLinkPending: false,
 };
 
 describe('UserProfile Telegram controls', () => {
@@ -37,14 +38,8 @@ describe('UserProfile Telegram controls', () => {
     render(<UserProfile />);
 
     await screen.findByText('Connected as @ada_lovelace');
-    expect(screen.getByRole('button', { name: 'Change Telegram account' })).toHaveClass(
-      'whitespace-nowrap',
-      'sm:flex-none',
-    );
-    expect(screen.getByRole('button', { name: 'Disconnect Telegram' })).toHaveClass(
-      'whitespace-nowrap',
-      'sm:flex-none',
-    );
+    expect(screen.getByRole('button', { name: 'Change Telegram account' })).toHaveClass('w-full');
+    expect(screen.getByRole('button', { name: 'Disconnect Telegram' })).toHaveClass('w-full');
 
     await user.click(screen.getByRole('button', { name: 'Disconnect Telegram' }));
     expect(screen.getByRole('heading', { name: 'Disconnect Telegram' })).toBeInTheDocument();
@@ -61,5 +56,22 @@ describe('UserProfile Telegram controls', () => {
     expect(jest.requireMock('@/lib/hooks/use-toast').toast.success).toHaveBeenCalledWith(
       'Telegram account disconnected.',
     );
+  });
+
+  it('keeps the pending Telegram status after the profile is refreshed', async () => {
+    const pendingProfile = { ...profile, telegramLinkPending: true };
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      if (url === '/api/account/profile') {
+        return Promise.resolve({ ok: true, json: async () => pendingProfile });
+      }
+      if (url === '/api/account/deletion-request') {
+        return Promise.resolve({ ok: true, json: async () => ({ request: null }) });
+      }
+      return Promise.reject(new Error(`Unexpected request: ${url}`));
+    }) as jest.Mock;
+
+    render(<UserProfile />);
+
+    expect(await screen.findByText('Waiting for Telegram…')).toBeInTheDocument();
   });
 });
