@@ -144,7 +144,7 @@ npm run admin:seed-first
 
 ## 6. Необязательная Telegram-привязка
 
-Локальный UI и другие функции не требуют Telegram. Настраивайте `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` и `TELEGRAM_WEBHOOK_SECRET` только после появления публичного HTTPS-домена: Telegram webhook не может обращаться к `localhost`. Затем направьте webhook на `POST /api/telegram/webhook` с тем же secret token. После подтверждённой привязки пользователь может запросить password reset по `@username`; Bot API отправит одноразовую ссылку только в привязанный chat. Username сохраняется из Telegram webhook и не вводится в Dashboard.
+Локальный UI и другие функции не требуют Telegram. Настраивайте `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` и `TELEGRAM_WEBHOOK_SECRET` только после появления публичного HTTPS-домена: Telegram webhook не может обращаться к `localhost`. Затем направьте webhook на `POST /api/telegram/webhook` с тем же secret token. После подтверждённой привязки пользователь может запросить password reset по `@username`; Bot API отправит одноразовую ссылку только в привязанный chat. Username сохраняется из Telegram webhook и не вводится в Dashboard. Публичные BotFather settings, команды и smoke-test описаны в [telegram-bot-setup.md](./telegram-bot-setup.md).
 
 ## 7. Остановка и диагностика
 
