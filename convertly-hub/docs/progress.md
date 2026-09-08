@@ -2,11 +2,29 @@
 
 # 2026-09-08
 
+- **Задача:** Унифицировать мобильное действие блока Delete Account и нормализовать даты журнала.
+- **Изменённые файлы:** `components/dashboard/UserProfile.tsx`, `docs/progress.md`.
+- **Результат:** На узком экране действия Delete Account находятся под описанием и занимают всю доступную ширину без переноса слов; с `sm` breakpoint группа возвращается в строку справа. Каждый блок задач за 7–8 сентября теперь предварён собственным заголовком даты, поэтому журнал не объединяет несколько задач под одной датой.
+- **Проверки:** Prettier, TypeScript, ESLint и `git diff --check` выполнены перед merge.
+- **Новые переменные окружения:** нет.
+
+# 2026-09-08
+
+- **Задача:** Адаптировать действие Create key для узких экранов Dashboard.
+- **Изменённые файлы:** `components/dashboard/ApiKeyManager.tsx`, его component-тест и `docs/progress.md`.
+- **Результат:** На mobile описание и action располагаются вертикально; кнопка `Create key` занимает полную ширину, не переносит слова и имеет увеличенную область касания. На `sm` и шире сохранён компактный action справа от описания.
+- **Проверки:** Prettier, targeted Jest (3 tests), TypeScript, ESLint и `git diff --check` успешно.
+- **Новые переменные окружения:** нет.
+
+# 2026-09-08
+
 - **Задача:** Устранить layout shift у feedback сохранения File Storage.
 - **Изменённые файлы:** `components/dashboard/PrivacySettings.tsx`, его component-тест и `docs/progress.md`.
 - **Результат:** Короткий доступный статус `Saving…` расположен слева от toggle в одной горизонтальной группе, поэтому не добавляет строку под описанием и не меняет высоту карточки на desktop/mobile. Success/error toast сохранены.
 - **Проверки:** Prettier, targeted Jest (3 tests), TypeScript, ESLint и `git diff --check` успешно.
 - **Новые переменные окружения:** нет.
+
+# 2026-09-08
 
 - **Задача:** Исправить GitHub Actions ESLint failure в начальной загрузке System Monitoring.
 - **Изменённые файлы:** `components/admin/SystemMonitoring.tsx`, `components/dashboard/__tests__/settings.test.tsx`, `docs/progress.md`.
@@ -14,11 +32,15 @@
 - **Проверки:** Prettier, ESLint, TypeScript, targeted Jest (5 tests) и `git diff --check` успешно.
 - **Новые переменные окружения:** нет.
 
+# 2026-09-08
+
 - **Задача:** Устранить Jest discovery warning и унифицировать feedback асинхронных действий Dashboard/Admin.
 - **Изменённые файлы:** `jest.config.ts`, `components/ui/Button.tsx`, `components/dashboard/PrivacySettings.tsx`, `components/dashboard/ApiKeyManager.tsx`, `components/admin/SystemMonitoring.tsx`, component-тесты и `docs/progress.md`.
 - **Результат:** Jest ограничен исходными test roots и больше не сканирует `.next/standalone`. Базовая кнопка получила единый disabled-style. File Storage показывает saving и блокирует toggle, API keys показывают creating/revoking/copying и исключают параллельные мутации, а System Monitoring различает initial loading, error с Retry и stale metrics после неуспешного refresh.
 - **Проверки:** Prettier, `git diff --check`, `npx tsc --noEmit`, ESLint, targeted Jest (5 tests) и полный Jest (52 suites / 159 tests) успешно. Browser plugin недоступен; Playwright fallback подтвердил два public Chromium flow, полный локальный прогон ограничен недоступностью Google Fonts.
 - **Новые переменные окружения:** нет.
+
+# 2026-09-08
 
 - **Задача:** Провести повторный documentation audit и расширить практические guides по слоям.
 - **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/audits/dependency-security-latest.md`, `docs/guides/*` и `docs/progress.md`.
@@ -34,11 +56,15 @@
 - **Проверки:** `getWebhookInfo` подтверждает production URL без ошибки; полный пользовательский flow Telegram recovery завершён успешно.
 - **Новые переменные окружения:** нет; используются существующие server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
 
+# 2026-09-07
+
 - **Задача:** Актуализировать документацию после production-настройки Telegram recovery.
 - **Изменённые файлы:** `docs/backlog/050-telegram-and-account.md`, `docs/work_plan.md`, `docs/audits/documentation-audit-2026-09-07.md`, `docs/progress.md`.
 - **Результат:** Зафиксировано, что migration, app deploy, `setWebhook` и привязка Telegram из Dashboard завершены. На момент этой записи `050` был сохранён в активном backlog до финального smoke-test reset по `@username`.
 - **Проверки:** `getWebhookInfo` подтвердил production URL без ошибки; ручная Telegram-привязка успешна. Финальный reset по `@username` отмечен отдельной последующей записью выше.
 - **Новые переменные окружения:** нет; используются существующие server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
+
+# 2026-09-07
 
 - **Задача:** Улучшить отображение и обновление Telegram-привязки в Dashboard.
 - **Изменённые файлы:** `components/dashboard/UserProfile.tsx`, `components/dashboard/EditProfileModal.tsx`, `components/dashboard/TelegramLinkButton.tsx`, `components/dashboard/__tests__/EditProfileModal.test.tsx`, `docs/progress.md`.
@@ -46,11 +72,15 @@
 - **Проверки:** TypeScript, ESLint без ошибок и Jest для EditProfileModal выполнены. Browser-плагин недоступен; Playwright выполнил два существующих guest-сценария, но полный локальный прогон был остановлен из-за зависания dev-server при недоступных Google Fonts — изменение Dashboard-авторизации он не покрывает.
 - **Новые переменные окружения:** нет.
 
+# 2026-09-07
+
 - **Задача:** Реализовать восстановление пароля через подтверждённый Telegram chat.
 - **Изменённые файлы:** Prisma schema и migration `20260907170000_telegram_password_recovery`, `lib/telegram/bot.ts`, Telegram linking/webhook, recovery route/UI, Profile, Jest tests и актуальная документация.
 - **Результат:** Webhook сохраняет нормализованный public Telegram username только при подтверждённой привязке. Password reset принимает email или `@username`, всегда отвечает нейтрально и отправляет одноразовую 30-минутную ссылку Bot API исключительно в active user с подтверждённым chat ID. Username не служит доказательством владения; token, reset URL, chat ID и bot token не логируются.
 - **Проверки:** Prisma validate/generate, TypeScript, ESLint, Jest (51 suites / 155 tests), Playwright (5/5) и изолированный Docker integration migration preflight выполнены. Production migration, app deploy, `setWebhook`, ручная привязка с личным chat и reset по `@username` выполнены; итоговый статус зафиксирован отдельной записью выше.
 - **Новые переменные окружения:** нет; используются уже подготовленные server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` только в `convertly-app-runtime`.
+
+# 2026-09-07
 
 - **Задача:** Подробно декомпозировать следующие product/backend задачи: Telegram password recovery и admin conversion history.
 - **Изменённые файлы:** `docs/backlog/README.md`, `docs/backlog/020-conversion-capabilities.md`, `docs/backlog/050-telegram-and-account.md`, новый `docs/backlog/060-admin-conversion-history.md`, `docs/progress.md`.
@@ -58,11 +88,15 @@
 - **Проверки:** Требования сверены с существующими Telegram link/webhook route, `User` schema, `ConversionLog`, Dashboard history и System Monitoring.
 - **Новые переменные окружения:** сейчас нет; будущая Telegram-задача использует уже существующие `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`.
 
+# 2026-09-07
+
 - **Задача:** Актуализировать статусы выполненных deployment-задач в историческом `work_plan.md`.
 - **Изменённые файлы:** `docs/work_plan.md`, `docs/progress.md`.
 - **Результат:** Northflank + Supabase public demo явно отмечен выполненным, а Oracle, backup/restore, monitoring, CD и multi-instance rate limit сохранены как отдельные незавершённые инфраструктурные направления со ссылкой на тематический backlog. Выполненные задачи больше не выглядят как ожидающие запуска.
 - **Проверки:** Статусы сверены с Northflank/Supabase runbook, текущим domain/SMTP/migration flow и cloud portability документом.
 - **Новые переменные окружения:** нет.
+
+# 2026-09-07
 
 - **Задача:** Провести двухпроходный audit документации, добавить PowerShell API/backup-инструкции, тематический backlog и единый cloud portability runbook.
 - **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/work_plan.md`, `docs/northflank-supabase-setup.md`, новые `docs/api-powershell.md`, `docs/supabase-logical-backup.md`, `docs/cloud-portability.md`, `docs/backlog/*`, `docs/audits/documentation-audit-2026-09-07.md`, `docs/progress.md`.
@@ -70,11 +104,15 @@
 - **Проверки:** Markdown links, команды и переменные сверены с Route Handlers, `Dockerfile`, `.env*.example`, Prisma migrations и scripts; выполняются `npm run linteslint`, `npx tsc --noEmit` и Jest перед merge.
 - **Новые переменные окружения:** нет.
 
+# 2026-09-07
+
 - **Задача:** Выровнять действия блока Delete Account в одну строку.
 - **Изменённые файлы:** `components/dashboard/UserProfile.tsx`, `docs/progress.md`.
 - **Результат:** На мобильном экране группа действий находится отдельной строкой под описанием, но `Request submitted` и `Cancel request` располагаются рядом и равномерно занимают доступную ширину; на desktop группа остаётся справа и не переносит текст кнопок.
 - **Проверки:** ESLint, TypeScript и Playwright выполняются до merge.
 - **Новые переменные окружения:** нет.
+
+# 2026-09-07
 
 - **Задача:** Расширить управление запросами на удаление аккаунта: поиск, пагинация, отмена и понятный статус для пользователя.
 - **Изменённые файлы:** Prisma schema и migration `20260907160000_account_deletion_request_management`, account-deletion service/API, Admin Panel, Profile, Главная и документация.
@@ -83,11 +121,15 @@
 - **Новые переменные окружения:** нет.
 - **Диагностика почты:** отправка support-уведомлений логирует только успешный `kind` и `requestId`; добавлено уведомление `CANCELLED`.
 
+# 2026-09-07
+
 - **Задача:** Исправить CI lint для первичной загрузки списка запросов на удаление аккаунта.
 - **Изменённые файлы:** `components/admin/AccountDeletionRequests.tsx`, `docs/progress.md`.
 - **Результат:** Начальная загрузка списка теперь выполняет fetch непосредственно в `useEffect`, а обновление state происходит только в асинхронном callback. Это устраняет ошибку `react-hooks/set-state-in-effect`, не меняя API, UI или обработку ручного Refresh.
 - **Проверки:** ESLint, TypeScript и Jest (50 suites / 149 tests) успешно.
 - **Новые переменные окружения:** нет.
+
+# 2026-09-07
 
 - **Задача:** Реализовать управляемое удаление аккаунта через запрос пользователя и подтверждение администратора.
 - **Изменённые файлы:** Prisma schema и migration `20260907150000_account_deletion_workflow`, account-deletion service, authenticated account/admin API routes, Profile и Admin Panel UI, SMTP notifications, `.env*.example`, `docs/account-deletion-workflow.md`, `docs/db-schema.md`, Northflank guide и `README.md`.
@@ -96,11 +138,15 @@
 - **Новые переменные окружения:** `SUPPORT_EMAIL` (server-only, non-secret) — адрес мониторируемого support mailbox; в Northflank добавить в `convertly-app-runtime`.
 - **Документация:** новый runbook `docs/account-deletion-workflow.md` и ссылка на него в `README.md` приведены к русскому языку; англоязычными остаются только технические идентификаторы, имена UI-разделов и статусы БД.
 
+# 2026-09-07
+
 - **Задача:** Сделать `Subscription.activePlan` единственным источником истины тарифа и добавить OpenSSL в Prisma migration image.
 - **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907140000_subscription_plan_source_of_truth`, billing/API/admin services, one-off plan sync, audit script, `Dockerfile`, integration/Jest tests, `docs/subscription-plan-migration.md` и связанные guides.
 - **Результат:** Migration создаёт Subscription отсутствующим пользователям из legacy `User.plan`, сохраняет уже существующий `Subscription.activePlan` при расхождении и удаляет legacy-колонку. Регистрация, quota/API checks, Admin и one-off plan sync читают/меняют только Subscription. В migration target добавлен `openssl`, что устраняет Prisma warning в Northflank job.
 - **Проверки:** Prisma validate/generate, TypeScript, Jest, Playwright, real integration/E2E и Docker migration-target build выполняются перед merge. Перед production migration обязательны логический Supabase backup и read-only `node scripts/audit-subscription-plans.mjs`.
 - **Новые переменные окружения:** нет; `PLAN_SYNC_EMAIL` и `PLAN_SYNC_ACTIVE_PLAN` остаются только run-time overrides one-off job.
+
+# 2026-09-07
 
 - **Задача:** Удалить legacy-схему отменённой Guest support code feature.
 - **Изменённые файлы:** `prisma/schema.prisma`, migration `20260907130000_remove_guest_support_code`, `docs/db-schema.md`, `docs/guides/database.md`, `docs/progress.md`.

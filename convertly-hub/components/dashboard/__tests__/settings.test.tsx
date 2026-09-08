@@ -80,6 +80,7 @@ describe('dashboard settings', () => {
 
     render(<ApiKeyManager />);
     const createButton = await screen.findByRole('button', { name: 'Create key' });
+    expect(createButton).toHaveClass('w-full', 'whitespace-nowrap', 'sm:w-auto');
     await user.click(createButton);
 
     expect(screen.getByRole('button', { name: 'Creating…' })).toBeDisabled();

@@ -247,7 +247,7 @@ export default function UserProfile() {
           </Link>
         </div>
         <div className="border-t" />
-        <div className="flex justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <p className="text-lg font-semibold">Delete Account</p>
             <p className="text-sm text-gray-500">
@@ -263,10 +263,10 @@ export default function UserProfile() {
               <p className="mt-1 text-sm text-red-700">{deletionRequest.failureReason}</p>
             )}
           </div>
-          <div className="flex w-full gap-2 md:w-auto">
+          <div className="flex w-full gap-2 sm:w-auto">
             <Button
               variant="secondary"
-              className="flex-1 whitespace-nowrap md:flex-none"
+              className="flex-1 whitespace-nowrap sm:flex-none"
               onClick={() => setRemove(true)}
               disabled={
                 sending ||
@@ -283,7 +283,7 @@ export default function UserProfile() {
             {deletionRequest?.status === 'PENDING' && (
               <Button
                 variant="outline"
-                className="flex-1 whitespace-nowrap md:flex-none"
+                className="flex-1 whitespace-nowrap sm:flex-none"
                 onClick={cancelDeletionRequest}
                 disabled={sending}
               >
