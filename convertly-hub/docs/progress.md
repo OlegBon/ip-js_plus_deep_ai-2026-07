@@ -2,6 +2,12 @@
 
 # 2026-09-08
 
+- **Задача:** Устранить layout shift у feedback сохранения File Storage.
+- **Изменённые файлы:** `components/dashboard/PrivacySettings.tsx`, его component-тест и `docs/progress.md`.
+- **Результат:** Короткий доступный статус `Saving…` расположен слева от toggle в одной горизонтальной группе, поэтому не добавляет строку под описанием и не меняет высоту карточки на desktop/mobile. Success/error toast сохранены.
+- **Проверки:** Prettier, targeted Jest (3 tests), TypeScript, ESLint и `git diff --check` успешно.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Исправить GitHub Actions ESLint failure в начальной загрузке System Monitoring.
 - **Изменённые файлы:** `components/admin/SystemMonitoring.tsx`, `components/dashboard/__tests__/settings.test.tsx`, `docs/progress.md`.
 - **Результат:** Initial metrics load теперь вызывает pure `fetchMetrics` в asynchronous callback эффекта; state обновляется после завершения promise, а retry по click сохраняет явный loading/error flow. Удалены два неиспользуемых параметра из новых test mocks.

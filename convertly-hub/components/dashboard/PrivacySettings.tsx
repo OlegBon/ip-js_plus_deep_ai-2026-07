@@ -63,22 +63,26 @@ export default function PrivacySettings() {
               ? 'Free results are stored automatically for 24 hours. Change your plan to control storage.'
               : 'Save converted results to your private file history.'}
           </p>
-          {isSaving && (
-            <p className="mt-1 text-sm text-gray-500">Saving file storage preference…</p>
-          )}
         </div>
-        <button
-          type="button"
-          disabled={isDisabled}
-          onClick={handleToggle}
-          aria-label="Toggle file storage"
-          aria-busy={isSaving}
-          className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${billing.storeConversions ? 'bg-indigo-600' : 'bg-gray-300'}`}
-        >
-          <span
-            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${billing.storeConversions ? 'translate-x-6' : 'translate-x-1'}`}
-          />
-        </button>
+        <div className="flex flex-shrink-0 items-center gap-2 self-end md:self-auto">
+          {isSaving && (
+            <span className="text-sm text-gray-500" role="status" aria-live="polite">
+              Saving…
+            </span>
+          )}
+          <button
+            type="button"
+            disabled={isDisabled}
+            onClick={handleToggle}
+            aria-label="Toggle file storage"
+            aria-busy={isSaving}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${billing.storeConversions ? 'bg-indigo-600' : 'bg-gray-300'}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${billing.storeConversions ? 'translate-x-6' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
       </div>
     </div>
   );
