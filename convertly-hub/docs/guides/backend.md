@@ -218,9 +218,13 @@ email → lib/mail/send-auth-email.ts → SMTP
 Username сам по себе не доказывает владение chat: `createTelegramPasswordReset`
 требует одновременно `telegramId`, `telegramVerified` и `UserStatus.ACTIVE`.
 Webhook `POST /api/telegram/webhook` сначала проверяет заголовок
-`x-telegram-bot-api-secret-token`, и только затем передаёт `/start link_<token>`
-в `verifyTelegramLink`. Токены, bot token, chat ID, URL reset-ссылки и provider
-response не должны попадать в пользовательский JSON или обычные логи.
+`x-telegram-bot-api-secret-token`, принимает link-команду только из private
+chat и только затем передаёт `/start link_<token>` в `verifyTelegramLink`.
+Новая pending-ссылка не отменяет прежнюю подтверждённую привязку. Owner-scoped
+`DELETE /api/account/telegram/link` очищает Telegram поля и pending token, после
+чего recovery по `@username` остаётся нейтрально недоступным. Токены, bot token,
+chat ID, URL reset-ссылки и provider response не должны попадать в
+пользовательский JSON или обычные логи.
 
 ### 6.2. Account deletion: request не равен немедленному удалению
 

@@ -26,6 +26,7 @@ describe('EditProfileModal', () => {
         onClose={jest.fn()}
         onProfileUpdated={async () => undefined}
         onTelegramLinkStarted={jest.fn()}
+        onTelegramDisconnectRequested={jest.fn()}
       />,
     );
 
@@ -45,6 +46,7 @@ describe('EditProfileModal', () => {
         onClose={jest.fn()}
         onProfileUpdated={async () => undefined}
         onTelegramLinkStarted={jest.fn()}
+        onTelegramDisconnectRequested={jest.fn()}
       />,
     );
 
@@ -52,5 +54,6 @@ describe('EditProfileModal', () => {
       screen.getByText('Connected as @ada_lovelace. Replace it with a one-time link.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Change Telegram account' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Disconnect Telegram' })).toBeInTheDocument();
   });
 });

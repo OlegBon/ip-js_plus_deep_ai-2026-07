@@ -54,9 +54,11 @@ export default function UserProfile() {
   const [profile, setProfile] = useState<Profile | null>(null),
     [edit, setEdit] = useState(false),
     [remove, setRemove] = useState(false),
+    [disconnectTelegram, setDisconnectTelegram] = useState(false),
     [deletionRequest, setDeletionRequest] = useState<DeletionRequest | null>(null),
     [telegramLinkWatch, setTelegramLinkWatch] = useState<TelegramLinkWatch | null>(null),
-    [sending, startSending] = useTransition();
+    [sending, startSending] = useTransition(),
+    [telegramDisconnecting, startTelegramDisconnect] = useTransition();
   const refreshDeletionRequest = useCallback(async (signal?: AbortSignal) => {
     try {
       const result = await fetchDeletionRequest(signal);
@@ -171,6 +173,33 @@ export default function UserProfile() {
       toast.success('Deletion request cancelled.');
     });
   }
+  function requestTelegramDisconnect() {
+    setEdit(false);
+    setDisconnectTelegram(true);
+  }
+  function submitTelegramDisconnect() {
+    startTelegramDisconnect(async () => {
+      const response = await fetch('/api/account/telegram/link', { method: 'DELETE' });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        toast.error(payload.error ?? 'Unable to disconnect Telegram.');
+        return;
+      }
+      setTelegramLinkWatch(null);
+      setProfile((current) =>
+        current
+          ? {
+              ...current,
+              telegramId: null,
+              telegramUsername: null,
+              telegramVerified: false,
+            }
+          : current,
+      );
+      setDisconnectTelegram(false);
+      toast.success('Telegram account disconnected.');
+    });
+  }
   if (!profile) return <div className="rounded-lg bg-white p-6 shadow-md">Loading profile…</div>;
   const needsEmailConfirmation = !profile.emailVerified || Boolean(profile.pendingEmail);
   return (
@@ -227,11 +256,25 @@ export default function UserProfile() {
               <p className="mt-1 text-sm text-gray-500">Waiting for confirmation in Telegram…</p>
             )}
           </div>
-          {profile.telegramId && !profile.telegramVerified ? (
-            <TelegramLinkButton label="Confirm Telegram" onLinkStarted={startTelegramLinkWatch} />
-          ) : !profile.telegramId ? (
+          {profile.telegramId ? (
+            <div className="flex w-full gap-2 sm:w-auto">
+              <TelegramLinkButton
+                label={profile.telegramVerified ? 'Change Telegram account' : 'Confirm Telegram'}
+                onLinkStarted={startTelegramLinkWatch}
+                className="flex-1 whitespace-nowrap sm:flex-none"
+              />
+              <Button
+                variant="outline"
+                className="flex-1 whitespace-nowrap sm:flex-none"
+                onClick={requestTelegramDisconnect}
+                disabled={telegramDisconnecting}
+              >
+                {telegramDisconnecting ? 'Disconnecting…' : 'Disconnect Telegram'}
+              </Button>
+            </div>
+          ) : (
             <TelegramLinkButton onLinkStarted={startTelegramLinkWatch} />
-          ) : null}
+          )}
         </div>
         <div className="border-t" />
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -304,6 +347,7 @@ export default function UserProfile() {
         onClose={() => setEdit(false)}
         onProfileUpdated={refresh}
         onTelegramLinkStarted={startTelegramLinkWatch}
+        onTelegramDisconnectRequested={requestTelegramDisconnect}
       />
       <ConfirmationModal
         isOpen={remove}
@@ -313,6 +357,16 @@ export default function UserProfile() {
         message="This sends a deletion request to an administrator. Your account and stored files remain available until the request is approved."
         confirmLabel="Request deletion"
         isPending={sending}
+      />
+      <ConfirmationModal
+        isOpen={disconnectTelegram}
+        onClose={() => setDisconnectTelegram(false)}
+        onConfirm={submitTelegramDisconnect}
+        title="Disconnect Telegram"
+        message="You will no longer be able to receive password reset links in Telegram. Email recovery will remain available."
+        confirmLabel="Disconnect"
+        confirmVariant="danger"
+        isPending={telegramDisconnecting}
       />
     </>
   );

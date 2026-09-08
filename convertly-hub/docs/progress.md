@@ -2,6 +2,14 @@
 
 # 2026-09-08
 
+- **Задача:** Управление Telegram-привязкой и безопасность recovery.
+- **Изменённые файлы:** `app/api/account/telegram/link/route.ts`, Telegram webhook/linking, `UserProfile`, `EditProfileModal`, shared `ConfirmationModal`, Jest tests, architecture/layer guides, backlog и `docs/progress.md`.
+- **Результат:** Пользователь может отвязать Telegram из Dashboard или Edit Profile через знакомую confirm-модалку; на mobile Change/Disconnect используют тот же responsive action-pattern, что и соседние блоки. Owner-scoped `DELETE /api/account/telegram/link` очищает привязку и pending token. Новая deep link попытка не отключает прежний подтверждённый recovery channel, а webhook принимает linking token только из private chat.
+- **Проверки:** targeted Jest покрывает unlink route, сохранение verified state при новой ссылке, private/group webhook и Telegram UI confirm-flow; TypeScript, ESLint и `git diff --check` запускаются перед merge. Browser plugin отсутствует; локальная browser-проверка ограничена отсутствием авторизованной test session.
+- **Новые переменные окружения:** нет; используются существующие server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`.
+
+# 2026-09-08
+
 - **Задача:** Финально актуализировать документацию после cloud migration и dependency security fix.
 - **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/START.md`, `docs/guides/frontend.md`, `docs/audits/dependency-security-latest.md`, новый `docs/audits/documentation-audit-2026-09-08.md` и `docs/progress.md`.
 - **Результат:** README отделяет local Compose от публичного Northflank Developer Sandbox + Supabase demo и содержит ссылки на cloud video/Canva presentation. Канонические документы фиксируют актуальный стек, 0 vulnerabilities после точечных Prisma-транзитивных overrides, единый mobile action-pattern и только будущий тематический backlog. Дерево `architecture.md` повторно сверено с tracked files: добавлены account deletion, admin metrics/requests, актуальные component names, scripts и конфигурации Jest/Next/Prisma.

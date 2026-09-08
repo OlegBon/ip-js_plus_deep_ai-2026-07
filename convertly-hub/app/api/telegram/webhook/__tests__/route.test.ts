@@ -33,7 +33,7 @@ describe('POST /api/telegram/webhook', () => {
         method: 'POST',
         body: JSON.stringify({
           message: {
-            chat: { id: 123456 },
+            chat: { id: 123456, type: 'private' },
             from: { username: 'Convertly_User' },
             text: '/start link_abcdefghijklmnopqrst',
           },
@@ -47,5 +47,25 @@ describe('POST /api/telegram/webhook', () => {
       'abcdefghijklmnopqrst',
       'Convertly_User',
     );
+  });
+
+  it('ignores a valid link token received in a group chat', async () => {
+    mockedSecretCheck.mockReturnValue(true);
+
+    const response = await POST(
+      new Request('http://localhost/api/telegram/webhook', {
+        method: 'POST',
+        body: JSON.stringify({
+          message: {
+            chat: { id: -100123, type: 'supergroup' },
+            from: { username: 'Convertly_User' },
+            text: '/start link_abcdefghijklmnopqrst',
+          },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedVerifyLink).not.toHaveBeenCalled();
   });
 });

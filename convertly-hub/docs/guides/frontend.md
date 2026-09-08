@@ -141,10 +141,14 @@ function canDownload(conversion: Conversion) {
 - `UserProfile.tsx` отображает имя, email/Telegram статус и защищённые действия;
   badge `Verified` находится в строке с Telegram username. После Connect/Change
   компонент опрашивает profile endpoint раз в 5 секунд, максимум 2 минуты, и
-  сам показывает результат подтверждённой привязки;
+  сам показывает результат подтверждённой привязки. Для подключённого аккаунта
+  действия Change/Disconnect используют одну responsive-группу: на mobile обе
+  кнопки занимают строку без переноса слов, на `sm` возвращаются к естественной
+  ширине;
 - `EditProfileModal.tsx` отправляет изменения профиля и текущий пароль в account
   API, показывает текущий Telegram username и позволяет заменить привязку через
-  одноразовый deep link;
+  одноразовый deep link. Disconnect открывает тот же `ConfirmationModal`, что и
+  другие destructive-действия, и явно сообщает, что email recovery сохраняется;
 - `ApiKeyManager.tsx` показывает API secret один раз после `POST`, затем только
   metadata и revoke;
 - `PrivacySettings.tsx` меняет выбор хранения, если это разрешено тарифом;
