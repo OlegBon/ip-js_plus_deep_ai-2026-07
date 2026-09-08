@@ -62,22 +62,24 @@ Convertly Hub — веб-сервис и API для конвертации фа�
 
 ## 2. Реализованный стек
 
-| Зона            | Технологии и назначение                                                                      |
-| --------------- | -------------------------------------------------------------------------------------------- |
-| Web/API         | Next.js 16 (App Router), React 19, TypeScript, Route Handlers                                |
-| UI              | Tailwind CSS 4, собственные компоненты и `sonner` для уведомлений                            |
-| Аутентификация  | NextAuth 4, bcrypt, HttpOnly cookies, Nodemailer 9                                           |
-| Данные          | PostgreSQL 15, Prisma 7.10 с `@prisma/adapter-pg`                                            |
-| Хранилище       | AWS SDK v3, S3-compatible API; локально — MinIO                                              |
-| Конвертация     | `sharp` для изображений, Gotenberg 8 для `DOCX → PDF`                                        |
-| Локальная почта | MailHog; он предназначен только для разработки и тестов                                      |
-| Проверки        | ESLint, TypeScript, Prettier, Jest, Playwright, Docker Compose integration/E2E               |
-| CI              | GitHub Actions на push в любую ветку: lint/types/Jest, browser E2E, реальные integration/E2E |
+| Зона            | Технологии и назначение                                                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web/API         | Next.js 16 (App Router), React 19, TypeScript, Route Handlers                                                                                                       |
+| UI              | Tailwind CSS 4, Radix primitives, собственные компоненты, `class-variance-authority`, `clsx`, `tailwind-merge`, Lucide, `react-dropzone` и `sonner` для уведомлений |
+| Аутентификация  | NextAuth 4, bcrypt, HttpOnly cookies, Nodemailer 9                                                                                                                  |
+| Данные          | PostgreSQL 15 в local/Oracle Compose, managed PostgreSQL Supabase в demo; Prisma 7.10 с `@prisma/adapter-pg`                                                        |
+| Хранилище       | AWS SDK v3, S3-compatible API; локально — MinIO                                                                                                                     |
+| Конвертация     | `sharp` для изображений, Gotenberg 8 для `DOCX → PDF`                                                                                                               |
+| Локальная почта | MailHog; он предназначен только для разработки и тестов                                                                                                             |
+| Проверки        | ESLint, TypeScript, Prettier, Jest, Playwright, Docker Compose integration/E2E                                                                                      |
+| CI              | GitHub Actions на push в любую ветку: lint/types/Jest, browser E2E, реальные integration/E2E                                                                        |
 
-`npm audit --omit=dev` проходит без уязвимостей. Prisma 7.10 и Nodemailer 9.1
-обновлены адресно; NextAuth остаётся на стабильной v4. Любое его major-обновление
-требует отдельной проверки breaking changes и полного набора тестов —
-`npm audit fix --force` для этого проекта запрещён.
+На 8 сентября 2026 `npm audit --omit=dev` сообщает транзитивные findings в графе
+Prisma 7. Подробности, причина и безопасное правило обновления находятся в
+[актуальной сводке dependency security](./audits/dependency-security-latest.md).
+Prisma 7.10 и Nodemailer 9.1 обновлены адресно; NextAuth остаётся на стабильной
+v4. Любое его major-обновление требует отдельной проверки breaking changes и
+полного набора тестов — `npm audit fix --force` для этого проекта запрещён.
 
 ---
 
@@ -172,7 +174,8 @@ GitHub build context `convertly-hub`, находится в
 
 Порядок и причины отложенных работ описаны в
 [docs/backlog](./backlog/README.md). Перед любым public запуском также повторно
-проверяются GitHub Actions, `npm audit --omit=dev` и production smoke-tests.
+проверяются GitHub Actions, вручную `npm audit --omit=dev` и production
+smoke-tests. Audit не является отдельной командой текущего GitHub Actions workflow.
 
 ---
 

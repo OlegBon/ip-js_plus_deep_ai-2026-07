@@ -92,7 +92,38 @@ containers:
 Git локально; в CI он прикладывается как artifact. Его не нужно коммитить и не
 следует чистить пользовательские artefacts широкими delete-командами.
 
-## 5. Минимальный чек-лист после изменения
+`npm audit --omit=dev` намеренно не запущен отдельной CI-командой: его выполняют
+перед dependency/deployment-изменением и сверяют с
+[dependency-security-latest.md](../audits/dependency-security-latest.md). Это
+делает результат audit явным решением, а не причиной автоматического
+необъяснённого deploy failure.
+
+## 5. Production operations: migration, backup, deploy
+
+Для Northflank + Supabase порядок безопаснее, чем «сначала deploy app»:
+
+```text
+1. Проверить GitHub Actions и diff migration.
+2. Создать логический PostgreSQL backup через Supabase CLI.
+3. Запустить one-off job convertly-migrate: npx prisma migrate deploy.
+4. Убедиться, что job завершился с exit code 0.
+5. Собрать/deploy convertly-app и дождаться readiness/GET /api/health.
+6. Выполнить узкий smoke test изменённого пользовательского flow.
+```
+
+Команды и безопасное хранение трёх файлов dump описаны в
+[supabase-logical-backup.md](../supabase-logical-backup.md). Migration job
+использует тот же Dockerfile и `DATABASE_URL`, но отдельную secret group; он не
+должен получать SMTP, S3 или Telegram credentials, если migration не требует их.
+Для code-only изменения шаги 2–4 не нужны: достаточно build/deploy app и health
+check. `GET /api/health` проверяет PostgreSQL, S3 bucket и private Gotenberg;
+успешный health не заменяет проверку email или конкретной конвертации.
+
+При смене провайдера не переносите Docker volumes «как есть». Используйте
+PostgreSQL dump, S3 object migration, Git revision и заново созданные secrets по
+[cloud-portability.md](../cloud-portability.md).
+
+## 6. Минимальный чек-лист после изменения
 
 | Изменение                   | Обязательный минимум                                                              |
 | --------------------------- | --------------------------------------------------------------------------------- |

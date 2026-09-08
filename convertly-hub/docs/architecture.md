@@ -296,9 +296,29 @@ build context, secrets, миграции и ограничения описан�
   2. `/email-verification/[token]` подтверждает токен через `POST /api/auth/email-verification/confirm`, ставит `emailVerified` и удаляет токен. При смене адреса старый email остаётся активным, а `pendingEmail` заменяет его только после подтверждения ссылки, доставленной на новый адрес.
   3. Telegram использует независимую одноразовую webhook-привязку (`POST /api/account/telegram/link` и `POST /api/telegram/webhook`).
 
+## 8. Поток удаления аккаунта
+
+Удаление не выполняется прямо по нажатию кнопки Dashboard. Пользователь создаёт
+аутентифицированный request, а окончательное удаление подтверждает `ADMIN`:
+
+```text
+Dashboard → POST /api/account/deletion-request → PENDING + audit event
+Admin Panel → claim PROCESSING → private S3 cleanup → delete User → COMPLETED
+                                      └─ ошибка → FAILED, доступен controlled retry
+```
+
+Пока request `PENDING`, пользователь может отменить его. Система не позволяет
+создать второй активный request. Перед удалением `User` backend удаляет
+пользовательские S3-объекты; Prisma каскадно удаляет связанные account records.
+Сам `AccountDeletionRequest` и его append-only events сохраняются как audit
+история с nullable `userId` и snapshot email. Support mailbox получает best-effort
+уведомления о request, отмене, success и failure; ошибка отправки письма не
+отменяет корректно завершённую операцию данных. Полный runbook, статусы и
+проверки — в [account-deletion-workflow.md](./account-deletion-workflow.md).
+
 ---
 
-## 8. Тестирование
+## 9. Тестирование
 
 Тестовая инфраструктура построена на Jest с `next/jest`, TypeScript-поддержкой через `ts-jest` и окружением `jsdom`. Component-тесты используют React Testing Library и `@testing-library/user-event`, проверяя наблюдаемое пользователем поведение. Для изолированных сетевых integration-тестов подключён MSW.
 
