@@ -41,9 +41,11 @@ export async function POST(request: Request) {
     );
     await sendTelegramBotMessage(
       normalizedChatId,
-      linked
+      linked === 'linked'
         ? 'Telegram is connected to your Convertly Hub account. You can return to the app.'
-        : 'This link has expired or was already used. Create a new link in My Account.',
+        : linked === 'already-linked'
+          ? 'This Telegram account is already connected to Convertly Hub. You can return to the app.'
+          : 'This link has expired or was already used. Create a new link in My Account.',
       convertlyBotLinks(),
     );
     return NextResponse.json({ ok: true });

@@ -39,7 +39,7 @@ export async function verifyTelegramLink(chatId: string, token: string, username
   const tokenHash = hashToken(token);
   const user = await prisma.user.findUnique({
     where: { telegramVerificationTokenHash: tokenHash },
-    select: { id: true, telegramVerificationExpires: true },
+    select: { id: true, telegramId: true, telegramVerificationExpires: true },
   });
 
   if (
@@ -51,17 +51,22 @@ export async function verifyTelegramLink(chatId: string, token: string, username
   }
 
   try {
+    const isAlreadyLinked = user.telegramId === chatId;
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        telegramId: chatId,
-        telegramUsername: normalizeTelegramUsername(username),
-        telegramVerified: new Date(),
+        ...(isAlreadyLinked
+          ? {}
+          : {
+              telegramId: chatId,
+              telegramUsername: normalizeTelegramUsername(username),
+              telegramVerified: new Date(),
+            }),
         telegramVerificationTokenHash: null,
         telegramVerificationExpires: null,
       },
     });
-    return true;
+    return isAlreadyLinked ? 'already-linked' : 'linked';
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return false;

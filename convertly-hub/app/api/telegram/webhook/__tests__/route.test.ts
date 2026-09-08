@@ -36,7 +36,7 @@ describe('POST /api/telegram/webhook', () => {
 
   it('passes a valid start token to the linking service', async () => {
     mockedSecretCheck.mockReturnValue(true);
-    mockedVerifyLink.mockResolvedValue(true);
+    mockedVerifyLink.mockResolvedValue('linked');
 
     const response = await POST(
       new Request('http://localhost/api/telegram/webhook', {
@@ -60,6 +60,26 @@ describe('POST /api/telegram/webhook', () => {
     expect(mockedSendMessage).toHaveBeenCalledWith(
       '123456',
       'Telegram is connected to your Convertly Hub account. You can return to the app.',
+      { inline_keyboard: [] },
+    );
+  });
+
+  it('explains that a Telegram account was already connected without relinking it', async () => {
+    mockedSecretCheck.mockReturnValue(true);
+    mockedVerifyLink.mockResolvedValue('already-linked');
+
+    await POST(
+      new Request('http://localhost/api/telegram/webhook', {
+        method: 'POST',
+        body: JSON.stringify({
+          message: { chat: { id: 123456, type: 'private' }, text: '/start link_existing' },
+        }),
+      }),
+    );
+
+    expect(mockedSendMessage).toHaveBeenCalledWith(
+      '123456',
+      expect.stringContaining('already connected'),
       { inline_keyboard: [] },
     );
   });

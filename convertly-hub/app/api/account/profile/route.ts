@@ -18,6 +18,8 @@ export async function GET() {
       telegramId: true,
       telegramUsername: true,
       telegramVerified: true,
+      telegramVerificationTokenHash: true,
+      telegramVerificationExpires: true,
       status: true,
     },
   });
@@ -32,6 +34,10 @@ export async function GET() {
       telegramId: profile.telegramId,
       telegramUsername: profile.telegramUsername,
       telegramVerified: profile.telegramVerified !== null,
+      telegramLinkPending:
+        profile.telegramVerificationTokenHash !== null &&
+        profile.telegramVerificationExpires !== null &&
+        profile.telegramVerificationExpires > new Date(),
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );

@@ -104,27 +104,37 @@ export default function EditProfileModal({
                 ? `Connected as @${telegramUsername}. Replace it with a one-time link.`
                 : 'A Telegram account is connected. Replace it with a one-time link.'
               : 'Connect an account with a one-time link.'}
+            {telegramLinkInProgress && (
+              <span className="ml-2 inline-flex items-center gap-1" aria-live="polite">
+                <span
+                  className="bg-accent h-1.5 w-1.5 animate-pulse rounded-full"
+                  aria-hidden="true"
+                />
+                Waiting for Telegram…
+              </span>
+            )}
           </p>
-          <div className={telegramConnected ? 'flex w-full gap-2 sm:w-auto' : undefined}>
+          <div
+            className={
+              telegramConnected ? 'flex w-full flex-col gap-2 sm:w-auto sm:flex-row' : undefined
+            }
+          >
             <TelegramLinkButton
               label={telegramConnected ? 'Change Telegram account' : 'Connect Telegram'}
               onLinkStarted={onTelegramLinkStarted}
-              className={telegramConnected ? 'flex-1 whitespace-nowrap sm:flex-none' : undefined}
+              className={telegramConnected ? 'w-full whitespace-nowrap sm:w-auto' : undefined}
             />
             {telegramConnected && (
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 whitespace-nowrap sm:flex-none"
+                className="w-full whitespace-nowrap sm:w-auto"
                 onClick={onTelegramDisconnectRequested}
               >
                 Disconnect Telegram
               </Button>
             )}
           </div>
-          {telegramLinkInProgress && (
-            <p className="mt-3 text-sm text-gray-500">Waiting for confirmation in Telegram…</p>
-          )}
         </div>
         <div className="space-y-3 border-t pt-4">
           <PasswordField
