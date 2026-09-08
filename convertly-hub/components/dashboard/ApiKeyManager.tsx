@@ -138,11 +138,16 @@ export default function ApiKeyManager() {
 
   return (
     <div className="space-y-4 rounded-lg bg-white p-6 shadow-md">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-gray-500">
           Only a newly created secret can be copied. Stored keys are shown by prefix.
         </p>
-        <Button onClick={handleCreate} disabled={isMutating} aria-busy={isCreating}>
+        <Button
+          className="w-full shrink-0 whitespace-nowrap sm:w-auto"
+          onClick={handleCreate}
+          disabled={isMutating}
+          aria-busy={isCreating}
+        >
           {isCreating && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
           {isCreating ? 'Creating…' : 'Create key'}
         </Button>

@@ -2,6 +2,12 @@
 
 # 2026-09-08
 
+- **Задача:** Адаптировать действие Create key для узких экранов Dashboard.
+- **Изменённые файлы:** `components/dashboard/ApiKeyManager.tsx`, его component-тест и `docs/progress.md`.
+- **Результат:** На mobile описание и action располагаются вертикально; кнопка `Create key` занимает полную ширину, не переносит слова и имеет увеличенную область касания. На `sm` и шире сохранён компактный action справа от описания.
+- **Проверки:** Prettier, targeted Jest (3 tests), TypeScript, ESLint и `git diff --check` успешно.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Устранить layout shift у feedback сохранения File Storage.
 - **Изменённые файлы:** `components/dashboard/PrivacySettings.tsx`, его component-тест и `docs/progress.md`.
 - **Результат:** Короткий доступный статус `Saving…` расположен слева от toggle в одной горизонтальной группе, поэтому не добавляет строку под описанием и не меняет высоту карточки на desktop/mobile. Success/error toast сохранены.
