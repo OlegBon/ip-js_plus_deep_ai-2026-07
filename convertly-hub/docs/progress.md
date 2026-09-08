@@ -2,6 +2,14 @@
 
 # 2026-09-08
 
+- **Задача:** UX и операционное оформление Telegram-бота.
+- **Изменённые файлы:** `lib/telegram/bot.ts`, Telegram webhook и Jest tests, новый `docs/telegram-bot-setup.md`, deployment/local guides, architecture, backlog и `docs/progress.md`.
+- **Результат:** В private chat бот даёт welcome через `/start`, помощь через `/help`, нейтральный ответ на неизвестное сообщение и явный результат одноразовой привязки. URL-кнопки ведут только на canonical `NEXTAUTH_URL` и `/docs`; бот не принимает files, passwords, email или API keys. Добавлен BotFather/runbook с description, about text, commands, webhook health и post-deploy проверкой.
+- **Проверки:** Jest покрывает welcome, help, unknown message, success/invalid link и allowlisted URL-кнопки; TypeScript, ESLint, Prettier, build и `git diff --check` запускаются перед merge. Browser UI не меняется.
+- **Новые переменные окружения:** нет; используются существующие server-only `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`.
+
+# 2026-09-08
+
 - **Задача:** Управление Telegram-привязкой и безопасность recovery.
 - **Изменённые файлы:** `app/api/account/telegram/link/route.ts`, Telegram webhook/linking, `UserProfile`, `EditProfileModal`, shared `ConfirmationModal`, Jest tests, architecture/layer guides, backlog и `docs/progress.md`.
 - **Результат:** Пользователь может отвязать Telegram из Dashboard или Edit Profile через знакомую confirm-модалку; на mobile Change/Disconnect используют тот же responsive action-pattern, что и соседние блоки. Owner-scoped `DELETE /api/account/telegram/link` очищает привязку и pending token. Новая deep link попытка не отключает прежний подтверждённый recovery channel, а webhook принимает linking token только из private chat.

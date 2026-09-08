@@ -252,7 +252,8 @@ secrets). Запускайте его вручную после backup/пров�
    `TELEGRAM_BOT_USERNAME` и `TELEGRAM_WEBHOOK_SECRET` только в
    `convertly-app-runtime`, затем настройте Bot API webhook. Для текущего demo
    этот flow настроен и вручную проверен; повторяйте его при переносе бота или
-   смене provider.
+   смене provider. Команды, BotFather profile и manual smoke-test — в
+   [telegram-bot-setup.md](./telegram-bot-setup.md).
 
 ## 9. Эксплуатационные ограничения demo
 
