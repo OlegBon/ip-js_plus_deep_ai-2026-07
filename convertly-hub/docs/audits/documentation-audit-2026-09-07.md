@@ -88,9 +88,8 @@ Supabase БД, намеренно не добавлен: он требовал �
 - Rate limit не пригоден для нескольких app instances без Redis.
 - Нет автоматизированных off-host backup/restore, monitoring/alerting и CD.
 - Telegram recovery реализован после исходного audit: migration, production
-  deploy, webhook и Dashboard-привязка выполнены. В активном checklist остаётся
-  только ручная проверка reset по `@username`; см.
-  [050-telegram-and-account.md](../backlog/050-telegram-and-account.md).
+  deploy, webhook, Dashboard-привязка, reset по `@username`, смена пароля и
+  повторный вход вручную проверены.
 
 Все пункты перенесены в тематический [backlog](../backlog/README.md), а не
 смешиваются с завершённой историей проекта.

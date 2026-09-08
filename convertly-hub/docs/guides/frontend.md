@@ -139,7 +139,12 @@ function canDownload(conversion: Conversion) {
 Другие Dashboard modules:
 
 - `UserProfile.tsx` отображает имя, email/Telegram статус и защищённые действия;
-- `EditProfileModal.tsx` отправляет изменения профиля и текущий пароль в account API;
+  badge `Verified` находится в строке с Telegram username. После Connect/Change
+  компонент опрашивает profile endpoint раз в 5 секунд, максимум 2 минуты, и
+  сам показывает результат подтверждённой привязки;
+- `EditProfileModal.tsx` отправляет изменения профиля и текущий пароль в account
+  API, показывает текущий Telegram username и позволяет заменить привязку через
+  одноразовый deep link;
 - `ApiKeyManager.tsx` показывает API secret один раз после `POST`, затем только
   metadata и revoke;
 - `PrivacySettings.tsx` меняет выбор хранения, если это разрешено тарифом;
@@ -154,6 +159,8 @@ name `Show Password`, не неоднозначным `getByLabel('Password')`.
 `RegisterForm.tsx`, `LoginForm.tsx` и password-reset pages выполняют проверку для
 быстрого feedback, но canonical password policy применяет backend. Email и Telegram
 не считаются подтверждёнными, пока server endpoint не обработает одноразовый token.
+После Telegram-привязки форма Password Reset принимает `@username`: одноразовая
+ссылка на смену пароля приходит только в подтверждённый private chat.
 
 ## 6. Безопасный порядок frontend-изменения
 
