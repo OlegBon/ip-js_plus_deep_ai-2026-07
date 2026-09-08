@@ -1,8 +1,10 @@
 # 🛡️ Convertly Hub
 
-Рабочий процесс удаления аккаунта описан в [документации по удалению аккаунта](./docs/account-deletion-workflow.md).
-
 > Современный SaaS-сервис для конвертации документов и файлов с предоставлением публичного API. Разработан в рамках задания на курсе "Javascript + deep AI" (Ivan Petrychenko, 2026-07) для демонстрации навыков Full Stack разработки и системной архитектуры.
+
+Развёрнут публичный функциональный demo [convertly-hub.bon.kharkov.ua](https://convertly-hub.bon.kharkov.ua/): Northflank public Next.js app, private Gotenberg, Supabase PostgreSQL и private S3-compatible Storage. Настроены DNS, TLS, SMTP, controlled Prisma migration job и smoke-tests.
+
+Рабочий процесс удаления аккаунта описан в [документации по удалению аккаунта](./docs/account-deletion-workflow.md).
 
 ---
 
