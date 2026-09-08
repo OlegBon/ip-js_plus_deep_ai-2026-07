@@ -2,6 +2,12 @@
 
 # 2026-09-08
 
+- **Задача:** Устранить Jest discovery warning и унифицировать feedback асинхронных действий Dashboard/Admin.
+- **Изменённые файлы:** `jest.config.ts`, `components/ui/Button.tsx`, `components/dashboard/PrivacySettings.tsx`, `components/dashboard/ApiKeyManager.tsx`, `components/admin/SystemMonitoring.tsx`, component-тесты и `docs/progress.md`.
+- **Результат:** Jest ограничен исходными test roots и больше не сканирует `.next/standalone`. Базовая кнопка получила единый disabled-style. File Storage показывает saving и блокирует toggle, API keys показывают creating/revoking/copying и исключают параллельные мутации, а System Monitoring различает initial loading, error с Retry и stale metrics после неуспешного refresh.
+- **Проверки:** Prettier, `git diff --check`, `npx tsc --noEmit`, ESLint, targeted Jest (5 tests) и полный Jest (52 suites / 159 tests) успешно. Browser plugin недоступен; Playwright fallback подтвердил два public Chromium flow, полный локальный прогон ограничен недоступностью Google Fonts.
+- **Новые переменные окружения:** нет.
+
 - **Задача:** Провести повторный documentation audit и расширить практические guides по слоям.
 - **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/audits/dependency-security-latest.md`, `docs/guides/*` и `docs/progress.md`.
 - **Результат:** README явно отделяет публичный Northflank + Supabase MVP от billing-ready production; architecture содержит краткий фактический поток удаления аккаунта. Guides дополнены единой политикой UI-состояний и polling, server-потоками password reset/Telegram/account deletion, Prisma advisory lock и safe queries, а также порядком backup → migration job → app deploy. Обновлён стек supporting UI packages и уточнено, что `npm audit --omit=dev` выполняется отдельно от текущего CI workflow.
