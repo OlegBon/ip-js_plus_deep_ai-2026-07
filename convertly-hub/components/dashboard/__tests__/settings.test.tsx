@@ -21,7 +21,7 @@ describe('dashboard settings', () => {
   });
 
   it('does not render API-key controls when the plan cannot use the API', async () => {
-    global.fetch = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
+    global.fetch = jest.fn().mockImplementation((url: string) => {
       if (url === '/api/account/billing') {
         return Promise.resolve({ ok: true, json: async () => ({ activePlan: 'FREE' }) });
       }
@@ -40,7 +40,7 @@ describe('dashboard settings', () => {
       ok: boolean;
       json: () => Promise<{ storeConversions: boolean }>;
     }>();
-    global.fetch = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
+    global.fetch = jest.fn().mockImplementation((url: string) => {
       if (url === '/api/account/billing') {
         return Promise.resolve({
           ok: true,
