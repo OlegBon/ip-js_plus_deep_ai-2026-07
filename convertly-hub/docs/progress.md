@@ -2,6 +2,14 @@
 
 # 2026-09-08
 
+- **Задача:** Устранить транзитивные security findings в production dependency tree.
+- **Изменённые файлы:** `package.json`, `package-lock.json`, `docs/progress.md`.
+- **Результат:** Точечные npm overrides обновляют Prisma-транзитивные `fast-uri` до `3.1.6` и `mysql2` до `3.23.1`, не меняя `prisma`/`@prisma/client` `7.10.0`. `npm audit --omit=dev` и полный install-audit возвращают 0 vulnerabilities.
+- **Проверки:** `npm ls` подтверждает обе overridden версии; Prisma generate, TypeScript, полный Jest (52 suites / 159 tests), ESLint без errors, production `next build` и `git diff --check` успешно. Docker migration-target не проверен локально: Docker Desktop daemon выключен.
+- **Новые переменные окружения:** нет.
+
+# 2026-09-08
+
 - **Задача:** Унифицировать мобильное действие блока Delete Account и нормализовать даты журнала.
 - **Изменённые файлы:** `components/dashboard/UserProfile.tsx`, `docs/progress.md`.
 - **Результат:** На узком экране действия Delete Account находятся под описанием и занимают всю доступную ширину без переноса слов; с `sm` breakpoint группа возвращается в строку справа. Каждый блок задач за 7–8 сентября теперь предварён собственным заголовком даты, поэтому журнал не объединяет несколько задач под одной датой.
