@@ -182,6 +182,13 @@ name `Show Password`, не неоднозначным `getByLabel('Password')`.
 завершится. Не заменяйте это только toast-ом: toast не предотвращает двойной
 клик и не сообщает screen reader, что control временно недоступен.
 
+Responsive action в карточке следует тому же правилу: на узком экране описание
+идёт первым, а одна action-кнопка располагается ниже на всю доступную ширину без
+переноса слов; с `sm` action возвращается вправо и имеет natural width. Так
+устроены `Create key` и `Delete Account` в `ApiKeyManager.tsx` и
+`UserProfile.tsx`. Если состояний два (`Request submitted` и `Cancel request`),
+они остаются в одной равной mobile-строке.
+
 ### Polling — только когда сервер меняет данные вне текущего click
 
 Polling здесь не является общим способом обновления Dashboard:

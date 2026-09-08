@@ -6,7 +6,7 @@ Convertly Hub — веб-сервис и API для конвертации фа�
 [architecture.md](./architecture.md), а активные задачи — в
 [backlog](./backlog/README.md).
 
-> **Статус на 7 сентября 2026:** MVP реализован и покрыт unit/route, browser
+> **Статус на 8 сентября 2026:** MVP реализован и покрыт unit/route, browser
 > E2E и реальным backend integration/E2E-набором. Функциональный публичный
 > demo работает на Northflank + Supabase: Next.js app и private Gotenberg в
 > Northflank, PostgreSQL и private S3-compatible Storage в Supabase. Это не
@@ -74,12 +74,14 @@ Convertly Hub — веб-сервис и API для конвертации фа�
 | Проверки        | ESLint, TypeScript, Prettier, Jest, Playwright, Docker Compose integration/E2E                                                                                      |
 | CI              | GitHub Actions на push в любую ветку: lint/types/Jest, browser E2E, реальные integration/E2E                                                                        |
 
-На 8 сентября 2026 `npm audit --omit=dev` сообщает транзитивные findings в графе
-Prisma 7. Подробности, причина и безопасное правило обновления находятся в
-[актуальной сводке dependency security](./audits/dependency-security-latest.md).
-Prisma 7.10 и Nodemailer 9.1 обновлены адресно; NextAuth остаётся на стабильной
-v4. Любое его major-обновление требует отдельной проверки breaking changes и
-полного набора тестов — `npm audit fix --force` для этого проекта запрещён.
+На 8 сентября 2026 `npm audit --omit=dev` возвращает **0 vulnerabilities**.
+Prisma 7.10 и Nodemailer 9.1 обновлены адресно; Prisma-транзитивные `fast-uri`
+и `mysql2` закреплены узкими npm overrides на исправленных версиях. Подробности
+и правило пересмотра overrides находятся в [актуальной сводке dependency
+security](./audits/dependency-security-latest.md). NextAuth остаётся на
+стабильной v4. Любое его major-обновление требует отдельной проверки breaking
+changes и полного набора тестов — `npm audit fix --force` для этого проекта
+запрещён.
 
 ---
 
@@ -134,12 +136,12 @@ Render Free + MailHog годится лишь для ограниченного 
 Gotenberg и backup. Подробности и контрольные точки —
 [render-production-deployment.md](./render-production-deployment.md).
 
-### Northflank Free + Supabase Free — функциональный demo
+### Northflank Developer Sandbox + Supabase Free — функциональный demo
 
 Для временного публичного demo доступен отдельный вариант: две Northflank services
 (`Next.js` public и `Gotenberg` private) и один Supabase project для PostgreSQL и
 S3-compatible Storage. Он избегает объединения MinIO/Gotenberg, но остаётся
-демо-контуром: Northflank Free не предназначен для production, а Supabase Free
+демо-контуром: Northflank Developer Sandbox/free plan не предназначен для production, а Supabase Free
 может приостановить project при низкой активности. Пошаговый порядок, включая
 GitHub build context `convertly-hub`, находится в
 [northflank-supabase-demo.md](./northflank-supabase-demo.md).
@@ -187,7 +189,7 @@ smoke-tests. Audit не является отдельной командой т�
 - [Oracle Cloud Free Tier runbook](./oracle-production-deployment.md)
 - [Vercel Pro runbook-план](./vercel-production-deployment.md)
 - [Render Paid / Free demo runbook-план](./render-production-deployment.md)
-- [Northflank Free + Supabase Free demo MVP](./northflank-supabase-demo.md)
+- [Northflank Developer Sandbox + Supabase Free demo MVP](./northflank-supabase-demo.md)
 - [PowerShell: публичный API](./api-powershell.md)
 - [Логический backup Supabase PostgreSQL](./supabase-logical-backup.md)
 - [Перенос между cloud providers](./cloud-portability.md)

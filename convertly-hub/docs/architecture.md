@@ -4,7 +4,7 @@
 
 Для последовательного изучения реализации используйте [руководства по слоям](./guides/README.md): они показывают конкретные frontend, backend/server, database и testing/operations файлы, а не заменяют этот высокоуровневый документ.
 
-> **Статус на 7 сентября 2026.** В репозитории реализованы и протестированы Prisma-схема, `GET /api/health`, серверный S3-сервис, NextAuth.js, парольная регистрация/вход, восстановление пароля и email-подтверждение через SMTP, RBAC, Telegram linking, Core-конвертация, приватность результатов, жизненный цикл API-ключей, тарифные квоты, account deletion workflow и server-side API админ-панели. `JPG ↔ PNG` обрабатывается через `sharp`, `DOCX → PDF` — через Gotenberg. Главная страница доступна для ограниченной гостевой конвертации и для browser-конвертации после входа. Dashboard доступен `USER` и `ADMIN`, а `/management` защищён серверной проверкой `ADMIN`. Реальный backend integration/E2E-набор запускается на отдельном Compose-стеке. Публичный demo использует Northflank + Supabase; переносимая конфигурация и порядок переноса описаны в [cloud-portability.md](./cloud-portability.md).
+> **Статус на 8 сентября 2026.** В репозитории реализованы и протестированы Prisma-схема, `GET /api/health`, серверный S3-сервис, NextAuth.js, парольная регистрация/вход, восстановление пароля и email-подтверждение через SMTP, RBAC, Telegram linking, Core-конвертация, приватность результатов, жизненный цикл API-ключей, тарифные квоты, account deletion workflow и server-side API админ-панели. `JPG ↔ PNG` обрабатывается через `sharp`, `DOCX → PDF` — через Gotenberg. Главная страница доступна для ограниченной гостевой конвертации и для browser-конвертации после входа. Dashboard доступен `USER` и `ADMIN`, а `/management` защищён серверной проверкой `ADMIN`. Реальный backend integration/E2E-набор запускается на отдельном Compose-стеке. Публичный demo использует Northflank + Supabase; переносимая конфигурация и порядок переноса описаны в [cloud-portability.md](./cloud-portability.md).
 
 ---
 
@@ -101,7 +101,7 @@ services:
 │   │   └── management/layout.tsx     # Дополнительная server-side проверка ADMIN
 │   ├── api/
 │   │   ├── account/                  # Сессия: profile, password/email, billing, preferences, Telegram, ключи, конвертации/скачивание
-│   │   ├── admin/                    # Только ADMIN: пользователи и API-ключи
+│   │   ├── admin/                    # Только ADMIN: users, metrics, API-ключи и account deletion requests
 │   │   ├── auth/                     # NextAuth, регистрация, reset и email verification
 │   │   ├── guest/                    # Потоковая гостевая конвертация и cookie-квота
 │   │   ├── telegram/webhook/          # Webhook привязки Telegram
@@ -112,15 +112,16 @@ services:
 │   ├── robots.ts                     # File-based metadata route для /robots.txt
 │   └── not-found.tsx, globals.css
 ├── components/
-│   ├── auth/                         # SessionProvider, формы auth и PasswordField
+│   ├── auth/                         # AuthSessionProvider, формы auth и PasswordField
 │   ├── core/                         # Header, Footer, FileDropzone, guest summary и confirmation UI
 │   ├── dashboard/                    # Профиль, тариф, ключи, privacy, Telegram, история
-│   ├── admin/                        # UserManagement, SystemMonitoring, EditUserModal
+│   ├── admin/                        # UserManagement, SystemMonitoring, AccountDeletionRequests, EditUserModal
 │   ├── pricing/                      # PaymentModal для Mock Checkout
 │   ├── ui/                           # Базовые Button, Card, Input, Search, CursorPagination, Modal, Toast и др.
 │   └── **/__tests__/                 # Component-тесты рядом с компонентами
 ├── lib/
-│   ├── admin/                        # Поиск пользователей и административные действия
+│   ├── account-deletion/             # Request/cancel/process workflow, S3 cleanup и audit events
+│   ├── admin/                        # Поиск пользователей, metrics и административные действия
 │   ├── api/                          # API-ключи, request-конвертации, rate limit
 │   ├── auth/                         # NextAuth, пользователи, server-side authorization
 │   ├── billing/                      # Планы, квоты и Mock Checkout
@@ -136,11 +137,11 @@ services:
 ├── prisma/
 │   ├── schema.prisma                 # Модели и перечисления
 │   └── migrations/                   # Отслеживаемые SQL-миграции
-├── scripts/                          # API audit, one-off admin/plan scripts и integration/E2E runner
+├── scripts/                          # API/subscription audit, one-off admin/plan scripts и integration/E2E runner
 ├── e2e/                              # Browser critical flows и real backend integration/E2E spec
 ├── playwright.config.ts              # Конфигурация критических browser E2E на порту 3001
 ├── playwright.integration.config.ts  # Изолированные backend integration/E2E на порту 3101
-├── docs/                             # Architecture, local-start, START, DB schema, audits, планы и журнал
+├── docs/                             # Architecture, guides, local/cloud runbooks, audits, backlog и журнал
 ├── public/                           # Статические файлы
 ├── types/next-auth.d.ts              # Расширение типов user и JWT-сессии NextAuth
 ├── .codex/, AGENTS.md, CODEX.md      # Локальные правила и project skills для Codex
@@ -148,6 +149,8 @@ services:
 ├── .env, .env.example                # Локальные секреты и безопасный шаблон без секретов
 ├── .env.production.example            # Отдельный безопасный шаблон production-секретов
 ├── .dockerignore, Dockerfile          # ARM64-compatible standalone-сборка Next.js
+├── jest.config.ts, jest.setup.ts      # Jest roots и test environment
+├── next.config.ts, prisma.config.ts   # Next standalone output и Prisma 7 configuration
 ├── docker-compose.yml                # PostgreSQL, MinIO, Gotenberg и MailHog
 ├── docker-compose.integration.yml    # Одноразовый изолированный стек для реальных тестов
 ├── docker-compose.production.yml     # Oracle A1: private services, app и Caddy
@@ -276,8 +279,9 @@ Oracle A1 остаётся предпочтительным single-server вар
 [vercel-production-deployment.md](./vercel-production-deployment.md) и
 [render-production-deployment.md](./render-production-deployment.md).
 
-Для временного функционального demo подготовлен отдельный контур Northflank Free +
-Supabase Free: public Next.js и private Gotenberg — две Northflank services, а
+Для временного функционального demo подготовлен отдельный контур Northflank
+Developer Sandbox + Supabase Free: public Next.js и private Gotenberg — две
+Northflank services, а
 PostgreSQL/S3-compatible Storage — один Supabase project. Он не заменяет
 production и не объединяет Gotenberg с MinIO. Точный порядок, GitHub monorepo
 build context, secrets, миграции и ограничения описаны в
