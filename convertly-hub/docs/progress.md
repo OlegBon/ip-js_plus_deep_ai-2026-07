@@ -2,6 +2,14 @@
 
 # 2026-09-08
 
+- **Задача:** Финально актуализировать документацию после cloud migration и dependency security fix.
+- **Изменённые файлы:** `README.md`, `docs/architecture.md`, `docs/tech_saas.md`, `docs/START.md`, `docs/guides/frontend.md`, `docs/audits/dependency-security-latest.md`, новый `docs/audits/documentation-audit-2026-09-08.md` и `docs/progress.md`.
+- **Результат:** README отделяет local Compose от публичного Northflank Developer Sandbox + Supabase demo и содержит ссылки на cloud video/Canva presentation. Канонические документы фиксируют актуальный стек, 0 vulnerabilities после точечных Prisma-транзитивных overrides, единый mobile action-pattern и только будущий тематический backlog. Дерево `architecture.md` повторно сверено с tracked files: добавлены account deletion, admin metrics/requests, актуальные component names, scripts и конфигурации Jest/Next/Prisma.
+- **Проверки:** Markdown links, technology/security claims и backlog сверены с package/lockfile, Dockerfile, Prisma, Routes, Guides и текущей cloud-конфигурацией; Prettier и `git diff --check` выполняются перед merge.
+- **Новые переменные окружения:** нет.
+
+# 2026-09-08
+
 - **Задача:** Устранить транзитивные security findings в production dependency tree.
 - **Изменённые файлы:** `package.json`, `package-lock.json`, `docs/progress.md`.
 - **Результат:** Точечные npm overrides обновляют Prisma-транзитивные `fast-uri` до `3.1.6` и `mysql2` до `3.23.1`, не меняя `prisma`/`@prisma/client` `7.10.0`. `npm audit --omit=dev` и полный install-audit возвращают 0 vulnerabilities.

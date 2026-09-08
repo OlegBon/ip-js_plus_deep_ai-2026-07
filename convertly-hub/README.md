@@ -10,8 +10,8 @@
 
 - **Фронтенд / Оркестратор:** Next.js (App Router), React, TypeScript, Tailwind CSS
 - **Бэкенд и API:** Next.js Route Handlers, NextAuth.js, Prisma ORM (v7)
-- **База данных:** PostgreSQL (в Docker)
-- **Файловое хранилище:** MinIO (S3-совместимое объектное хранилище)
+- **База данных:** PostgreSQL (локально — Docker Compose; публичный demo — Supabase)
+- **Файловое хранилище:** S3-compatible API (локально — MinIO; публичный demo — private Supabase Storage)
 - **Движок конвертации:** Gotenberg (Chromium + LibreOffice в изолированном контейнере)
 - **Почта в локальной разработке:** MailHog; в production — настраиваемый SMTP-провайдер
 - **Контейнеризация:** Docker Compose
@@ -75,7 +75,7 @@ npm run dev
 - [Production-развёртывание на Oracle Cloud Free Tier](./docs/oracle-production-deployment.md)
 - [План развёртывания на Vercel Pro](./docs/vercel-production-deployment.md)
 - [План развёртывания на Render Paid / Free demo](./docs/render-production-deployment.md)
-- [Функциональный demo MVP: Northflank Free + Supabase Free](./docs/northflank-supabase-demo.md)
+- [Функциональный demo MVP: Northflank Developer Sandbox + Supabase Free](./docs/northflank-supabase-demo.md)
 - [Пошаговый запуск Northflank + Supabase](./docs/northflank-supabase-setup.md)
 - [Нормализация тарифов и production-порядок migration](./docs/subscription-plan-migration.md)
 - [Операционный one-off sync тарифа](./docs/northflank-supabase-setup.md#91-разово-синхронизировать-тариф-тестового-пользователя)
@@ -84,7 +84,8 @@ npm run dev
 - [Логический backup Supabase PostgreSQL](./docs/supabase-logical-backup.md)
 - [Перенос между cloud providers](./docs/cloud-portability.md)
 - [Активный backlog](./docs/backlog/README.md)
-- [Аудит документации, 7 сентября 2026](./docs/audits/documentation-audit-2026-09-07.md)
+- [Исторический аудит документации, 7 сентября 2026](./docs/audits/documentation-audit-2026-09-07.md)
+- [Финальный аудит документации, 8 сентября 2026](./docs/audits/documentation-audit-2026-09-08.md)
 
 ## 🧪 Проверки
 
@@ -109,18 +110,23 @@ Playwright-запуска сохраняются в локальной `test-res
 
 Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. Текущий публичный demo — Northflank app + private Gotenberg, Supabase PostgreSQL и private Supabase S3 bucket; это функциональный MVP, но не billing-ready production. Oracle, Vercel и Render остаются подготовленными вариантами переноса. Перед migration или сменой provider создавайте [логический backup](./docs/supabase-logical-backup.md), а порядок cutover берите только из [cloud portability runbook](./docs/cloud-portability.md). Активные отложенные задачи находятся в [docs/backlog](./docs/backlog/README.md).
 
-Перед production deployment повторно проверьте [актуальную сводку dependency security](./docs/audits/dependency-security-latest.md) и выполните `npm audit --omit=dev`. На 8 сентября 2026 audit показывает транзитивные findings в графе Prisma 7; не применяйте `npm audit fix --force` без отдельного compatibility-аудита. NextAuth остаётся на стабильной v4; его major-обновление требует отдельной проверки breaking changes.
+Перед production deployment повторно проверьте [актуальную сводку dependency security](./docs/audits/dependency-security-latest.md) и выполните `npm audit --omit=dev`. На 8 сентября 2026 audit возвращает `0 vulnerabilities`: Prisma-транзитивные `fast-uri` и `mysql2` закреплены узкими npm overrides. Не применяйте `npm audit fix --force`: major-обновление Prisma или NextAuth требует отдельного compatibility-аудита.
 
 ---
 
 ## 🎥 Видео (YouTube)
 
+- [2026-09-08 Cloud MVP: Northflank + Supabase](https://youtu.be/gH8szKpm9MU) — немой screen recording публичного demo, PaaS-контуров и проверки dependency audit.
 - [2026-08-10 Демонстрация интерфейса и функционала](https://youtu.be/wYE38yYL1XE) - Краткий обзор реализованных страниц и их адаптивности.
 - [2026-08-12 Демонстрация интерфейса и функционала](https://youtu.be/UHdkW6_1QEw) - Краткий обзор реализованных страниц и их адаптивности.
 - [2026-08-15 Демонстрация интерфейса и функционала](https://youtu.be/CvLo-cgkQx8) - Краткий обзор реализованных страниц и их адаптивности.
 - [2026-08-16 Демонстрация интерфейса и функционала](https://youtu.be/qLZm8kayTsU) - Краткий обзор реализованных страниц и их адаптивности.
 - [2026-08-22 Демонстрация интерфейса и функционала](https://youtu.be/Dn_o8foUun0) - Краткий обзор реализованных страниц и их адаптивности.
 - [2026-09-02 Демонстрация интерфейса и функционала](https://youtu.be/-cZtM1-rf0Q) - Краткий обзор реализованных страниц и их адаптивности.
+
+## 🖼️ Презентация
+
+- [Convertly Hub — system overview (Canva)](https://canva.link/p7phuwtmnxaw3lb) — публичная презентация архитектуры и MVP; материал развивается вместе с проектом.
 
 ---
 

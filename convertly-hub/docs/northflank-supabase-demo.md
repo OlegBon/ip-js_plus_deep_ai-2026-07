@@ -1,4 +1,4 @@
-# Demo MVP на Northflank Free + Supabase Free
+# Demo MVP на Northflank Developer Sandbox + Supabase Free
 
 Этот runbook развёртывает **функциональный публичный demo MVP**, а не production:
 Next.js, регистрация, реальный SMTP, `JPG ↔ PNG`, `DOCX → PDF`, Dashboard,
