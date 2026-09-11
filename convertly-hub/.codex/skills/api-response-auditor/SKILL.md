@@ -17,7 +17,14 @@ description: Запуск автоматизованого скрипта пер
 
 ## Крок 1: Запуск аудиту
 
-За допомогою інструмента виконання команд у терміналі запусти скрипт аудиту: `npm run audit:api`.
+За допомогою інструмента виконання команд у терміналі запусти скрипт аудиту:
+
+- локально: `npm run audit:api`;
+- для публічного cloud MVP: `API_AUDIT_BASE_URL=https://convertly-hub.bon.kharkov.ua npm run audit:api`.
+
+`API_AUDIT_BASE_URL` містить лише public origin застосунку. Не додавай до нього URL
+Supabase, Gotenberg, MinIO або жодні credentials: у віддаленому режимі вони приватні,
+а їхній стан перевіряється агреговано через `GET /api/health`.
 
 ## Крок 2: Очікування
 

@@ -165,6 +165,17 @@ _(Дані бази не буде видалено завдяки налашто
 
 Якщо хоча б один core-сервіс недоступний, endpoint повертає `503` і безпечний JSON зі `status: "degraded"`; поля `database`, `storage` і `gotenberg` показують лише `up` або `down`, без помилок, лічильників і конфігурації. Для єдиної перевірки локальних HTTP-контрактів виконайте `npm run audit:api`: він також підтверджує гостьові межі session- і admin-захищених `GET`-маршрутів із [карти API](./architecture.md#5-api-endpoints).
 
+Для Northflank + Supabase MVP задайте лише public origin застосунку:
+
+```powershell
+$env:API_AUDIT_BASE_URL = "https://convertly-hub.bon.kharkov.ua"
+npm run audit:api
+Remove-Item Env:API_AUDIT_BASE_URL
+```
+
+У віддаленому режимі аудит не звертається напряму до private Gotenberg, Supabase або
+S3 Storage. Їхню готовність перевіряє public `GET /api/health`.
+
 5. **Візуальна перевірка бази даних:**
 
 ```bash
