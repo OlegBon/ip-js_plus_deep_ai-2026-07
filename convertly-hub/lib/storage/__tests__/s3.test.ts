@@ -100,7 +100,7 @@ describe('S3 storage service', () => {
       'Ключ об’єкта не має бути порожнім',
     );
     await expect(storage.deleteFile('/users/user-1/file.pdf')).rejects.toThrow(
-      'не должен начинаться',
+      'не має починатися',
     );
 
     expect(send).not.toHaveBeenCalled();
