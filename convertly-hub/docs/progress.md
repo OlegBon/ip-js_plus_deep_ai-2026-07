@@ -2,6 +2,14 @@
 
 # 2026-09-11
 
+- **Задача:** Оновлювати дані Admin Panel одразу після успішного видалення облікового запису.
+- **Змінені файли:** `app/(dashboard)/management/page.tsx`, `components/admin/{AccountDeletionRequests,SystemMonitoring,UserManagement}.tsx`, UI-тести й `docs/progress.md`.
+- **Результат:** Admin page зберігає спільну версію admin-даних. Після успішного Confirm deletion `AccountDeletionRequests` інвалідовує її, а `SystemMonitoring` і `UserManagement` одразу повторно завантажують свої поточні дані. Polling не додано: UI не створює фонових запитів без дії адміністратора.
+- **Перевірки:** targeted Jest — 3 suites / 8 tests, TypeScript, Prettier, ESLint і `git diff --check` успішні. Production build не запускався повторно: у робочому середовищі вже тривав інший `next build` process.
+- **Нові змінні оточення:** немає.
+
+# 2026-09-11
+
 - **Задача:** Зробити API-аудит придатним для локального й Northflank + Supabase cloud-оточення.
 - **Змінені файли:** `scripts/audit-api.mjs`, `.codex/skills/api-response-auditor/SKILL.md`, `docs/START.md`, API audit reports і `docs/progress.md`.
 - **Результат:** `API_AUDIT_BASE_URL` визначає public origin для віддаленої перевірки. Без змінної збережено локальний Compose-аудит, включно з Gotenberg і MinIO. У cloud-режимі перевіряються лише public app, health, NextAuth і гостьові account/admin межі; private PostgreSQL, Supabase Storage та Gotenberg підтверджуються агрегованим `GET /api/health`. Аудит `https://convertly-hub.bon.kharkov.ua` повернув очікувані `200`/`401` і `healthy` для всіх залежностей.

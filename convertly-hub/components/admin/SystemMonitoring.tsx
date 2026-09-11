@@ -27,7 +27,11 @@ async function fetchMetrics(signal?: AbortSignal): Promise<Metrics> {
   return (await response.json()) as Metrics;
 }
 
-export default function SystemMonitoring() {
+type SystemMonitoringProps = {
+  refreshKey?: number;
+};
+
+export default function SystemMonitoring({ refreshKey = 0 }: SystemMonitoringProps) {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -42,7 +46,7 @@ export default function SystemMonitoring() {
         if (!controller.signal.aborted) setStatus('error');
       });
     return () => controller.abort();
-  }, []);
+  }, [refreshKey]);
 
   const retryLoad = async () => {
     setStatus('loading');

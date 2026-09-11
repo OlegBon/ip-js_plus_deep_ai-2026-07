@@ -22,7 +22,13 @@ type Result = { requests: DeletionRequest[]; nextCursor: string | null; total: n
 type PendingAction = { type: 'process' | 'cancel'; request: DeletionRequest } | null;
 const PAGE_SIZE = 10;
 
-export default function AccountDeletionRequests() {
+type AccountDeletionRequestsProps = {
+  onDeletionCompleted: () => void;
+};
+
+export default function AccountDeletionRequests({
+  onDeletionCompleted,
+}: AccountDeletionRequestsProps) {
   const [result, setResult] = useState<Result | null>(null);
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
@@ -100,6 +106,7 @@ export default function AccountDeletionRequests() {
       }
       setPendingAction(null);
       await refresh();
+      if (action.type === 'process') onDeletionCompleted();
       toast.success(
         action.type === 'process' ? 'Account deletion completed.' : 'Deletion request cancelled.',
       );
