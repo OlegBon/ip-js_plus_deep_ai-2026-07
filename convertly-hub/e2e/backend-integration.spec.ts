@@ -26,7 +26,7 @@ test.afterAll(async () => {
   await prisma.$disconnect();
 });
 
-test('реальные сервисы поддерживают auth, квоты, API-конвертацию и администрирование', async ({
+test('реальні сервіси підтримують auth, квоти, API-конвертацію та адміністрування', async ({
   request,
 }) => {
   await waitForHealthySystem(request);

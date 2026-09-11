@@ -1,197 +1,197 @@
-# ⚙️ Convertly Hub — технологии и актуальный статус SaaS
+# ⚙️ Convertly Hub — технології та актуальний статус SaaS
 
-Convertly Hub — веб-сервис и API для конвертации файлов. Этот документ описывает
-**фактически реализованный MVP**, текущий demo-контур и допустимые варианты
-следующего production-этапа. Подробные маршруты и потоки приведены в
-[architecture.md](./architecture.md), а активные задачи — в
+Convertly Hub — вебсервіс і API для конвертації файлів. Цей документ описує
+**фактично реалізований MVP**, поточний demo-контур і допустимі варіанти
+наступного production-етапу. Докладні маршрути й потоки наведено в
+[architecture.md](./architecture.md), а активні завдання — у
 [backlog](./backlog/README.md).
 
-> **Статус на 8 сентября 2026:** MVP реализован и покрыт unit/route, browser
-> E2E и реальным backend integration/E2E-набором. Функциональный публичный
+> **Статус на 8 вересня 2026:** MVP реалізовано й покрито unit/route, browser
+> E2E і реальним backend integration/E2E-набором. Функціональне публічне
 > demo работает на Northflank + Supabase: Next.js app и private Gotenberg в
-> Northflank, PostgreSQL и private S3-compatible Storage в Supabase. Это не
-> заменяет полноценный production-план с проверенным backup/restore,
-> monitoring/alerting и SLA. Oracle A1, Vercel и Render остаются альтернативами
-> по [runbook переноса](./cloud-portability.md).
+> Northflank, PostgreSQL і private S3-compatible Storage у Supabase. Це не
+> замінює повноцінний production-план із перевіреним backup/restore,
+> monitoring/alerting і SLA. Oracle A1, Vercel і Render залишаються альтернативами
+> по [runbook перенесення](./cloud-portability.md).
 
 ---
 
-## 1. Возможности MVP
+## 1. Можливості MVP
 
-### Конвертация и хранение
+### Конвертація та зберігання
 
-- `JPG ↔ PNG` выполняется библиотекой `sharp`.
-- `DOCX → PDF` выполняется изолированным сервисом Gotenberg.
-- `PDF → DOCX` остаётся запланированным: это не обратимое преобразование и
-  требует отдельного best-effort конвертера и оценки качества.
-- Результаты авторизованного пользователя могут сохраняться в приватном
-  S3-совместимом хранилище или отдаваться без хранения согласно privacy-настройке.
-  Доступ к сохранённому файлу даётся только через защищённый download endpoint.
-- Гость может без регистрации выполнить до 3 image- и 2 document-конвертаций в
-  календарный месяц. Размер файла — до 1 MB; гостевые файлы не попадают в БД и
-  S3, доступны в браузере до 10 минут и исчезают при очистке данных браузера.
-- Для аккаунтов действуют квоты выбранного тарифа: число успешных конвертаций,
-  размер одного файла, объём и срок хранения результатов. Актуальные значения
-  отображаются на странице `/pricing` и контролируются сервером.
+- `JPG ↔ PNG` виконується бібліотекою `sharp`.
+- `DOCX → PDF` виконується ізольованим сервісом Gotenberg.
+- `PDF → DOCX` залишається запланованим: це не оборотне перетворення й
+  потребує окремого best-effort конвертера та оцінки якості.
+- Результати авторизованого користувача можуть зберігатися у приватному
+  S3-сумісному сховищі або віддаватися без зберігання відповідно до privacy-налаштування.
+  Доступ до збереженого файла надається лише через захищений download endpoint.
+- Гість може без реєстрації виконати до 3 image- і 2 document-конвертацій на
+  календарний місяць. Розмір файла — до 1 MB; гостьові файли не потрапляють до БД і
+  S3, доступні у браузері до 10 хвилин і зникають під час очищення даних браузера.
+- Для акаунтів діють квоти вибраного тарифу: число успішних конвертацій,
+  розмір одного файла, обсяг і строк зберігання результатів. Актуальні значення
+  відображаються на сторінці `/pricing` і контролюються сервером.
 
-### Аккаунты и доступ
+### Акаунти та доступ
 
-- NextAuth v4 использует JWT-сессии в HttpOnly cookies.
-- Credentials-вход хранит только bcrypt-хеш пароля. Email verification и password
-  reset используют одноразовые хешированные токены; reset-ссылка доставляется
-  через SMTP или в уже подтверждённый Telegram chat.
-- Роли: `USER` и `ADMIN`. Dashboard доступен обеим ролям; `/management` — только
+- NextAuth v4 використовує JWT-сесії в HttpOnly cookies.
+- Credentials-вхід зберігає лише bcrypt-хеш пароля. Email verification і password
+  reset використовують одноразові хешовані токени; reset-посилання доставляється
+  через SMTP або в уже підтверджений Telegram chat.
+- Ролі: `USER` і `ADMIN`. Dashboard доступний обом ролям; `/management` — лише
   `ADMIN`.
-- Telegram linking реализован через одноразовую ссылку, а password recovery
-  работает только через подтверждённый chat ID; публичный username служит лишь
-  lookup-идентификатором и сохраняется из webhook update.
-- API-ключ показывается пользователю ровно один раз при создании; в базе хранится
-  только SHA-256-хеш. API доступно тарифам, которые его предусматривают.
+- Telegram linking реалізовано через одноразове посилання, а password recovery
+  працює лише через підтверджений chat ID; публічний username слугує лише
+  lookup-ідентифікатором і зберігається з webhook update.
+- API-ключ показується користувачеві рівно один раз під час створення; у базі зберігається
+  лише SHA-256-хеш. API доступне тарифам, які його передбачають.
 
-### API и контроль качества
+### API та контроль якості
 
-- Основной API: `POST /api/v1/convert`; скачивание сохранённого результата:
+- Основний API: `POST /api/v1/convert`; скачування збереженого результату:
   `GET /api/v1/conversions/:conversionId/download`.
-- API и browser-конвертация валидируют разрешённые форматы, размер и сигнатуры
-  файлов на сервере. Внешнему MIME-типу доверять нельзя.
-- Реализован in-memory rate limiter. Для нескольких app instances потребуется
-  отдельный Redis-совместимый общий backend.
-- `GET /api/health` проверяет приложение, PostgreSQL, S3 и Gotenberg.
+- API й browser-конвертація валідують дозволені формати, розмір і сигнатури
+  файлів на сервері. Зовнішньому MIME-типу довіряти не можна.
+- Реалізовано in-memory rate limiter. Для кількох app instances знадобиться
+  окремий Redis-сумісний спільний backend.
+- `GET /api/health` перевіряє застосунок, PostgreSQL, S3 і Gotenberg.
 
 ---
 
-## 2. Реализованный стек
+## 2. Реалізований стек
 
-| Зона            | Технологии и назначение                                                                                                                                             |
+| Зона            | Технології та призначення                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Web/API         | Next.js 16 (App Router), React 19, TypeScript, Route Handlers                                                                                                       |
-| UI              | Tailwind CSS 4, Radix primitives, собственные компоненты, `class-variance-authority`, `clsx`, `tailwind-merge`, Lucide, `react-dropzone` и `sonner` для уведомлений |
-| Аутентификация  | NextAuth 4, bcrypt, HttpOnly cookies, Nodemailer 9                                                                                                                  |
-| Данные          | PostgreSQL 15 в local/Oracle Compose, managed PostgreSQL Supabase в demo; Prisma 7.10 с `@prisma/adapter-pg`                                                        |
-| Хранилище       | AWS SDK v3, S3-compatible API; локально — MinIO                                                                                                                     |
-| Конвертация     | `sharp` для изображений, Gotenberg 8 для `DOCX → PDF`                                                                                                               |
-| Локальная почта | MailHog; он предназначен только для разработки и тестов                                                                                                             |
-| Проверки        | ESLint, TypeScript, Prettier, Jest, Playwright, Docker Compose integration/E2E                                                                                      |
-| CI              | GitHub Actions на push в любую ветку: lint/types/Jest, browser E2E, реальные integration/E2E                                                                        |
+| UI              | Tailwind CSS 4, Radix primitives, власні компоненти, `class-variance-authority`, `clsx`, `tailwind-merge`, Lucide, `react-dropzone` і `sonner` для сповіщень |
+| Автентифікація  | NextAuth 4, bcrypt, HttpOnly cookies, Nodemailer 9                                                                                                                  |
+| Дані            | PostgreSQL 15 у local/Oracle Compose, managed PostgreSQL Supabase у demo; Prisma 7.10 з `@prisma/adapter-pg`                                                        |
+| Сховище         | AWS SDK v3, S3-compatible API; локально — MinIO                                                                                                                     |
+| Конвертація     | `sharp` для зображень, Gotenberg 8 для `DOCX → PDF`                                                                                                                 |
+| Локальна пошта  | MailHog; він призначений лише для розробки й тестів                                                                                                                  |
+| Перевірки       | ESLint, TypeScript, Prettier, Jest, Playwright, Docker Compose integration/E2E                                                                                      |
+| CI              | GitHub Actions на push у будь-яку гілку: lint/types/Jest, browser E2E, реальні integration/E2E                                                                       |
 
-На 8 сентября 2026 `npm audit --omit=dev` возвращает **0 vulnerabilities**.
-Prisma 7.10 и Nodemailer 9.1 обновлены адресно; Prisma-транзитивные `fast-uri`
-и `mysql2` закреплены узкими npm overrides на исправленных версиях. Подробности
-и правило пересмотра overrides находятся в [актуальной сводке dependency
-security](./audits/dependency-security-latest.md). NextAuth остаётся на
-стабильной v4. Любое его major-обновление требует отдельной проверки breaking
-changes и полного набора тестов — `npm audit fix --force` для этого проекта
-запрещён.
+Станом на 8 вересня 2026 `npm audit --omit=dev` повертає **0 vulnerabilities**.
+Prisma 7.10 і Nodemailer 9.1 оновлено адресно; Prisma-транзитивні `fast-uri`
+і `mysql2` закріплено вузькими npm overrides на виправлених версіях. Подробиці
+й правило перегляду overrides містяться в [актуальному зведенні dependency
+security](./audits/dependency-security-latest.md). NextAuth залишається на
+стабільній v4. Будь-яке його major-оновлення потребує окремої перевірки breaking
+changes і повного набору тестів — `npm audit fix --force` для цього проєкту
+заборонено.
 
 ---
 
-## 3. Среды и инфраструктура
+## 3. Середовища та інфраструктура
 
-### Локальная разработка
+### Локальна розробка
 
-`docker compose up -d` поднимает PostgreSQL, MinIO, Gotenberg и MailHog. Next.js
-запускается на хосте через `npm run dev`. Полный пошаговый сценарий, диагностика,
-миграции и первый администратор описаны в [local-start.md](./local-start.md).
+`docker compose up -d` піднімає PostgreSQL, MinIO, Gotenberg і MailHog. Next.js
+запускається на хості через `npm run dev`. Повний покроковий сценарій, діагностику,
+міграції та першого адміністратора описано в [local-start.md](./local-start.md).
 
-Изолированные реальные integration/E2E используют отдельный Compose-стек,
-отдельную БД, bucket и порт. Они не изменяют локальные данные:
+Ізольовані реальні integration/E2E використовують окремий Compose-стек,
+окрему БД, bucket і порт. Вони не змінюють локальні дані:
 
 ```bash
 npm run test:integration
 ```
 
-### Oracle Cloud Free Tier — предпочтительный production-вариант
+### Oracle Cloud Free Tier — бажаний production-варіант
 
-Один отдельный ARM64 instance Oracle A1 в Frankfurt размещает Caddy, Next.js,
-PostgreSQL, MinIO и Gotenberg в одной private Docker-сети. Снаружи открыты только
-`80` и `443`; данные остаются в persistent volumes. Production использует реальный
+Один окремий ARM64 instance Oracle A1 у Frankfurt розміщує Caddy, Next.js,
+PostgreSQL, MinIO та Gotenberg в одній private Docker-мережі. Ззовні відкриті лише
+`80` і `443`; дані залишаються в persistent volumes. Production використовує реальний
 SMTP `support@bon.kharkov.ua`, а не MailHog.
 
-Это единственный уже подготовленный deployment-контур репозитория:
+Це єдиний уже підготовлений deployment-контур репозиторію:
 `Dockerfile`, `docker-compose.production.yml`, `deploy/Caddyfile` и
-`.env.production.example`. Практический порядок —
+`.env.production.example`. Практичний порядок —
 [oracle-production-deployment.md](./oracle-production-deployment.md).
 
-До public go-live обязательны реальная VM, DNS, SMTP preflight, off-host backup и
-проверка восстановления. Free Tier capacity в Oracle не гарантирована: если A1
-недоступен в выбранном AD, это внешнее ограничение, а не ошибка конфигурации.
+До public go-live обов’язкові реальна VM, DNS, SMTP preflight, off-host backup і
+перевірка відновлення. Free Tier capacity в Oracle не гарантована: якщо A1
+недоступний у вибраному AD, це зовнішнє обмеження, а не помилка конфігурації.
 
 ### Vercel Pro — serverless-альтернатива
 
-Vercel не запускает текущий Compose-стек как единый server. Для этого варианта
-нужны управляемые PostgreSQL и S3-compatible storage, а Gotenberg — отдельный
-закрытый worker. Необходимо дополнительно спроектировать безопасную связь между
-Vercel и worker до публикации. План без изменений в аккаунтах и коде находится в
+Vercel не запускає поточний Compose-стек як єдиний server. Для цього варіанта
+потрібні керовані PostgreSQL і S3-compatible storage, а Gotenberg — окремий
+закритий worker. Необхідно додатково спроєктувати безпечний зв’язок між
+Vercel і worker до публікації. План без змін в акаунтах і коді міститься в
 [vercel-production-deployment.md](./vercel-production-deployment.md).
 
 ### Render — container-альтернатива
 
-Render Paid может разместить Next.js и приватный Gotenberg как разные services;
-PostgreSQL и S3-хранилище лучше использовать управляемые/внешние. Это более близко
-к текущему Docker-подходу, но не является single-instance Free Tier вариантом.
+Render Paid може розмістити Next.js і приватний Gotenberg як різні services;
+PostgreSQL і S3-сховище краще використовувати керовані/зовнішні. Це ближче
+до поточного Docker-підходу, але не є single-instance Free Tier варіантом.
 
-Render Free + MailHog годится лишь для ограниченного временного demo/preview:
-ограничения free services не позволяют безопасно и надёжно развернуть весь текущий
-контур конвертации. Он не заменяет production SMTP, persistent storage, private
-Gotenberg и backup. Подробности и контрольные точки —
+Render Free + MailHog придатний лише для обмеженого тимчасового demo/preview:
+обмеження free services не дають змоги безпечно й надійно розгорнути весь поточний
+контур конвертації. Він не замінює production SMTP, persistent storage, private
+Gotenberg і backup. Подробиці та контрольні точки —
 [render-production-deployment.md](./render-production-deployment.md).
 
-### Northflank Developer Sandbox + Supabase Free — функциональный demo
+### Northflank Developer Sandbox + Supabase Free — функціональний demo
 
-Для временного публичного demo доступен отдельный вариант: две Northflank services
-(`Next.js` public и `Gotenberg` private) и один Supabase project для PostgreSQL и
-S3-compatible Storage. Он избегает объединения MinIO/Gotenberg, но остаётся
-демо-контуром: Northflank Developer Sandbox/free plan не предназначен для production, а Supabase Free
-может приостановить project при низкой активности. Пошаговый порядок, включая
+Для тимчасового публічного demo доступний окремий варіант: дві Northflank services
+(`Next.js` public і `Gotenberg` private) та один Supabase project для PostgreSQL і
+S3-compatible Storage. Він уникає об’єднання MinIO/Gotenberg, але залишається
+demo-контуром: Northflank Developer Sandbox/free plan не призначений для production, а Supabase Free
+може призупинити project за низької активності. Покроковий порядок, зокрема
 GitHub build context `convertly-hub`, находится в
 [northflank-supabase-demo.md](./northflank-supabase-demo.md).
 
 ---
 
-## 4. Политика production-секретов и данных
+## 4. Політика production-секретів і даних
 
-- Секреты никогда не коммитятся. Локально они находятся только в корневом `.env`,
-  а в облаке — в защищённом secrets/env-хранилище выбранного провайдера.
-- `.env.example` и `.env.production.example` содержат только имена переменных и
-  безопасные шаблоны, не реальные значения.
-- `NEXTAUTH_SECRET`, пароли PostgreSQL/MinIO/SMTP и API credentials должны быть
-  разными для локальной, preview и production-сред.
-- Production database, object storage и Gotenberg не должны иметь публичных
-  портов. Файлы не выдаются через public bucket URL.
-- MailHog нельзя использовать для реальных пользователей: он не доставляет
-  письма наружу и не предназначен для защиты production-данных.
-- До приёма пользовательских файлов проверяется восстановление PostgreSQL и
-  S3-бэкапа вне самого production host.
+- Секрети ніколи не комітяться. Локально вони містяться лише в кореневому `.env`,
+  а у хмарі — у захищеному secrets/env-сховищі вибраного провайдера.
+- `.env.example` і `.env.production.example` містять лише імена змінних і
+  безпечні шаблони, а не реальні значення.
+- `NEXTAUTH_SECRET`, паролі PostgreSQL/MinIO/SMTP і API credentials мають бути
+  різними для локального, preview та production-середовищ.
+- Production database, object storage і Gotenberg не мають мати публічних
+  портів. Файли не видаються через public bucket URL.
+- MailHog не можна використовувати для реальних користувачів: він не доставляє
+  листи назовні й не призначений для захисту production-даних.
+- До приймання користувацьких файлів перевіряється відновлення PostgreSQL і
+  S3-бекапу поза самим production host.
 
 ---
 
-## 5. Что ещё не является production-ready
+## 5. Що ще не є production-ready
 
-1. Реальные платежи и billing webhooks; текущая checkout-модалка — mock.
+1. Реальні платежі та billing webhooks; поточна checkout-модалка — mock.
 2. `PDF → DOCX`.
-3. Redis/распределённый rate limiter для горизонтального масштаба.
-4. Полная админская история конвертаций, включая фильтр `FAILED`, детали ошибки и
-   операции с файлами.
-5. Автоматические off-host backup/restore, внешний monitoring/alerting и CD.
+3. Redis/розподілений rate limiter для горизонтального масштабу.
+4. Повна адмінська історія конвертацій, зокрема фільтр `FAILED`, деталі помилки та
+   операції з файлами.
+5. Автоматичні off-host backup/restore, зовнішній monitoring/alerting і CD.
 
-Порядок и причины отложенных работ описаны в
-[docs/backlog](./backlog/README.md). Перед любым public запуском также повторно
-проверяются GitHub Actions, вручную `npm audit --omit=dev` и production
-smoke-tests. Audit не является отдельной командой текущего GitHub Actions workflow.
+Порядок і причини відкладених робіт описано в
+[docs/backlog](./backlog/README.md). Перед будь-яким public запуском також повторно
+перевіряються GitHub Actions, вручну `npm audit --omit=dev` і production
+smoke-tests. Audit не є окремою командою поточного GitHub Actions workflow.
 
 ---
 
-## 6. Документы для работы
+## 6. Документи для роботи
 
-- [Архитектура и API-контракты](./architecture.md)
-- [Локальный старт](./local-start.md)
-- [Реальные backend integration/E2E](./integration-tests.md)
+- [Архітектура й API-контракти](./architecture.md)
+- [Локальний старт](./local-start.md)
+- [Реальні backend integration/E2E](./integration-tests.md)
 - [Oracle Cloud Free Tier runbook](./oracle-production-deployment.md)
 - [Vercel Pro runbook-план](./vercel-production-deployment.md)
 - [Render Paid / Free demo runbook-план](./render-production-deployment.md)
 - [Northflank Developer Sandbox + Supabase Free demo MVP](./northflank-supabase-demo.md)
-- [PowerShell: публичный API](./api-powershell.md)
+- [PowerShell: публічний API](./api-powershell.md)
 - [Логический backup Supabase PostgreSQL](./supabase-logical-backup.md)
 - [Перенос между cloud providers](./cloud-portability.md)
-- [Подробные руководства по слоям](./guides/README.md)
-- [Активный backlog](./backlog/README.md)
+- [Докладні посібники за шарами](./guides/README.md)
+- [Активний backlog](./backlog/README.md)

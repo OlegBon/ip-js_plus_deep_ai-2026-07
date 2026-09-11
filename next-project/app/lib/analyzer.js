@@ -1,11 +1,11 @@
 import { convertCurrency } from "./calculator.js";
 
 /**
- * Анализирует транзакции и возвращает полную статистику.
- * @param {Array} transactions - Массив унифицированных транзакций.
- * @param {Object} rates - Объект с курсами валют.
- * @param {string} targetCurrency - Целевая валюта для итоговой суммы.
- * @returns {Object} Объект с полной аналитикой.
+ * Аналізує транзакції та повертає повну статистику.
+ * @param {Array} transactions - Масив уніфікованих транзакцій.
+ * @param {Object} rates - Об’єкт із курсами валют.
+ * @param {string} targetCurrency - Цільова валюта для підсумкової суми.
+ * @returns {Object} Об’єкт із повною аналітикою.
  */
 export function analyzeTransactions(
   transactions,
@@ -16,14 +16,14 @@ export function analyzeTransactions(
     totalRevenueInCents: 0,
     targetCurrency,
     sources: {
-      "Источник 1": {
+      "Джерело 1": {
         included: [],
         excluded: [],
         problems: [],
         currencyStats: {},
         excludedTotalInCents: 0,
       },
-      "Источник 2": {
+      "Джерело 2": {
         included: [],
         excluded: [],
         problems: [],
@@ -36,23 +36,23 @@ export function analyzeTransactions(
 
   transactions.forEach((tx) => {
     const sourceAnalysis = analysis.sources[tx.source];
-    if (!sourceAnalysis) return; // Should not happen if sources are "Источник 1" or "Источник 2"
+    if (!sourceAnalysis) return; // Не має траплятися, якщо джерела — «Джерело 1» або «Джерело 2»
 
     let isProblem = false;
     const problemReasons = [];
 
     if (!tx.currency || !rates[tx.currency]) {
       problemReasons.push(
-        `Нет курса для ${tx.currency || "неизвестной валюты"}`,
+        `Немає курсу для ${tx.currency || "невідомої валюти"}`,
       );
       isProblem = true;
     }
     if (tx.amountInCents <= 0) {
-      problemReasons.push("Нулевая или отрицательная сумма");
+      problemReasons.push("Нульова або від’ємна сума");
       isProblem = true;
     }
     if (tx.type === "invalid") {
-      problemReasons.push("Невалидный формат данных");
+      problemReasons.push("Невалідний формат даних");
       isProblem = true;
     }
 
@@ -68,7 +68,7 @@ export function analyzeTransactions(
       );
       analysis.totalRevenueInCents += convertedAmount;
 
-      // Статистика по валютам
+      // Статистика за валютами
       if (!sourceAnalysis.currencyStats[tx.currency]) {
         sourceAnalysis.currencyStats[tx.currency] = { count: 0, sumInCents: 0 };
       }
@@ -91,7 +91,7 @@ export function analyzeTransactions(
           reason: problemReasons.join(", "),
         });
       } else if (tx.type !== "paid") {
-        // If not paid, and not a data problem, it's a status problem
+        // Якщо транзакція не paid і не має проблеми з даними, це проблема статусу
         sourceAnalysis.problems.push({ ...tx, reason: `Статус: '${tx.type}'` });
       }
     }
@@ -108,7 +108,7 @@ export function analyzeTransactions(
     totalRevenue: (analysis.totalRevenueInCents / 100).toFixed(2),
     currency: targetCurrency,
     sources: analysis.sources,
-    allIncludedTransactions: analysis.allIncludedTransactions, // <-- Вот это добавлено
+    allIncludedTransactions: analysis.allIncludedTransactions, // <-- Це додано
     top3Min: sortedByValue
       .slice(0, 3)
       .map((tx) => ({ ...tx, convertedAmountInCents: getConvertedAmount(tx) })),

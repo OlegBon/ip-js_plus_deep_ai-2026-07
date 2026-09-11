@@ -1,10 +1,10 @@
 /**
- * Конвертирует сумму в центах из одной валюты в другую.
- * @param {number} amountInCents - Сумма в центах.
- * @param {string} currency - Исходная валюта.
- * @param {Object} rates - Объект с курсами валют.
- * @param {string} targetCurrency - Целевая валюта.
- * @returns {number} Сумма в центах в целевой валюте.
+ * Конвертує суму в центах з однієї валюти в іншу.
+ * @param {number} amountInCents - Сума в центах.
+ * @param {string} currency - Вихідна валюта.
+ * @param {Object} rates - Об’єкт із курсами валют.
+ * @param {string} targetCurrency - Цільова валюта.
+ * @returns {number} Сума в центах у цільовій валюті.
  */
 export function convertCurrency(
   amountInCents,
@@ -18,12 +18,12 @@ export function convertCurrency(
   const rate = rates[currency];
   if (!rate) {
     console.warn(
-      `Курс для валюты ${currency} не найден. Сумма проигнорирована.`,
+      `Курс для валюти ${currency} не знайдено. Суму проігноровано.`,
     );
-    return 0; // Если курса нет, сумма не учитывается
+    return 0; // Якщо курсу немає, сума не враховується
   }
 
   // (сумма_в_центах / курс_к_USD) -> сумма в USD-центах
-  // Math.round для избежания дробных центов
+  // Math.round для уникнення дробових центів
   return Math.round(amountInCents / rate);
 }

@@ -46,7 +46,7 @@ interface AnalysisResult {
   getConvertedAmount: (tx: Transaction) => number;
 }
 
-// Вспомогательные компоненты для чистоты кода
+// Допоміжні компоненти для чистоти коду
 const Section = ({
   title,
   children,
@@ -83,10 +83,10 @@ export default async function Home() {
   if (!source1Data || !source2Data || !ratesData) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-red-50 text-red-800">
-        <h1 className="text-4xl font-bold">Ошибка загрузки данных</h1>
+        <h1 className="text-4xl font-bold">Помилка завантаження даних</h1>
         <p className="mt-4 text-lg">
-          Не удалось получить данные из одного или нескольких источников.
-          Проверьте консоль сервера для получения дополнительной информации.
+          Не вдалося отримати дані з одного або кількох джерел.
+          Перевірте консоль сервера, щоб отримати додаткову інформацію.
         </p>
       </main>
     );
@@ -106,24 +106,24 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 md:p-12 bg-gray-100 text-gray-800">
       <div className="w-full max-w-7xl space-y-8">
-        {/* Блок 1: Итоговый отчет */}
-        <Section title="Итоговый отчёт">
+        {/* Блок 1: Підсумковий звіт */}
+        <Section title="Підсумковий звіт">
           <p className="text-sm text-gray-500">Дата: {reportDate}</p>
           <div className="text-center my-6">
-            <p className="text-lg text-gray-600">Общая выручка</p>
+            <p className="text-lg text-gray-600">Загальна виручка</p>
             <p className="text-5xl font-bold text-green-600">
               {analysis.totalRevenue} {analysis.currency}
             </p>
           </div>
           <p className="text-sm text-gray-500">
-            Источники данных: {Object.keys(analysis.sources).join(", ")}
+            Джерела даних: {Object.keys(analysis.sources).join(", ")}
           </p>
         </Section>
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           {/* Блок 2: Статистика */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <SubSection title="Статистика по валютам (включено в расчёт)">
+            <SubSection title="Статистика за валютами (включено до розрахунку)">
               {Object.entries(analysis.sources).map(
                 ([sourceName, sourceData]) => (
                   <div
@@ -175,7 +175,7 @@ export default async function Home() {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <SubSection title="Транзакции, не вошедшие в расчёт">
+            <SubSection title="Транзакції, що не увійшли до розрахунку">
               {Object.entries(analysis.sources).map(
                 ([sourceName, sourceData]) => (
                   <div
@@ -200,7 +200,7 @@ export default async function Home() {
         {/* Блок 3: Анализ транзакций */}
         <Section title="Анализ транзакций">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <SubSection title="Топ-3 минимальных транзакций">
+            <SubSection title="Топ-3 мінімальних транзакцій">
               <ul className="space-y-2">
                 {analysis.top3Min.map((tx) => (
                   <li key={tx.id} className="text-gray-600">
@@ -218,7 +218,7 @@ export default async function Home() {
                 ))}
               </ul>
             </SubSection>
-            <SubSection title="Топ-3 максимальных транзакций">
+            <SubSection title="Топ-3 максимальних транзакцій">
               <ul className="space-y-2">
                 {analysis.top3Max.map((tx) => (
                   <li key={tx.id} className="text-gray-600">
@@ -239,13 +239,13 @@ export default async function Home() {
           </div>
         </Section>
 
-        {/* Блок 4: Курсы валют */}
-        <Section title="Курсы валют">
+        {/* Блок 4: Курси валют */}
+        <Section title="Курси валют">
           <p className="text-sm text-gray-500">
             Относительно {analysis.currency} на {ratesDate}
           </p>
           <p className="text-xs text-gray-400 truncate">
-            Источник:{" "}
+            Джерело:{" "}
             <a href={API_URLS.rates} className="hover:underline">
               {API_URLS.rates}
             </a>
@@ -263,8 +263,8 @@ export default async function Home() {
           </ul>
         </Section>
 
-        {/* Блок 5: Проблемы */}
-        <Section title="Проблемы в исходных данных">
+        {/* Блок 5: Проблеми */}
+        <Section title="Проблеми у вихідних даних">
           {Object.entries(analysis.sources).map(([sourceName, sourceData]) => (
             <div key={sourceName} className="mb-4">
               <h4 className="font-bold text-gray-700">{sourceName}</h4>
@@ -272,7 +272,7 @@ export default async function Home() {
                 <ul className="list-disc list-inside text-sm text-amber-800 space-y-1 mt-2">
                   {sourceData.problems.map((tx) => (
                     <li key={tx.id}>
-                      Транзакция{" "}
+                      Транзакція{" "}
                       <span className="font-mono">
                         {(tx.amountInCents / 100).toFixed(2)}{" "}
                         {tx.currency || ""}

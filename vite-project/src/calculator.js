@@ -1,10 +1,10 @@
 /**
- * Конвертирует любую валюту в целевую (USD), оперируя центами.
- * @param {number} amountInCents - Сумма в центах
- * @param {string} currency - Исходная валюта
- * @param {Object} rates - Курсы валют
- * @param {string} targetCurrency - Целевая валюта
- * @returns {number} - Сумма в центах целевой валюты, округленная до целого
+ * Конвертує будь-яку валюту в цільову (USD), оперуючи центами.
+ * @param {number} amountInCents - Сума в центах.
+ * @param {string} currency - Вихідна валюта.
+ * @param {Object} rates - Курси валют.
+ * @param {string} targetCurrency - Цільова валюта.
+ * @returns {number} - Сума в центах цільової валюти, округлена до цілого.
  */
 export function convertToTarget(
   amountInCents,
@@ -26,21 +26,21 @@ export function convertToTarget(
 
   if (!rate) {
     console.warn(
-      `Курс для валюты ${upperCurrency} не найден. Сумма проигнорирована.`,
+      `Курс для валюти ${upperCurrency} не знайдено. Суму проігноровано.`,
     );
     return 0;
   }
 
-  // Конвертируем, сохраняя точность, и округляем до ближайшего цента в самом конце
+  // Конвертуємо зі збереженням точності та округлюємо до найближчого цента лише наприкінці
   const convertedAmount = amountInCents / rate;
   return Math.round(convertedAmount);
 }
 
 /**
- * Рассчитывает общую выручку из массива стандартизированных транзакций.
- * @param {Array} transactions - массив формата [{ amountInCents: 10000, currency: 'USD' }]
- * @param {Object} rates - курсы валют
- * @returns {Object} - объект с итоговой суммой в центах
+ * Розраховує загальну виручку з масиву стандартизованих транзакцій.
+ * @param {Array} transactions - масив формату [{ amountInCents: 10000, currency: 'USD' }].
+ * @param {Object} rates - курси валют.
+ * @returns {Object} - об’єкт із підсумковою сумою в центах.
  */
 export function calculateTotalRevenue(transactions, rates) {
   if (!Array.isArray(transactions) || transactions.length === 0) {

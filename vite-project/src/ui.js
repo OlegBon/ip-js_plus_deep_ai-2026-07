@@ -23,14 +23,14 @@ function renderReport(container, { total, currency, sources, reportDate }) {
     "bg-white p-6 rounded-lg shadow-md mb-6",
   );
   reportEl.innerHTML = `
-    <h2 class="text-2xl font-bold text-gray-800 mb-2">Итоговый отчёт</h2>
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Підсумковий звіт</h2>
     <p class="text-gray-600">Дата: ${reportDate}</p>
     <div class="mt-4 text-center">
-      <p class="text-lg text-gray-700">Общая выручка</p>
+      <p class="text-lg text-gray-700">Загальна виручка</p>
       <p class="text-5xl font-extrabold text-green-600">${total} ${currency}</p>
     </div>
     <div class="mt-4 text-sm text-gray-500">
-      <p>Источники данных: ${sources.join(", ")}</p>
+      <p>Джерела даних: ${sources.join(", ")}</p>
     </div>
   `;
   container.appendChild(reportEl);
@@ -47,7 +47,7 @@ function renderStats(container, { bySource, excludedStats }) {
     "div",
     "bg-white p-6 rounded-lg shadow-md",
   );
-  includedCard.innerHTML = `<h3 class="text-xl font-semibold text-gray-700 mb-4">Статистика по валютам (включено в расчёт)</h3>`;
+  includedCard.innerHTML = `<h3 class="text-xl font-semibold text-gray-700 mb-4">Статистика за валютами (включено до розрахунку)</h3>`;
   const sourcesList = createElement("div", "space-y-6");
 
   for (const [sourceName, sourceStats] of Object.entries(bySource)) {
@@ -67,7 +67,7 @@ function renderStats(container, { bySource, excludedStats }) {
       );
       item.innerHTML = `
         <span>
-          <span class="font-bold text-indigo-600">${currency}</span>: ${stats.count} транзакций
+          <span class="font-bold text-indigo-600">${currency}</span>: ${stats.count} транзакцій
         </span>
         <span class="font-semibold">${(stats.sumInCents / 100).toFixed(2)}</span>
       `;
@@ -79,7 +79,7 @@ function renderStats(container, { bySource, excludedStats }) {
       "p",
       "text-right font-bold text-gray-700 mt-2 pt-2 border-t",
     );
-    total.innerHTML = `Итого по источнику: <span class="text-green-600">${(
+    total.innerHTML = `Разом за джерелом: <span class="text-green-600">${(
       sourceStats.totalInTargetCurrency / 100
     ).toFixed(2)} USD</span>`;
     sourceBlock.appendChild(total);
@@ -95,7 +95,7 @@ function renderStats(container, { bySource, excludedStats }) {
     "div",
     "bg-white p-6 rounded-lg shadow-md",
   );
-  excludedCard.innerHTML = `<h3 class="text-xl font-semibold text-gray-700 mb-4">Транзакции, не вошедшие в расчёт</h3>`;
+  excludedCard.innerHTML = `<h3 class="text-xl font-semibold text-gray-700 mb-4">Транзакції, що не увійшли до розрахунку</h3>`;
   const excludedList = createElement("ul", "space-y-2");
   for (const [source, stats] of Object.entries(excludedStats)) {
     const item = createElement(
@@ -104,7 +104,7 @@ function renderStats(container, { bySource, excludedStats }) {
     );
     item.innerHTML = `
       <span>
-        <span class="font-bold">${source}</span>: ${stats.count} транзакций
+        <span class="font-bold">${source}</span>: ${stats.count} транзакцій
       </span>
       <span class="font-semibold">${(stats.sum / 100).toFixed(2)} USD</span>
     `;
@@ -127,15 +127,15 @@ function renderExchangeRates(
 
   const ratesEl = createElement("div", "bg-white p-6 rounded-lg shadow-md");
   ratesEl.innerHTML = `
-    <h3 class="text-xl font-semibold text-gray-700 mb-4">Курсы валют</h3>
-    <p class="text-sm text-gray-500 mb-1">Относительно USD на ${ratesDate}</p>
-    <p class="text-xs text-gray-400 mb-3">Источник: ${source}</p>
+    <h3 class="text-xl font-semibold text-gray-700 mb-4">Курси валют</h3>
+    <p class="text-sm text-gray-500 mb-1">Відносно USD станом на ${ratesDate}</p>
+    <p class="text-xs text-gray-400 mb-3">Джерело: ${source}</p>
   `;
   const list = createElement(
     "div",
     "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-sm",
   );
-  // Отобразим только некоторые популярные валюты для чистоты интерфейса
+  // Відображаємо лише кілька популярних валют для чистоти інтерфейсу
   for (const currency of displayCurrencies) {
     if (rates[currency]) {
       const item = createElement("p", "bg-gray-100 p-2 rounded");
@@ -158,7 +158,7 @@ function renderExtremeTransactions(container, { min, max }) {
     card.innerHTML = `<h3 class="text-xl font-semibold text-gray-700 mb-4">${title}</h3>`;
     const list = createElement("ul", "space-y-3");
     if (transactions.length === 0) {
-      list.innerHTML = `<li class="text-gray-500">Нет данных для отображения.</li>`;
+      list.innerHTML = `<li class="text-gray-500">Немає даних для відображення.</li>`;
     } else {
       transactions.forEach((t) => {
         const item = createElement("li", "text-gray-600");
@@ -181,14 +181,14 @@ function renderExtremeTransactions(container, { min, max }) {
   };
 
   const minCard = renderList(
-    "Топ-3 минимальных транзакций",
+    "Топ-3 мінімальних транзакцій",
     min,
     "text-red-600",
   );
   extremeEl.appendChild(minCard);
 
   const maxCard = renderList(
-    "Топ-3 максимальных транзакций",
+    "Топ-3 максимальних транзакцій",
     max,
     "text-green-600",
   );
@@ -198,7 +198,7 @@ function renderExtremeTransactions(container, { min, max }) {
   const title = createElement(
     "h2",
     "text-2xl font-bold text-gray-800 mb-2",
-    "Анализ транзакций",
+    "Аналіз транзакцій",
   );
   wrapper.appendChild(title);
   wrapper.appendChild(extremeEl);
@@ -216,16 +216,16 @@ function renderDataIssues(container, dataIssues) {
     "div",
     "bg-white p-6 rounded-lg shadow-md mt-6",
   );
-  issuesCard.innerHTML = `<h2 class="text-2xl font-bold text-gray-800 mb-4">Проблемы в исходных данных</h2>`;
+  issuesCard.innerHTML = `<h2 class="text-2xl font-bold text-gray-800 mb-4">Проблеми у вихідних даних</h2>`;
 
-  const allIssues = [...dataIssues["Источник 1"], ...dataIssues["Источник 2"]];
+  const allIssues = [...dataIssues["Джерело 1"], ...dataIssues["Джерело 2"]];
 
   if (allIssues.length === 0) {
     const successMessage = createElement(
       "div",
       "bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded",
     );
-    successMessage.innerHTML = `<p class="font-bold">Отлично!</p><p>Проблем в исходных данных не обнаружено. Все транзакции были обработаны корректно.</p>`;
+    successMessage.innerHTML = `<p class="font-bold">Чудово!</p><p>Проблем у вихідних даних не виявлено. Усі транзакції оброблено коректно.</p>`;
     issuesCard.appendChild(successMessage);
     container.appendChild(issuesCard);
     return;
@@ -252,7 +252,7 @@ function renderDataIssues(container, dataIssues) {
       });
 
       if (issues.length > 5) {
-        list.innerHTML += `<li class="text-gray-500 italic">... и еще ${issues.length - 5} проблем.</li>`;
+        list.innerHTML += `<li class="text-gray-500 italic">... і ще ${issues.length - 5} проблем.</li>`;
       }
 
       sourceBlock.appendChild(list);
@@ -260,7 +260,7 @@ function renderDataIssues(container, dataIssues) {
       const noIssuesMessage = createElement(
         "p",
         "text-sm text-green-700 italic",
-        "Проблем не обнаружено.",
+        "Проблем не виявлено.",
       );
       sourceBlock.appendChild(noIssuesMessage);
     }
@@ -283,7 +283,7 @@ function renderError(container, error) {
   );
   errorEl.setAttribute("role", "alert");
   errorEl.innerHTML = `
-    <p class="font-bold">Произошла ошибка</p>
+    <p class="font-bold">Сталася помилка</p>
     <p>${error.message}</p>
   `;
   container.appendChild(errorEl);
@@ -294,7 +294,7 @@ function renderError(container, error) {
  */
 export function render(data) {
   app.innerHTML =
-    '<div class="text-center p-10"><p class="text-gray-500">Загрузка отчёта...</p></div>';
+    '<div class="text-center p-10"><p class="text-gray-500">Завантаження звіту...</p></div>';
   app.className = "bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8";
 
   if (data.error) {

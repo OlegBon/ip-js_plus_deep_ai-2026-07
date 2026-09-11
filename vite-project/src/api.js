@@ -1,38 +1,38 @@
 import { API_URLS } from "./config.js";
 
 /**
- * Универсальная функция для GET-запросов
- * @param {string} url - Адрес запроса
- * @param {Object} headers - Объект с заголовками (по умолчанию пустой)
+ * Універсальна функція для GET-запитів.
+ * @param {string} url - Адреса запиту.
+ * @param {Object} headers - Об’єкт із заголовками (за замовчуванням порожній).
  */
 export async function fetchData(url, headers = {}) {
   try {
     const response = await fetch(url, { headers });
 
     if (!response.ok) {
-      throw new Error(`Ошибка HTTP: ${response.status}`);
+      throw new Error(`Помилка HTTP: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error(`Ошибка при загрузке данных с ${url}:`, error.message);
-    return null; // Возвращаем null при ошибке, чтобы приложение не падало
+    console.error(`Помилка під час завантаження даних із ${url}:`, error.message);
+    return null; // Повертаємо null у разі помилки, щоб застосунок не падав
   }
 }
 
 /**
- * Запрашивает актуальные курсы валют
+ * Запитує актуальні курси валют.
  */
 export async function getExchangeRates() {
   const data = await fetchData(API_URLS.rates);
 
-  // Возвращаем весь объект, он содержит дату и сами курсы
+  // Повертаємо весь об’єкт: він містить дату й самі курси
   if (data && data.rates && data.time_last_update_utc) {
     return data;
   }
 
   console.warn(
-    "Не удалось получить курсы валют. Расчеты могут быть неточными.",
+    "Не вдалося отримати курси валют. Розрахунки можуть бути неточними.",
   );
   return null;
 }

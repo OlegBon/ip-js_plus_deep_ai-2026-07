@@ -46,8 +46,8 @@ const inputDataSource2 = ["300 USD", "150 USD", "200 USD", "400 USD"];
 //   inputDataSource2.forEach((item) => console.log(item)),
 // );
 
-// Функция, которая принимает данные из обоих источников и рассчитывает общую выручку за день.
-// При этом возвращает данные в формате:
+// Функція, що приймає дані з обох джерел і розраховує загальну виручку за день.
+// При цьому повертає дані у форматі:
 // {
 //    total: 5000,
 //    currency: "USD"
@@ -55,16 +55,16 @@ const inputDataSource2 = ["300 USD", "150 USD", "200 USD", "400 USD"];
 
 function calculateTotalRevenue(dataSource1, dataSource2) {
   let totalRevenue = 0;
-  let currency = "USD"; // Валюта для всех источников данных, предполагаем, что она одинакова
+  let currency = "USD"; // Валюта для всіх джерел даних; припускаємо, що вона однакова
 
-  // Считаем общую выручку из dataSource1
+  // Розраховуємо загальну виручку з dataSource1
   dataSource1.transactions.forEach((transaction) => {
     if (transaction.type === "paid") {
       totalRevenue += transaction.amount;
     }
   });
 
-  // Считаем общую выручку из dataSource2
+  // Розраховуємо загальну виручку з dataSource2
   dataSource2.forEach((item) => {
     const amount = parseInt(item.split(" ")[0]);
     totalRevenue += amount;

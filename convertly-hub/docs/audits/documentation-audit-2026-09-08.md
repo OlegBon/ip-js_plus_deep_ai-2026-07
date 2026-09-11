@@ -1,55 +1,55 @@
-# Финальный аудит документации — 8 сентября 2026
+# Фінальний аудит документації — 8 вересня 2026
 
-## Цель и источники сверки
+## Мета та джерела звірки
 
-Этот проход фиксирует состояние после cloud migration, Telegram recovery,
-account deletion, унификации Dashboard UX и адресного dependency security fix.
-Утверждения сверены с `package.json`/`package-lock.json`, `Dockerfile`, Compose,
+Цей прохід фіксує стан після cloud migration, Telegram recovery,
+account deletion, уніфікації Dashboard UX та адресного dependency security fix.
+Твердження звірено з `package.json`/`package-lock.json`, `Dockerfile`, Compose,
 `.env.example`, Prisma schema и migrations, `app/api/**`, `lib/**`, GitHub
-Actions, активным backlog и опубликованными материалами проекта. Это не заменяет
-security-аудит или нагрузочное тестирование.
+Actions, активним backlog і опублікованими матеріалами проєкту. Це не замінює
+security-аудит або навантажувальне тестування.
 
-## Итоговая сверка
+## Підсумкова звірка
 
-| Область                            | Канонический документ                  | Подтверждённое состояние                                                                                                                                               |
+| Область                            | Канонічний документ                    | Підтверджений стан                                                                                                                                                     |
 | ---------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Быстрый вход и публичные материалы | `README.md`                            | Локальный Compose и публичный Northflank + Supabase demo разделены; добавлены ссылки на cloud video и Canva presentation.                                              |
-| Архитектура и API                  | `architecture.md`                      | Описаны browser/API/guest conversion, private Gotenberg/S3, SMTP, Telegram recovery, deletion workflow и portability.                                                  |
-| Данные                             | `db-schema.md`                         | Prisma schema остаётся источником истины; тариф хранится только в `Subscription.activePlan`, User-plan legacy column удалена.                                          |
-| Технологии и облако                | `tech_saas.md`                         | Зафиксированы фактический Next.js/Prisma/Supabase/Northflank stack, local/production границы и альтернативы Oracle, Vercel, Render.                                    |
-| Практические слои                  | `guides/*`                             | Разделены frontend UX/polling, backend flows, database locks/migrations и testing/operations.                                                                          |
-| Security dependencies              | `audits/dependency-security-latest.md` | `npm audit --omit=dev` возвращает 0 vulnerabilities; исправленные Prisma-транзитивные версии закреплены узкими overrides.                                              |
-| Будущая работа                     | `backlog/*`                            | Активны только billing, conversion capabilities, security/scale, operations/reliability и admin conversion history. Выполненные задачи остаются в Git и `progress.md`. |
+| Швидкий вхід і публічні матеріали  | `README.md`                            | Локальний Compose і публічний Northflank + Supabase demo розділено; додано посилання на cloud video та Canva presentation.                                            |
+| Архітектура та API                 | `architecture.md`                      | Описано browser/API/guest conversion, private Gotenberg/S3, SMTP, Telegram recovery, deletion workflow та portability.                                                |
+| Дані                               | `db-schema.md`                         | Prisma schema залишається джерелом істини; тариф зберігається лише у `Subscription.activePlan`, User-plan legacy column видалено.                                    |
+| Технології та хмара                | `tech_saas.md`                         | Зафіксовано фактичний Next.js/Prisma/Supabase/Northflank stack, local/production межі та альтернативи Oracle, Vercel, Render.                                         |
+| Практичні шари                     | `guides/*`                             | Розділено frontend UX/polling, backend flows, database locks/migrations та testing/operations.                                                                        |
+| Security dependencies              | `audits/dependency-security-latest.md` | `npm audit --omit=dev` повертає 0 vulnerabilities; виправлені Prisma-транзитивні версії закріплено вузькими overrides.                                                |
+| Майбутня робота                    | `backlog/*`                            | Активні лише billing, conversion capabilities, security/scale, operations/reliability й admin conversion history. Виконані задачі залишаються у Git і `progress.md`. |
 
-## Материалы проекта
+## Матеріали проєкту
 
-- [Cloud MVP video (YouTube)](https://youtu.be/gH8szKpm9MU) — немой screen
-  recording публичного demo и PaaS-контура.
-- [System overview (Canva)](https://canva.link/p7phuwtmnxaw3lb) — публичная
-  развиваемая презентация архитектуры и MVP.
+- [Cloud MVP video (YouTube)](https://youtu.be/gH8szKpm9MU) — німий screen
+  recording публічного demo та PaaS-контуру.
+- [System overview (Canva)](https://canva.link/p7phuwtmnxaw3lb) — публічна
+  презентація архітектури та MVP, що розвивається.
 
-В README добавлены только внешние ссылки. Скриншоты и Canva-export не хранятся в
-Git, чтобы репозиторий не получил тяжёлые быстро устаревающие бинарные файлы.
-Публичные материалы не должны показывать пароли, connection strings, API keys,
-SMTP/S3 credentials, Telegram bot token или значения secret groups.
+До README додано лише зовнішні посилання. Скриншоти та Canva-export не зберігаються у
+Git, щоб репозиторій не отримав важкі бінарні файли, що швидко застарівають.
+Публічні матеріали не мають показувати паролі, connection strings, API keys,
+SMTP/S3 credentials, Telegram bot token або значення secret groups.
 
-## Осознанные границы после аудита
+## Усвідомлені межі після аудиту
 
-1. Demo на Northflank Developer Sandbox + Supabase Free функционален, но не
-   даёт SLA, гарантированного backup, постоянной доступности или production
+1. Demo на Northflank Developer Sandbox + Supabase Free функціональний, але не
+   надає SLA, гарантованого backup, постійної доступності або production
    monitoring/alerting.
-2. Billing остаётся mock: смена `Subscription.activePlan` вручную допустима
-   только как операционный тестовый процесс до подключения payment provider.
-3. Реальный cloud E2E намеренно не автоматизирован: он менял бы Supabase data,
-   квоты и delivery channels. Канонический автоматизированный контур —
-   изолированный Docker Compose integration/E2E; после deploy выполняется
-   короткий ручной smoke-test.
-4. `npm audit fix --force` не применяется. При новом finding сначала нужен
-   dependency-path/compatibility audit, затем tests и production build.
+2. Billing залишається mock: зміна `Subscription.activePlan` вручну допустима
+   лише як операційний тестовий процес до підключення payment provider.
+3. Реальний cloud E2E навмисно не автоматизовано: він змінював би Supabase data,
+   квоти та delivery channels. Канонічний автоматизований контур —
+   ізольований Docker Compose integration/E2E; після deploy виконується
+   короткий ручний smoke-test.
+4. `npm audit fix --force` не застосовується. За нового finding спочатку потрібен
+   dependency-path/compatibility audit, потім tests і production build.
 
 ## Результат
 
-Документация отражает текущее минимальное функциональное состояние продукта.
-Новые product или infrastructure идеи добавляются только в тематический
-`docs/backlog/`; завершённые изменения фиксируются merge-коммитом и
+Документація відображає поточний мінімальний функціональний стан продукту.
+Нові product або infrastructure ідеї додаються лише до тематичного
+`docs/backlog/`; завершені зміни фіксуються merge-комітом і
 `docs/progress.md`.

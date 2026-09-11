@@ -1,6 +1,6 @@
-# Отчет аудита API - 2026-08-31T15:33:58.624Z
+# Звіт аудиту API - 2026-08-31T15:33:58.624Z
 
-## Статус эндпоинтов
+## Статус ендпоінтів
 - Gotenberg Worker (http://localhost:3000): ✅ OK
 - Gotenberg Health (http://localhost:3000/health): ✅ OK
   - Chromium: ✅ up
@@ -13,10 +13,10 @@
   - Gotenberg Worker: ✅ up
 - MinIO UI (http://localhost:9001): ✅ OK
 - MinIO UI Login (http://localhost:9001/login): ✅ OK
-- NextAuth Session (http://localhost:3001/api/auth/session): ✅ Ожидаемый HTTP 200
-- Account Profile (guest boundary) (http://localhost:3001/api/account/profile): ✅ Ожидаемый HTTP 401
-- Account Billing (guest boundary) (http://localhost:3001/api/account/billing): ✅ Ожидаемый HTTP 401
-- Account Conversions (guest boundary) (http://localhost:3001/api/account/conversions): ✅ Ожидаемый HTTP 401
-- Account API Keys (guest boundary) (http://localhost:3001/api/account/api-keys): ✅ Ожидаемый HTTP 401
-- Admin Users (guest boundary) (http://localhost:3001/api/admin/users): ✅ Ожидаемый HTTP 401
-- Admin Metrics (guest boundary) (http://localhost:3001/api/admin/metrics): ✅ Ожидаемый HTTP 401
+- NextAuth Session (http://localhost:3001/api/auth/session): ✅ Очікуваний HTTP 200
+- Account Profile (guest boundary) (http://localhost:3001/api/account/profile): ✅ Очікуваний HTTP 401
+- Account Billing (guest boundary) (http://localhost:3001/api/account/billing): ✅ Очікуваний HTTP 401
+- Account Conversions (guest boundary) (http://localhost:3001/api/account/conversions): ✅ Очікуваний HTTP 401
+- Account API Keys (guest boundary) (http://localhost:3001/api/account/api-keys): ✅ Очікуваний HTTP 401
+- Admin Users (guest boundary) (http://localhost:3001/api/admin/users): ✅ Очікуваний HTTP 401
+- Admin Metrics (guest boundary) (http://localhost:3001/api/admin/metrics): ✅ Очікуваний HTTP 401

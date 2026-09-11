@@ -11,7 +11,7 @@ async function init() {
   render({ report: null, stats: null, rates: null, error: null });
 
   try {
-    console.log("Загрузка данных...");
+    console.log("Завантаження даних...");
 
     // 1. Fetch all data in parallel
     const [rawData1, rawData2, ratesData] = await Promise.all([
@@ -26,7 +26,7 @@ async function init() {
       !ratesData.rates ||
       Object.keys(ratesData.rates).length === 0
     ) {
-      throw new Error("Не удалось загрузить курсы валют. Расчет невозможен.");
+      throw new Error("Не вдалося завантажити курси валют. Розрахунок неможливий.");
     }
 
     // 2. Analyze and structure the data
@@ -42,7 +42,7 @@ async function init() {
       ratesData.rates,
     );
 
-    // 4. Подготовка расширенной статистики для UI
+    // 4. Підготовка розширеної статистики для UI
     const allCurrencies = new Set(["USD"]);
     const stats = {
       ...analyzedStats,
@@ -83,14 +83,14 @@ async function init() {
       report: {
         total: (finalRevenue.totalInCents / 100).toFixed(2),
         currency: finalRevenue.currency,
-        sources: ["Источник 1", "Источник 2"],
-        reportDate: new Date().toLocaleString("ru-RU"),
+        sources: ["Джерело 1", "Джерело 2"],
+        reportDate: new Date().toLocaleString("uk-UA"),
       },
       stats: stats,
       rates: {
         rates: ratesData.rates,
         ratesDate: new Date(ratesData.time_last_update_utc).toLocaleString(
-          "ru-RU",
+          "uk-UA",
         ),
         source: API_URLS.rates,
         displayCurrencies: Array.from(allCurrencies),
@@ -106,11 +106,11 @@ async function init() {
     // 6. Render the final UI
     render(renderData);
   } catch (error) {
-    console.error("Критическая ошибка в приложении:", error);
+    console.error("Критична помилка у застосунку:", error);
     // Render the error state in the UI
     render({ error });
   }
 }
 
-// Запускаем приложение
+// Запускаємо застосунок
 init();

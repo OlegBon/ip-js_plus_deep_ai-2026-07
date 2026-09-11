@@ -43,7 +43,7 @@ function validateEndpoint(endpoint: string) {
   try {
     parsedEndpoint = new URL(endpoint);
   } catch {
-    throw new Error('MINIO_ENDPOINT должен быть корректным HTTP(S)-адресом.');
+    throw new Error('MINIO_ENDPOINT має бути коректною HTTP(S)-адресою.');
   }
 
   if (parsedEndpoint.protocol !== 'http:' && parsedEndpoint.protocol !== 'https:') {
@@ -65,7 +65,7 @@ function getStorageConfig(): StorageConfig {
 
 function assertObjectKey(key: string) {
   if (!key.trim() || key.startsWith('/')) {
-    throw new Error("Ключ объекта должен быть непустым и не должен начинаться с '/'.");
+    throw new Error("Ключ об’єкта не має бути порожнім і не має починатися з '/'.");
   }
 }
 
@@ -83,7 +83,7 @@ export function createS3Client(config: StorageConfig = getStorageConfig()) {
 
 export function createStorageService(client: S3CommandClient, bucket: string) {
   if (!bucket.trim()) {
-    throw new Error('Имя S3-бакета не может быть пустым.');
+    throw new Error('Ім’я S3-бакета не може бути порожнім.');
   }
 
   return {
@@ -111,7 +111,7 @@ export function createStorageService(client: S3CommandClient, bucket: string) {
       const response = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 
       if (!response.Body) {
-        throw new Error('S3 не вернул содержимое запрошенного объекта.');
+        throw new Error('S3 не повернув вміст запитаного об’єкта.');
       }
 
       return response as GetObjectCommandOutput;
