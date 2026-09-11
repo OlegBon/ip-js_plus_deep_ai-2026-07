@@ -28,6 +28,19 @@ describe('UserManagement', () => {
     expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
   });
 
+  it('reloads the current user list when the admin data version changes', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ users: [], nextCursor: null, total: 0 }),
+    });
+
+    const { rerender } = render(<UserManagement refreshKey={0} />);
+    await screen.findByText('No users found.');
+
+    rerender(<UserManagement refreshKey={1} />);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+  });
+
   it('applies and clears a live search without a submit button', async () => {
     const user = userEvent.setup();
     global.fetch = jest.fn().mockResolvedValue({

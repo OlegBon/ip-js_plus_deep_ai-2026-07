@@ -36,4 +36,14 @@ describe('SystemMonitoring', () => {
     expect(screen.getByText('12')).toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
+
+  it('refreshes metrics when the admin data version changes', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => metrics });
+
+    const { rerender } = render(<SystemMonitoring refreshKey={0} />);
+    await screen.findByText('Total conversions');
+
+    rerender(<SystemMonitoring refreshKey={1} />);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+  });
 });

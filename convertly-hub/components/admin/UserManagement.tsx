@@ -24,7 +24,11 @@ type PendingAction = { type: 'status'; user: User } | { type: 'key'; key: ApiKey
 
 const PAGE_SIZE = 10;
 
-export default function UserManagement() {
+type UserManagementProps = {
+  refreshKey?: number;
+};
+
+export default function UserManagement({ refreshKey = 0 }: UserManagementProps) {
   const [result, setResult] = useState<UsersResponse | null>(null);
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
@@ -51,7 +55,7 @@ export default function UserManagement() {
       });
 
     return () => controller.abort();
-  }, [cursor, direction, query, sort]);
+  }, [cursor, direction, query, refreshKey, sort]);
 
   const applySearch = useCallback((value: string) => {
     setCursor(null);
