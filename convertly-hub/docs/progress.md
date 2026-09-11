@@ -1,5 +1,13 @@
 # Журнал змін проєкту
 
+# 2026-09-11
+
+- **Задача:** Зробити API-аудит придатним для локального й Northflank + Supabase cloud-оточення.
+- **Змінені файли:** `scripts/audit-api.mjs`, `.codex/skills/api-response-auditor/SKILL.md`, `docs/START.md`, API audit reports і `docs/progress.md`.
+- **Результат:** `API_AUDIT_BASE_URL` визначає public origin для віддаленої перевірки. Без змінної збережено локальний Compose-аудит, включно з Gotenberg і MinIO. У cloud-режимі перевіряються лише public app, health, NextAuth і гостьові account/admin межі; private PostgreSQL, Supabase Storage та Gotenberg підтверджуються агрегованим `GET /api/health`. Аудит `https://convertly-hub.bon.kharkov.ua` повернув очікувані `200`/`401` і `healthy` для всіх залежностей.
+- **Перевірки:** cloud `npm run audit:api`, ESLint для скрипта й `git diff --check` успішні.
+- **Нові змінні оточення:** опційна, non-secret `API_AUDIT_BASE_URL` — public HTTP(S) origin застосунку; без значення використовується `http://localhost:3001`.
+
 # 2026-09-08
 
 - **Задача:** UX і операційне оформлення Telegram-бота.
