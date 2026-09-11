@@ -41,7 +41,7 @@ describe('S3 storage service', () => {
     send.mockReset();
   });
 
-  it('проверяет доступность бакета', async () => {
+  it('перевіряє доступність бакета', async () => {
     send.mockResolvedValue({});
 
     await storage.ensureBucket();
@@ -69,7 +69,7 @@ describe('S3 storage service', () => {
     });
   });
 
-  it('возвращает ответ S3 при скачивании', async () => {
+  it('повертає відповідь S3 під час завантаження', async () => {
     const body = Buffer.from('file-content');
     send.mockResolvedValue({ Body: body, ContentType: 'application/pdf' });
 

@@ -31,7 +31,7 @@ function requiredEnvironmentVariable(name: string) {
   const value = process.env[name]?.trim();
 
   if (!value) {
-    throw new Error(`Не задана обязательная переменная окружения ${name}.`);
+    throw new Error(`Не задано обов’язкову змінну середовища ${name}.`);
   }
 
   return value;
@@ -47,7 +47,7 @@ function validateEndpoint(endpoint: string) {
   }
 
   if (parsedEndpoint.protocol !== 'http:' && parsedEndpoint.protocol !== 'https:') {
-    throw new Error('MINIO_ENDPOINT должен использовать протокол HTTP или HTTPS.');
+    throw new Error('MINIO_ENDPOINT має використовувати протокол HTTP або HTTPS.');
   }
 
   return parsedEndpoint.toString().replace(/\/$/, '');
