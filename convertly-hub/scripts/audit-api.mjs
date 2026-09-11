@@ -30,12 +30,12 @@ async function fetchEndpoint(endpoint) {
       return {
         success: res.status === endpoint.expectedStatus,
         status: res.status === endpoint.expectedStatus
-          ? `✅ Ожидаемый HTTP ${res.status}`
-          : `❌ Ожидался HTTP ${endpoint.expectedStatus}, получен ${res.status}`,
+          ? `✅ Очікуваний HTTP ${res.status}`
+          : `❌ Очікувався HTTP ${endpoint.expectedStatus}, отримано ${res.status}`,
       };
     }
     if (!res.ok) {
-      return { success: false, status: `❌ Ошибка (HTTP ${res.status})` };
+      return { success: false, status: `❌ Помилка (HTTP ${res.status})` };
     }
 
     const result = { success: true, status: "✅ OK" };
@@ -48,7 +48,7 @@ async function fetchEndpoint(endpoint) {
     return result;
 
   } catch (e) {
-    return { success: false, status: `❌ Ошибка (${e.message})` };
+    return { success: false, status: `❌ Помилка (${e.message})` };
   }
 }
 
@@ -67,14 +67,14 @@ function parseHealthDetails(type, data) {
 }
 
 async function runAudit() {
-  console.log("🚀 Запуск аудита API...");
+  console.log("🚀 Запуск аудиту API...");
 
   if (!fs.existsSync(AUDIT_DIR)) {
     fs.mkdirSync(AUDIT_DIR, { recursive: true });
   }
 
-  let report = `# Отчет аудита API - ${new Date().toISOString()}\n\n`;
-  report += `## Статус эндпоинтов\n`;
+  let report = `# Звіт аудиту API - ${new Date().toISOString()}\n\n`;
+  report += `## Статус ендпойнтів\n`;
 
   const results = await Promise.all(ENDPOINTS.map(fetchEndpoint));
 
@@ -91,7 +91,7 @@ async function runAudit() {
   const timestampedReportPath = path.join(AUDIT_DIR, `api-audit-${timestamp}.md`);
   fs.writeFileSync(timestampedReportPath, report);
 
-  console.log(`✅ Отчет аудита сохранен в ${LATEST_REPORT_PATH} и ${timestampedReportPath}`);
+  console.log(`✅ Звіт аудиту збережено у ${LATEST_REPORT_PATH} і ${timestampedReportPath}`);
 }
 
 runAudit();

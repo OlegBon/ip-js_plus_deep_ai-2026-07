@@ -1,90 +1,90 @@
-# 060 — Админская история конвертаций и failed jobs
+# 060 — Адмінська історія конвертацій і failed jobs
 
 ## Проблема
 
-`System Monitoring` уже показывает общее число конвертаций и failed jobs, но
-админ не может из интерфейса понять, какая именно задача упала, для какого
-аккаунта, на каком этапе и есть ли сохранённый результат. Сейчас для этого
-нужно открывать Prisma Studio, что неудобно и слишком близко к прямому доступу
-к production-данным.
+`System Monitoring` уже показує загальну кількість конвертацій і failed jobs, але
+адмін не може з інтерфейсу зрозуміти, яка саме задача впала, для якого
+облікового запису, на якому етапі та чи є збережений результат. Зараз для цього
+потрібно відкривати Prisma Studio, що незручно й надто близько до прямого доступу
+до production-даних.
 
-## Предлагаемый интерфейс
+## Запропонований інтерфейс
 
-Не отдельная страница и не набор модалок поверх System Monitoring. На
-`/management` добавить самостоятельный блок **Conversion history** под
-мониторингом и рядом с User Management. Так метрики остаются краткой сводкой, а
-операционная таблица имеет достаточно места для фильтров и пагинации.
+Не окрема сторінка й не набір модалок поверх System Monitoring. На
+`/management` додати самостійний блок **Conversion history** під
+моніторингом і поруч із User Management. Так метрики лишаються коротким зведенням, а
+операційна таблиця має достатньо місця для фільтрів і пагінації.
 
-### Таблица и фильтры
+### Таблиця та фільтри
 
-- cursor-пагинация по 20 записей, default sort `createdAt desc`;
-- поиск по email пользователя и имени исходного файла;
-- filter: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED` и «с сохранённым
+- cursor-пагінація по 20 записів, default sort `createdAt desc`;
+- пошук за email користувача та назвою вихідного файлу;
+- filter: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED` і «зі збереженим
   результатом»;
-- сортировка: дата создания, статус, формат, размер и дата завершения;
-- столбцы: время, пользователь (name/email), исходное имя, `source → target`,
-  размер, status, продолжительность, наличие/срок результата;
-- `Refresh` с видимым временем последнего успешного обновления, как в Account
+- сортування: дата створення, статус, формат, розмір і дата завершення;
+- стовпці: час, користувач (name/email), вихідна назва, `source → target`,
+  розмір, status, тривалість, наявність/строк результату;
+- `Refresh` із видимим часом останнього успішного оновлення, як у Account
   Deletion Requests;
-- empty/error state без технических exception и без ложного «пусто» при
-  неуспешном запросе.
+- empty/error state без технічних exception і без хибного «порожньо» у разі
+  невдалого запиту.
 
 ### Failed details
 
-У `FAILED` должна быть кнопка **Details**, открывающая небольшую модалку с
-безопасной диагностикой: conversion ID, время, формат, размер, status и
-нормализованная категория (`validation`, `conversion-engine`, `storage`,
-`timeout`, `unknown`). Не показывать raw stack trace, credentials, S3 endpoint,
-object key, исходное содержимое файла или полный provider response.
+У `FAILED` має бути кнопка **Details**, що відкриває невелику модалку з
+безпечною діагностикою: conversion ID, час, формат, розмір, status і
+нормалізована категорія (`validation`, `conversion-engine`, `storage`,
+`timeout`, `unknown`). Не показувати raw stack trace, credentials, S3 endpoint,
+object key, вихідний вміст файлу або повний provider response.
 
-Первый этап не выполняет автоматический retry: повторный запуск может повторно
-списать квоту, создать дубликат и усложнить audit. Повторную обработку следует
-проектировать отдельной задачей с явными правилами quota/idempotency.
+Перший етап не виконує автоматичний retry: повторний запуск може повторно
+списати квоту, створити дублікат і ускладнити audit. Повторну обробку слід
+проєктувати окремою задачею з явними правилами quota/idempotency.
 
-### Действия с результатом
+### Дії з результатом
 
-Если `storageKey` существует, admin может нажать **Delete stored file** и
-подтвердить действие. Сервер проверяет `ADMIN`, удаляет только private S3
-object, затем атомарно очищает `storageKey`/метаданные результата в записи.
-Сам `ConversionLog` и failed history не удаляются. Нужен audit event: кто,
-когда и какой conversion ID очистил. Никаких public download URL и массового
-удаления в первой версии.
+Якщо `storageKey` існує, admin може натиснути **Delete stored file** та
+підтвердити дію. Сервер перевіряє `ADMIN`, видаляє лише private S3
+object, потім атомарно очищує `storageKey`/метадані результату в записі.
+Сам `ConversionLog` і failed history не видаляються. Потрібен audit event: хто,
+коли та який conversion ID очистив. Жодних public download URL і масового
+видалення у першій версії.
 
-## Серверный контракт
+## Серверний контракт
 
-1. `GET /api/admin/conversions` — только `ADMIN`; validated query parameters:
+1. `GET /api/admin/conversions` — лише `ADMIN`; validated query parameters:
    `search`, `status`, `stored`, `sort`, `direction`, `cursor`. Ответ содержит
    safe view model, `nextCursor` и `total`.
-2. `GET /api/admin/conversions/:id` — safe detail для модалки, только `ADMIN`.
-3. `DELETE /api/admin/conversions/:id/stored-result` — destructive route с
-   отдельным confirmation UI; идемпотентно возвращает понятный ответ, если файл
-   уже удалён/истёк.
-4. Новая Prisma migration добавляет минимальный append-only audit model для
-   admin cleanup. Не изменять уже применённые migrations.
+2. `GET /api/admin/conversions/:id` — safe detail для модалки, лише `ADMIN`.
+3. `DELETE /api/admin/conversions/:id/stored-result` — destructive route з
+   окремим confirmation UI; ідемпотентно повертає зрозумілу відповідь, якщо файл
+   вже видалено/сплив.
+4. Нова Prisma migration додає мінімальну append-only audit model для
+   admin cleanup. Не змінювати вже застосовані migrations.
 
-Для списка использовать select только нужных полей и cursor, не возвращать
-`sourceFileHash`, `storageKey`, `errorMessage` без нормализации и связанные
-API-key hashes. Поиск/сортировка — allowlist, аналогично существующим account/
+Для списку використовувати select лише потрібних полів і cursor, не повертати
+`sourceFileHash`, `storageKey`, `errorMessage` без нормалізації та пов'язані
+API-key hashes. Пошук/сортування — allowlist, аналогічно наявним account/
 admin endpoints.
 
-## Тесты и проверка
+## Тести та перевірка
 
 - Jest: RBAC, query validation, cursor, email/file search, details redaction,
-  delete happy path, S3 failure и idempotency;
+  delete happy path, S3 failure і idempotency;
 - component tests: filters, pagination, refresh timestamp, modal confirmation,
   error/empty states;
-- Playwright: admin sees list/details/delete action; non-admin не видит UI и
-  получает `403` от route;
-- real integration/E2E: создать `COMPLETED` и `FAILED` conversion, проверить
-  S3 delete и сохранение audit record;
-- manual Northflank smoke-test: проверить, что raw secrets/error data не
-  выводятся в browser console или service logs.
+- Playwright: admin sees list/details/delete action; non-admin не бачить UI та
+  отримує `403` від route;
+- real integration/E2E: створити `COMPLETED` і `FAILED` conversion, перевірити
+  S3 delete та збереження audit record;
+- manual Northflank smoke-test: перевірити, що raw secrets/error data не
+  виводяться у browser console або service logs.
 
-## Критерии готовности
+## Критерії готовності
 
-- число `failed conversions` в System Monitoring ведёт в практический поток
-  диагностики, а не только показывает цифру;
-- действия строго owner-independent, но только для `ADMIN`;
-- storage cleanup не удаляет account/history и не делает результат публичным;
-- большие списки не используют `OFFSET`;
-- регрессии Dashboard history и API-key download не появляются.
+- число `failed conversions` у System Monitoring веде до практичного потоку
+  діагностики, а не лише показує цифру;
+- дії суворо owner-independent, але лише для `ADMIN`;
+- storage cleanup не видаляє account/history і не робить результат публічним;
+- великі списки не використовують `OFFSET`;
+- регресії Dashboard history та API-key download не з'являються.

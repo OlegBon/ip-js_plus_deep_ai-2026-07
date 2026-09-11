@@ -50,7 +50,7 @@ describe('S3 storage service', () => {
     expect(send.mock.calls[0][0].input).toEqual({ Bucket: bucket });
   });
 
-  it('загружает файл с метаданными', async () => {
+  it('завантажує файл із метаданими', async () => {
     send.mockResolvedValue({});
 
     await storage.uploadFile({
@@ -83,7 +83,7 @@ describe('S3 storage service', () => {
     expect(result.Body).toBe(body);
   });
 
-  it('удаляет объект по ключу', async () => {
+  it('видаляє об’єкт за ключем', async () => {
     send.mockResolvedValue({});
 
     await storage.deleteFile('users/user-1/results/file.pdf');
@@ -95,9 +95,9 @@ describe('S3 storage service', () => {
     });
   });
 
-  it('не передаёт в S3 пустые ключи и ключи с абсолютным путём', async () => {
+  it('не передає до S3 порожні ключі та ключі з абсолютним шляхом', async () => {
     await expect(storage.uploadFile({ key: '', body: Buffer.from('file') })).rejects.toThrow(
-      'Ключ объекта должен быть непустым',
+      'Ключ об’єкта не має бути порожнім',
     );
     await expect(storage.deleteFile('/users/user-1/file.pdf')).rejects.toThrow(
       'не должен начинаться',
@@ -108,7 +108,7 @@ describe('S3 storage service', () => {
 });
 
 describe('S3 client configuration', () => {
-  it('использует регион, переданный S3-compatible провайдером', () => {
+  it('використовує регіон, переданий S3-compatible провайдером', () => {
     const client = createS3Client({
       endpoint: 'https://project.storage.supabase.co/storage/v1/s3',
       region: 'eu-central-1',

@@ -1,95 +1,95 @@
-# Аудит документации — 7 сентября 2026
+# Аудит документації — 7 вересня 2026
 
-## Область и метод
+## Область і метод
 
-Проведены два прохода: сначала сверка документации с исходниками, Prisma,
+Проведено два проходи: спочатку звірка документації з вихідним кодом, Prisma,
 Dockerfile, Compose, scripts и GitHub/Northflank operational flow; затем
-обновление канонических документов. Это не security audit и не нагрузочный тест.
+оновлення канонічних документів. Це не security audit і не навантажувальний тест.
 
-## Фактическая реализация
+## Фактична реалізація
 
-| Область          | Подтверждённое состояние                                                                                                 |
+| Область          | Підтверджений стан                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Web/API          | Next.js 16 App Router, Route Handlers, Node.js runtime для конвертаций.                                                  |
 | Auth             | NextAuth v4 Credentials, HttpOnly JWT, регистрация, reset password, email verification, `USER`/`ADMIN`.                  |
-| Billing          | Источник тарифа — только `Subscription.activePlan`; `User.plan` удалён migration `20260907140000`.                       |
-| Конвертация      | `JPG ↔ PNG` через sharp; `DOCX → PDF` через Gotenberg; `PDF → DOCX` не реализован.                                       |
-| Storage          | private S3-compatible bucket; ключи результатов user-scoped, публичные bucket URL не выдаются.                           |
-| API              | `POST /api/v1/convert` с Bearer key, месячной квотой и in-memory 30 req/min limit; download через owner-scoped endpoint. |
+| Billing          | Джерело тарифу — лише `Subscription.activePlan`; `User.plan` видалено migration `20260907140000`.                         |
+| Конвертація      | `JPG ↔ PNG` через sharp; `DOCX → PDF` через Gotenberg; `PDF → DOCX` не реалізовано.                                     |
+| Storage          | private S3-compatible bucket; ключі результатів user-scoped, публічні bucket URL не видаються.                          |
+| API              | `POST /api/v1/convert` з Bearer key, місячною квотою та in-memory 30 req/min limit; download через owner-scoped endpoint. |
 | Account deletion | request/cancel/process workflow, events audit trail, S3 cleanup, cascade delete, support SMTP notification.              |
 | Production demo  | Northflank public app + private Gotenberg; Supabase PostgreSQL + private Storage; домен `convertly-hub.bon.kharkov.ua`.  |
 
-## Тесты
+## Тести
 
-| Набор                | Команда                    | Что проверяет                                                        |
+| Набір                | Команда                    | Що перевіряє                                                         |
 | -------------------- | -------------------------- | -------------------------------------------------------------------- |
 | Lint                 | `npm run linteslint`       | ESLint проекта.                                                      |
-| Типы                 | `npx tsc --noEmit`         | TypeScript без emit.                                                 |
+| Типи                 | `npx tsc --noEmit`         | TypeScript без emit.                                                 |
 | Unit/route/component | `npm test -- --runInBand`  | Jest, React Testing Library и server contracts.                      |
 | Browser E2E          | `npm run test:e2e`         | Playwright critical browser flows.                                   |
-| Реальная интеграция  | `npm run test:integration` | Изолированные PostgreSQL, MinIO, Gotenberg, MailHog и HTTP scenario. |
+| Реальна інтеграція   | `npm run test:integration` | Ізольовані PostgreSQL, MinIO, Gotenberg, MailHog і HTTP scenario.   |
 
-`test-results/` — локальный Playwright artifact неуспешного запуска, он не
-должен попадать в Git. GitHub Actions запускают lint/types/Jest, Playwright E2E
-и real backend integration/E2E раздельно. Облачный E2E, который меняет реальную
-Supabase БД, намеренно не добавлен: он требовал бы постоянных test accounts,
-неизолированных квот/почты и повышал риск изменения demo-данных. Реальный
-изолированный Compose-набор остаётся канонической интеграционной проверкой,
-а облако проверяется коротким manual smoke-test после deploy.
+`test-results/` — локальний Playwright artifact невдалого запуску, він не
+має потрапляти до Git. GitHub Actions запускають lint/types/Jest, Playwright E2E
+та real backend integration/E2E окремо. Хмарний E2E, який змінює реальну
+Supabase БД, навмисно не додано: він потребував би постійних test accounts,
+неізольованих квот/пошти та підвищував би ризик зміни demo-даних. Реальний
+ізольований Compose-набір залишається канонічною інтеграційною перевіркою,
+а хмару перевіряють коротким manual smoke-test після deploy.
 
-## Переменные окружения
+## Змінні оточення
 
-| Группа                 | Переменные                                                                                          |
+| Група                  | Змінні                                                                                              |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
 | App origin/auth        | `NODE_ENV`, `APP_DOMAIN`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`                                         |
-| PostgreSQL             | `DATABASE_URL`; локально также `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` для Compose      |
+| PostgreSQL             | `DATABASE_URL`; локально також `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` для Compose      |
 | S3                     | `MINIO_ENDPOINT`, `S3_REGION`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`               |
 | Conversion             | `GOTENBERG_URL`                                                                                     |
 | Email/support          | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD`, `SUPPORT_EMAIL` |
-| Telegram (опционально) | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`                            |
-| One-off only           | `SEED_ADMIN_EMAIL`, `PLAN_SYNC_EMAIL`, `PLAN_SYNC_ACTIVE_PLAN`; никогда не persistent app secrets   |
+| Telegram (необов'язково) | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`                          |
+| One-off only           | `SEED_ADMIN_EMAIL`, `PLAN_SYNC_EMAIL`, `PLAN_SYNC_ACTIVE_PLAN`; ніколи не persistent app secrets   |
 
 `NEXTAUTH_SECRET`, `DATABASE_URL`, S3 и SMTP credentials — server-only secrets.
-`SUPPORT_EMAIL` — не секрет. Шаблоны `.env.example` и
-`.env.production.example` не содержат фактических credentials.
+`SUPPORT_EMAIL` — не секрет. Шаблони `.env.example` та
+`.env.production.example` не містять фактичних credentials.
 
-## Облачная конфигурация и операции
+## Хмарна конфігурація та операції
 
 - Northflank `convertly-app` строит Git subdirectory `/convertly-hub` с target
   `runner`; private Gotenberg слушает port `3000` и имеет health check
   `/health`.
 - `convertly-migrate` использует Docker target `migration` и узкую группу
   `convertly-migration-runtime` только с `NODE_ENV` и `DATABASE_URL`.
-- Любая новая Prisma migration: logical backup → push/build latest main →
+- Будь-яка нова Prisma migration: logical backup → push/build latest main →
   migration job → app deployment → `/api/health` и smoke-test. Для UI-only
   commit migration job не запускается.
-- `Dockerfile` target `migration` устанавливает `openssl`, поэтому прежнее
-  Prisma предупреждение о libssl устранено.
-- Supabase Free не даёт полагаться на managed backup; инструкция CLI добавлена
+- `Dockerfile` target `migration` встановлює `openssl`, тому попереднє
+  Prisma попередження щодо libssl усунено.
+- Supabase Free не дає покладатися на managed backup; інструкцію CLI додано
   в [supabase-logical-backup.md](../supabase-logical-backup.md).
 
-## Найденные расхождения и итог
+## Виявлені розбіжності та підсумок
 
-1. `tech_saas.md`, `architecture.md` и README описывали состояние до публичного
-   Northflank + Supabase demo. Они обновлены до фактического состояния.
-2. В `work_plan.md` смешивались история выполненных задач и active backlog.
-   История сохранена, но единственным активным списком теперь является
+1. `tech_saas.md`, `architecture.md` і README описували стан до публічного
+   Northflank + Supabase demo. Їх оновлено до фактичного стану.
+2. У `work_plan.md` змішувалися історія виконаних задач і active backlog.
+   Історію збережено, але єдиним активним списком тепер є
    [docs/backlog](../backlog/README.md).
-3. Не было канонического PowerShell API flow с `conversionId` и корректной
-   обработкой `409`. Добавлен [api-powershell.md](../api-powershell.md).
-4. Не было одного независимого provider runbook. Добавлен
+3. Не було канонічного PowerShell API flow з `conversionId` і коректним
+   обробленням `409`. Додано [api-powershell.md](../api-powershell.md).
+4. Не було одного незалежного provider runbook. Додано
    [cloud-portability.md](../cloud-portability.md), включая PostgreSQL/S3/DNS/
    secrets/cutover/rollback.
 
-## Оставшиеся осознанные ограничения
+## Залишкові усвідомлені обмеження
 
-- Нет payment provider и webhook-based billing.
-- Нет `PDF → DOCX`.
-- Rate limit не пригоден для нескольких app instances без Redis.
-- Нет автоматизированных off-host backup/restore, monitoring/alerting и CD.
-- Telegram recovery реализован после исходного audit: migration, production
-  deploy, webhook, Dashboard-привязка, reset по `@username`, смена пароля и
-  повторный вход вручную проверены.
+- Немає payment provider і webhook-based billing.
+- Немає `PDF → DOCX`.
+- Rate limit не придатний для кількох app instances без Redis.
+- Немає автоматизованих off-host backup/restore, monitoring/alerting і CD.
+- Telegram recovery реалізовано після початкового audit: migration, production
+  deploy, webhook, Dashboard-прив'язку, reset за `@username`, зміну пароля та
+  повторний вхід перевірено вручну.
 
-Все пункты перенесены в тематический [backlog](../backlog/README.md), а не
-смешиваются с завершённой историей проекта.
+Усі пункти перенесено до тематичного [backlog](../backlog/README.md), а не
+змішуються із завершеною історією проєкту.

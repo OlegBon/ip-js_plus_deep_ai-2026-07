@@ -1,22 +1,22 @@
-# 010 — Billing и платежи
+# 010 — Billing і платежі
 
 ## Статус
 
-Отложено до выбора платёжного provider и юридической модели продаж.
+Відкладено до вибору платіжного provider і юридичної моделі продажів.
 
-## Что уже есть
+## Що вже є
 
-`Subscription.activePlan` — единственный источник истины тарифа. Mock Checkout
-и one-off `PLAN_SYNC_*` предназначены только для demo/ручной проверки.
+`Subscription.activePlan` — єдине джерело істини тарифу. Mock Checkout
+і one-off `PLAN_SYNC_*` призначені лише для demo/ручної перевірки.
 
-## Следующая реализация
+## Наступна реалізація
 
-1. Выбрать provider, страны/валюты, налоги и lifecycle подписки.
-2. Создать checkout только на сервере.
-3. Проверять подписанные webhook events и делать изменения
-   `Subscription.activePlan`, `status`, `requestedPlan` идемпотентно.
-4. Убрать manual plan sync из обычного business-flow, оставить его только для
-   аварийной операционной процедуры.
-5. Добавить payment integration/E2E, обработку отмены, возвратов и смены плана.
+1. Вибрати provider, країни/валюти, податки та lifecycle підписки.
+2. Створити checkout лише на сервері.
+3. Перевіряти підписані webhook events і виконувати зміни
+   `Subscription.activePlan`, `status`, `requestedPlan` ідемпотентно.
+4. Прибрати manual plan sync зі звичайного business-flow, лишити його лише для
+   аварійної операційної процедури.
+5. Додати payment integration/E2E, обробку скасування, повернень і зміни плану.
 
-Не изменять тариф на основании browser redirect без webhook provider.
+Не змінювати тариф на підставі browser redirect без webhook provider.

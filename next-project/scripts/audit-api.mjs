@@ -7,7 +7,7 @@ import { analyzeTransactions } from "../app/lib/analyzer.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
 
-// Ищем ключ в process.env, затем в .env.local, затем в .env
+// Шукаємо ключ у process.env, потім у .env.local, потім у .env
 let apiKey = process.env.CPA_API_KEY;
 
 if (!apiKey) {
@@ -23,7 +23,7 @@ if (!apiKey) {
 
   const match = envContent.match(/CPA_API_KEY=(.*)/);
   if (match) {
-    // Очищаем ключ от возможных кавычек и пробелов
+    // Очищуємо ключ від можливих лапок і пробілів
     apiKey = match[1].replace(/['"]/g, "").trim();
   }
 }
@@ -53,7 +53,7 @@ async function fetchApi(url, requireKey = false) {
 }
 
 async function runAudit() {
-  console.log("🚀 Запуск аудита API...");
+  console.log("🚀 Запуск аудиту API...");
 
   if (!fs.existsSync(AUDIT_DIR)) {
     fs.mkdirSync(AUDIT_DIR, { recursive: true });
@@ -66,73 +66,73 @@ async function runAudit() {
   ]);
 
   const rates = resRates.success ? resRates.data.rates : null;
-  let report = `# Отчет аудита API - ${new Date().toISOString()}\n\n`;
+  let report = `# Звіт аудиту API - ${new Date().toISOString()}\n\n`;
 
   const statuses = {
-    "Источник 1": res1.success ? "✅ OK" : `❌ Ошибка (${res1.error})`,
-    "Источник 2": res2.success ? "✅ OK" : `❌ Ошибка (${res2.error})`,
-    "Курсы валют": resRates.success ? "✅ OK" : `❌ Ошибка (${resRates.error})`,
+    "Джерело 1": res1.success ? "✅ OK" : `❌ Помилка (${res1.error})`,
+    "Джерело 2": res2.success ? "✅ OK" : `❌ Помилка (${res2.error})`,
+    "Курси валют": resRates.success ? "✅ OK" : `❌ Помилка (${resRates.error})`,
   };
 
-  report += `## Статус эндпоинтов\n`;
+  report += `## Статус ендпойнтів\n`;
   for (const [source, status] of Object.entries(statuses)) {
     report += `- ${source}: ${status}\n`;
   }
   report += "\n";
 
-  // --- Генерация Markdown отчета (старая логика) ---
-  report += `## Анализ Источника 1 (finance1)\n`;
+  // --- Генерування Markdown-звіту (стара логіка) ---
+  report += `## Аналіз джерела 1 (finance1)\n`;
   if (res1.success && rates) {
     let hasErrors = false;
     res1.data.transactions.forEach((tx, i) => {
       if (tx.amount <= 0) {
-        report += `- Транзакция [${i}]: Сумма <= 0 (${tx.amount})\n`;
+        report += `- Транзакція [${i}]: Сума <= 0 (${tx.amount})\n`;
         hasErrors = true;
       }
       if (tx.type !== "paid") {
-        report += `- Транзакция [${i}]: Статус не 'paid' (${tx.type})\n`;
+        report += `- Транзакція [${i}]: Статус не 'paid' (${tx.type})\n`;
         hasErrors = true;
       }
       if (tx.currency !== tx.currency.toUpperCase()) {
-        report += `- Транзакция [${i}]: Валюта в нижнем регистре (${tx.currency})\n`;
+        report += `- Транзакція [${i}]: Валюта в нижньому регістрі (${tx.currency})\n`;
         hasErrors = true;
       }
       if (!rates[tx.currency?.toUpperCase()]) {
-        report += `- Транзакция [${i}]: Неизвестная валюта (${tx.currency})\n`;
+        report += `- Транзакція [${i}]: Невідома валюта (${tx.currency})\n`;
         hasErrors = true;
       }
     });
-    if (!hasErrors) report += `✅ Аномалий не найдено.\n`;
+    if (!hasErrors) report += `✅ Аномалій не знайдено.\n`;
   }
 
-  report += `\n## Анализ Источника 2 (finance2)\n`;
+  report += `\n## Аналіз джерела 2 (finance2)\n`;
   if (res2.success && rates) {
     let hasErrors = false;
     res2.data.forEach((item, i) => {
       if (typeof item !== "string") {
-        report += `- Запись [${i}]: Ожидалась строка, получено ${typeof item}\n`;
+        report += `- Запис [${i}]: Очікувався рядок, отримано ${typeof item}\n`;
         hasErrors = true;
       } else {
         const [amountStr, currency] = item.split(" ");
         if (isNaN(parseFloat(amountStr))) {
-          report += `- Запись [${i}]: Невалидная сумма (${amountStr})\n`;
+          report += `- Запис [${i}]: Невалідна сума (${amountStr})\n`;
           hasErrors = true;
         }
         if (currency && !rates[currency.toUpperCase()]) {
-          report += `- Запись [${i}]: Неизвестная валюта (${currency})\n`;
+          report += `- Запис [${i}]: Невідома валюта (${currency})\n`;
           hasErrors = true;
         }
       }
     });
-    if (!hasErrors) report += `✅ Аномалий не найдено.\n`;
+    if (!hasErrors) report += `✅ Аномалій не знайдено.\n`;
   }
 
   fs.writeFileSync(LATEST_REPORT_PATH, report);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   fs.writeFileSync(path.join(AUDIT_DIR, `api-audit-${timestamp}.md`), report);
-  console.log(`✅ Markdown отчет сохранен в ${LATEST_REPORT_PATH}`);
+  console.log(`✅ Markdown-звіт збережено в ${LATEST_REPORT_PATH}`);
 
-  // --- Новая логика: Анализ и сохранение данных для расчетов ---
+  // --- Нова логіка: аналіз і збереження даних для розрахунків ---
   if (res1.success && res2.success && resRates.success) {
     const unifiedTransactions = getUnifiedTransactions(res1.data, res2.data);
     analyzeTransactions(unifiedTransactions, rates, "USD");
@@ -156,13 +156,13 @@ async function runAudit() {
       JSON.stringify(calculationTransactions, null, 2),
     );
     console.log(
-      `✅ Транзакции для расчетов сохранены в ${CALCULATION_TRANSACTIONS_PATH}`,
+      `✅ Транзакції для розрахунків збережено в ${CALCULATION_TRANSACTIONS_PATH}`,
     );
   } else {
     console.warn(
-      "⚠️ Не удалось получить все данные, файл с транзакциями для расчетов не создан.",
+      "⚠️ Не вдалося отримати всі дані, файл із транзакціями для розрахунків не створено.",
     );
-    // Создаем пустой файл, если его нет, чтобы страница не ломалась
+    // Створюємо порожній файл, якщо його немає, щоб сторінка не ламалася
     const CALCULATION_TRANSACTIONS_PATH = path.join(
         AUDIT_DIR,
         "calculation-transactions.json",

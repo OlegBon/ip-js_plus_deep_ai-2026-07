@@ -19,49 +19,49 @@
   available during this audit. Therefore no browser metric or exact failure
   cause was measured; conclusions below distinguish observed facts from risks.
 
-## 1. Diagnostic Matrix
+## 1. Діагностична матриця
 
-| Уровень архитектуры | Найденная проблема                                                                                                                                                                                                                | Затронутая метрика                   | Критичность |
+| Рівень архітектури  | Виявлена проблема                                                                                                                                                                                                                  | Зачеплена метрика                    | Критичність |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------- |
-| Клиент              | UI получает лишь безопасный общий failure, без причины Gotenberg; пользователь не может отличить timeout от unsupported DOCX.                                                                                                     | INP / task completion                | Средняя     |
-| Сеть                | `app → Gotenberg` использует private network, поэтому публичный DNS/TLS не является частью DOCX path. Сетевая причина пока не подтверждена.                                                                                       | Internal request time                | Низкая      |
-| Сервер              | `lib/core/conversion.ts` использует фиксированный `AbortSignal.timeout(30_000)`. Любая DOCX-конвертация дольше 30 s прекращается приложением.                                                                                     | Conversion success rate / latency    | Высокая     |
-| Сервер              | LibreOffice/Gotenberg чувствителен к содержимому DOCX (изображения, шрифты, таблицы, embedded objects), а не к размеру ZIP-файла. 130 KB не доказывает малую нагрузку.                                                            | Memory / CPU / conversion latency    | Высокая     |
-| Сервер              | `convertly-app` был развёрнут с `0.1 vCPU / 256 MB`; ресурсный план private Gotenberg на момент аудита не подтверждён. Если он также использует default free compute, LibreOffice может быть OOM-killed или существенно замедлен. | Memory pressure / restarts / timeout | Высокая     |
-| БД                  | PostgreSQL и Storage healthy; DOCX conversion не выполняет тяжёлую SQL-работу на критическом участке.                                                                                                                             | DB latency                           | Низкая      |
+| Клієнт              | UI отримує лише безпечний загальний failure, без причини Gotenberg; користувач не може відрізнити timeout від unsupported DOCX.                                                                                                  | INP / task completion                | Середня     |
+| Мережа              | `app → Gotenberg` використовує private network, тому публічний DNS/TLS не є частиною DOCX path. Мережеву причину поки не підтверджено.                                           | Internal request time                | Низька      |
+| Сервер              | `lib/core/conversion.ts` використовує фіксований `AbortSignal.timeout(30_000)`. Будь-яка DOCX-конвертація довша за 30 s припиняється застосунком.                                | Conversion success rate / latency    | Висока      |
+| Сервер              | LibreOffice/Gotenberg чутливий до вмісту DOCX (зображення, шрифти, таблиці, embedded objects), а не до розміру ZIP-файлу. 130 KB не доводить мале навантаження.                     | Memory / CPU / conversion latency    | Висока      |
+| Сервер              | `convertly-app` було розгорнуто з `0.1 vCPU / 256 MB`; ресурсний план private Gotenberg на момент аудиту не підтверджено. Якщо він також використовує default free compute, LibreOffice може бути OOM-killed або істотно сповільненим. | Memory pressure / restarts / timeout | Висока      |
+| БД                  | PostgreSQL і Storage healthy; DOCX conversion не виконує важкої SQL-роботи на критичній ділянці.                                                                                                                                | DB latency                           | Низька      |
 
-## 2. Action Plan
+## 2. План дій
 
-1. **[Сервер]** В Northflank откройте `convertly-gotenberg` → **Observe** →
-   **Logs** и **Resources** сразу после повторного сбоя. Зачем: определить
-   фактический класс ошибки — OOM/restart, timeout или LibreOffice document
-   failure — до изменения лимитов.
-2. **[Сервер]** Зафиксируйте для failed run timestamp, HTTP status в app log,
-   Gotenberg log и значения CPU/memory/restarts. Зачем: воспроизводимые данные
-   позволят выбрать минимальное исправление вместо увеличения ресурсов вслепую.
-3. **[Сервер]** Если есть restart/OOM или sustained memory pressure, увеличьте
-   ресурсы _private Gotenberg service_, а не публичного Next.js app, затем
-   повторите тест тем же DOCX. Зачем: LibreOffice работает именно в Gotenberg.
-4. **[Сервер]** Если Gotenberg завершает обработку после 30 s без OOM, вынесите
-   timeout в server-only environment variable с безопасным production default и
-   добавьте тесты для timeout behavior. Зачем: тяжёлые, но допустимые документы
-   не должны прерываться преждевременно; бесконечное ожидание также недопустимо.
-5. **[Клиент]** После установления причины добавить явное состояние обработки и
-   понятное сообщение о неуспешной документ-конвертации; не раскрывать raw
-   Gotenberg error пользователю. Зачем: пользователь не будет воспринимать
-   долгую обработку как зависание и не будет повторно создавать задания.
-6. **[Операции]** Для публичного production не использовать Developer Sandbox
-   как финальную capacity-площадку: провести load/smoke набор с несколькими
-   реальными DOCX до объявления supportable file limits. Зачем: текущий demo
-   подтверждает интеграцию, но не capacity SLA.
+1. **[Сервер]** У Northflank відкрийте `convertly-gotenberg` → **Observe** →
+   **Logs** і **Resources** одразу після повторного збою. Навіщо: визначити
+   фактичний клас помилки — OOM/restart, timeout або LibreOffice document
+   failure — до зміни лімітів.
+2. **[Сервер]** Зафіксуйте для failed run timestamp, HTTP status в app log,
+   Gotenberg log і значення CPU/memory/restarts. Навіщо: відтворювані дані
+   дадуть змогу обрати мінімальне виправлення замість збільшення ресурсів навмання.
+3. **[Сервер]** Якщо є restart/OOM або sustained memory pressure, збільште
+   ресурси _private Gotenberg service_, а не публічного Next.js app, потім
+   повторіть тест тим самим DOCX. Навіщо: LibreOffice працює саме у Gotenberg.
+4. **[Сервер]** Якщо Gotenberg завершує оброблення після 30 s без OOM, винесіть
+   timeout до server-only environment variable з безпечним production default і
+   додайте тести для timeout behavior. Навіщо: важкі, але припустимі документи
+   не мають перериватися передчасно; нескінченне очікування також неприпустиме.
+5. **[Клієнт]** Після встановлення причини додати явний стан оброблення та
+   зрозуміле повідомлення про невдалу конвертацію документа; не розкривати raw
+   Gotenberg error користувачу. Навіщо: користувач не сприйматиме
+   тривале оброблення як зависання та не створюватиме повторно задачі.
+6. **[Операції]** Для публічного production не використовувати Developer Sandbox
+   як фінальний capacity-майданчик: провести load/smoke набір із кількома
+   реальними DOCX до оголошення supportable file limits. Навіщо: поточний demo
+   підтверджує інтеграцію, але не capacity SLA.
 
 ## Immediate next observation
 
-Повторите один failed DOCX один раз и пришлите из Northflank только:
+Повторіть один failed DOCX один раз і надішліть із Northflank лише:
 
-- `convertly-gotenberg` logs вокруг timestamp;
-- service restarts и memory/CPU graph;
-- app log HTTP status для этой конвертации.
+- `convertly-gotenberg` logs навколо timestamp;
+- service restarts і memory/CPU graph;
+- app log HTTP status для цієї конвертації.
 
-Не публикуйте S3 credentials, session cookies, API keys, connection strings,
-SMTP password или сам приватный документ.
+Не публікуйте S3 credentials, session cookies, API keys, connection strings,
+SMTP password або сам приватний документ.

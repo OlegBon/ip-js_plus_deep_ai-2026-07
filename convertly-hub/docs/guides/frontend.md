@@ -1,28 +1,28 @@
-# Frontend: страницы, компоненты и пользовательские потоки
+# Frontend: сторінки, компоненти та користувацькі потоки
 
-## 1. Роль frontend-слоя
+## 1. Роль frontend-шару
 
-Frontend находится в `app/` и `components/`. Это Next.js App Router-приложение:
-страницы показывают экран, client components отвечают за интерактивность, а данные
-запрашиваются через собственные Route Handlers `/api/**`. Компонент **не** должен
-напрямую обращаться к Prisma, MinIO, Gotenberg или секретам.
+Frontend розміщений у `app/` і `components/`. Це Next.js App Router-застосунок:
+сторінки показують екран, client components відповідають за інтерактивність, а дані
+запитуються через власні Route Handlers `/api/**`. Компонент **не** має
+безпосередньо звертатися до Prisma, MinIO, Gotenberg або секретів.
 
-| Место                   | Что находится внутри                    | Примеры                                              |
+| Місце                   | Що міститься всередині                   | Приклади                                             |
 | ----------------------- | --------------------------------------- | ---------------------------------------------------- |
-| `app/`                  | маршруты, layouts, страницы, API routes | `app/page.tsx`, `app/(dashboard)/dashboard/page.tsx` |
-| `components/core/`      | общие части сайта и conversion UI       | `Header.tsx`, `FileDropzone.tsx`                     |
-| `components/auth/`      | формы регистрации, входа, пароля        | `LoginForm.tsx`, `PasswordField.tsx`                 |
-| `components/dashboard/` | профиль, тарифы, ключи, история         | `ConversionHistory.tsx`, `ApiKeyManager.tsx`         |
-| `components/admin/`     | метрики и управление пользователями     | `SystemMonitoring.tsx`, `UserManagement.tsx`         |
-| `components/ui/`        | нейтральные переиспользуемые controls   | `Button.tsx`, `Search.tsx`, `CursorPagination.tsx`   |
+| `app/`                  | маршрути, layouts, сторінки, API routes | `app/page.tsx`, `app/(dashboard)/dashboard/page.tsx` |
+| `components/core/`      | спільні частини сайту та conversion UI  | `Header.tsx`, `FileDropzone.tsx`                     |
+| `components/auth/`      | форми реєстрації, входу, пароля         | `LoginForm.tsx`, `PasswordField.tsx`                 |
+| `components/dashboard/` | профіль, тарифи, ключі, історія         | `ConversionHistory.tsx`, `ApiKeyManager.tsx`         |
+| `components/admin/`     | метрики та керування користувачами      | `SystemMonitoring.tsx`, `UserManagement.tsx`         |
+| `components/ui/`        | нейтральні перевикористовувані controls | `Button.tsx`, `Search.tsx`, `CursorPagination.tsx`   |
 | `lib/client/`           | browser-only persistence                | `guest-conversion-cache.ts`                          |
 
-## 2. Маршруты и layouts
+## 2. Маршрути та layouts
 
-### Корневой экран
+### Кореневий екран
 
-[`app/page.tsx`](../../app/page.tsx) — client page главной. Она получает
-NextAuth session через `useSession()` и выбирает один из двух UX:
+[`app/page.tsx`](../../app/page.tsx) — client page головної. Вона отримує
+NextAuth session через `useSession()` і обирає один із двох UX:
 
 ```tsx
 const { status } = useSession();
@@ -31,14 +31,14 @@ const isAuthenticated = status === 'authenticated';
 const endpoint = isAuthenticated ? '/api/account/conversions' : '/api/guest/conversions';
 ```
 
-- анониму показывает месячный остаток и временные guest downloads;
-- авторизованному — тарифный лимит, который сервер применяет сам;
-- состояние `loading` не подменяется догадкой о пользователе: сначала выводится
+- аноніму показує місячний залишок і тимчасові guest downloads;
+- авторизованому — тарифний ліміт, який сервер застосовує сам;
+- стан `loading` не підміняється здогадом про користувача: спочатку виводиться
   `Checking your session…`.
 
 ### Route groups
 
-Круглые скобки в именах каталогов — route group, а не часть URL:
+Круглі дужки в іменах каталогів — route group, а не частина URL:
 
 ```text
 app/(auth)/login/page.tsx             → /login
@@ -47,36 +47,36 @@ app/(dashboard)/dashboard/page.tsx    → /dashboard
 app/(dashboard)/management/page.tsx   → /management
 ```
 
-`app/(dashboard)/layout.tsx` задаёт общий каркас личного кабинета. Его страницы
-проверяют сессию на серверной стороне, а `management/layout.tsx` дополнительно
-требует роль `ADMIN`. Скрытие ссылки в Header — лишь UX; безопасность маршрута
-обеспечивает серверная авторизация.
+`app/(dashboard)/layout.tsx` задає спільний каркас особистого кабінету. Його сторінки
+перевіряють сесію на серверній стороні, а `management/layout.tsx` додатково
+потребує роль `ADMIN`. Приховування посилання у Header — лише UX; безпеку маршруту
+забезпечує серверна авторизація.
 
-## 3. Главный пример: загрузка и скачивание файла
+## 3. Головний приклад: завантаження та скачування файлу
 
-### 3.1. `FileDropzone` — общий интерактивный control
+### 3.1. `FileDropzone` — спільний інтерактивний control
 
 [`components/core/FileDropzone.tsx`](../../components/core/FileDropzone.tsx)
-получает не endpoint, а callback `onUpload(file)`. Благодаря этому один component
-работает для image/document и guest/account, не дублируя UI.
+отримує не endpoint, а callback `onUpload(file)`. Завдяки цьому один component
+працює для image/document і guest/account, не дублюючи UI.
 
-Его состояния:
+Його стани:
 
 ```ts
 type Status = 'idle' | 'uploading' | 'success' | 'already-available' | 'error';
 ```
 
-`uploadInProgress.current` блокирует второй drop во время обработки. После успеха
-или найденного ранее результата `SUCCESS_DISPLAY_MS = 5_000` возвращает зону в
-`idle`, чтобы следующая загрузка не требовала обновления страницы.
+`uploadInProgress.current` блокує другий drop під час обробки. Після успіху
+або знайденого раніше результату `SUCCESS_DISPLAY_MS = 5_000` повертає зону до
+`idle`, щоб наступне завантаження не потребувало оновлення сторінки.
 
-`react-dropzone` даёт раннюю проверку расширения/MIME и `maxSize`, но это только
-удобство. Серверная проверка является обязательной и описана в
+`react-dropzone` надає ранню перевірку розширення/MIME та `maxSize`, але це лише
+зручність. Серверна перевірка є обов'язковою й описана в
 [backend.md](./backend.md).
 
-### 3.2. `app/page.tsx` — orchestration в браузере
+### 3.2. `app/page.tsx` — orchestration у браузері
 
-`handleUpload` строит `FormData`, выбирает endpoint и принимает два вида успеха:
+`handleUpload` будує `FormData`, обирає endpoint і приймає два види успіху:
 
 ```tsx
 const response = await fetch(endpoint, { method: 'POST', body: formData });
@@ -87,20 +87,20 @@ const blob = await resultResponse.blob();
 downloadResult(blob, fileName);
 ```
 
-- `200` — файл уже готов и выдаётся бинарным потоком;
-- `202` — сервер сохранил request и запускает background work; клиент polling-ом
-  вызывает защищённый account download endpoint. `409` означает «ещё обрабатываем»;
-  это не ошибка, поэтому `waitForStoredResult` повторяет запрос до 35 раз;
-- JSON `{ status: 'AVAILABLE', conversionId }` означает совпадающий готовый
-  результат. Dropzone выводит ссылку **Open Dashboard**, а не повторно тратит квоту.
+- `200` — файл уже готовий і видається бінарним потоком;
+- `202` — сервер зберіг request і запускає background work; клієнт polling-ом
+  викликає захищений account download endpoint. `409` означає «ще обробляємо»;
+  це не помилка, тому `waitForStoredResult` повторює запит до 35 разів;
+- JSON `{ status: 'AVAILABLE', conversionId }` означає збіжний готовий
+  результат. Dropzone виводить посилання **Open Dashboard**, а не повторно витрачає квоту.
 
-### 3.3. Особенность гостя
+### 3.3. Особливість гостя
 
-После guest-конвертации скачанный `Blob` сохраняется не на сервере, а через
+Після guest-конвертації скачаний `Blob` зберігається не на сервері, а через
 [`lib/client/guest-conversion-cache.ts`](../../lib/client/guest-conversion-cache.ts).
-Главная страница передаёт его в
+Головна сторінка передає його до
 [`GuestConversionSummary.tsx`](../../components/core/GuestConversionSummary.tsx).
-Каждые 30 секунд страница очищает объект, когда закончились 10 минут:
+Кожні 30 секунд сторінка очищує об'єкт, коли минули 10 хвилин:
 
 ```tsx
 if (result.expiresAt <= currentTime) {
@@ -109,15 +109,15 @@ if (result.expiresAt <= currentTime) {
 }
 ```
 
-Это намеренно не даёт гостю server-side history: cookie-квота контролируется
-сервером, а сам результат остаётся только в текущем браузере.
+Це навмисно не надає гостю server-side history: cookie-квота контролюється
+сервером, а сам результат лишається лише у поточному браузері.
 
-## 4. Dashboard: данные, таблицы и общие controls
+## 4. Dashboard: дані, таблиці та спільні controls
 
 [`components/dashboard/ConversionHistory.tsx`](../../components/dashboard/ConversionHistory.tsx)
-загружает только собственные данные через `GET /api/account/conversions`.
-Состояние фильтра, сортировки и cursor-страниц хранится в `useState`, а URL
-параметры собираются перед `fetch`.
+завантажує лише власні дані через `GET /api/account/conversions`.
+Стан фільтра, сортування та cursor-сторінок зберігається в `useState`, а URL
+параметри збираються перед `fetch`.
 
 ```tsx
 type SortField = 'sourceFileName' | 'targetFormat' | 'status' | 'expiresAt' | 'createdAt';
@@ -131,94 +131,94 @@ function canDownload(conversion: Conversion) {
 }
 ```
 
-Имя результата становится ссылкой только при `canDownload`. Поэтому UI не обещает
-доступ к privacy-mode или уже удалённому файлу. `Search` и `CursorPagination` в
-`components/ui/` используются также админской таблицей: общий UI не содержит
-админских прав и бизнес-правил.
+Назва результату стає посиланням лише за `canDownload`. Тому UI не обіцяє
+доступ до privacy-mode або вже видаленого файлу. `Search` і `CursorPagination` у
+`components/ui/` також використовує адмінська таблиця: спільний UI не містить
+адмінських прав і бізнес-правил.
 
-Другие Dashboard modules:
+Інші Dashboard modules:
 
-- `UserProfile.tsx` отображает имя, email/Telegram статус и защищённые действия;
-  badge `Verified` находится в строке с Telegram username. После Connect/Change
-  компонент опрашивает profile endpoint раз в 5 секунд, максимум 2 минуты, и
-  сам показывает результат подтверждённой привязки. Для подключённого аккаунта
-  действия Change/Disconnect используют одну responsive-группу: на mobile обе
-  кнопки занимают строку без переноса слов, на `sm` возвращаются к естественной
-  ширине;
-- `EditProfileModal.tsx` отправляет изменения профиля и текущий пароль в account
-  API, показывает текущий Telegram username и позволяет заменить привязку через
-  одноразовый deep link. Disconnect открывает тот же `ConfirmationModal`, что и
-  другие destructive-действия, и явно сообщает, что email recovery сохраняется;
-- `ApiKeyManager.tsx` показывает API secret один раз после `POST`, затем только
-  metadata и revoke;
-- `PrivacySettings.tsx` меняет выбор хранения, если это разрешено тарифом;
-- `UserPlan.tsx` получает billing overview и открывает mock checkout.
+- `UserProfile.tsx` відображає ім'я, email/Telegram статус і захищені дії;
+  badge `Verified` міститься у рядку з Telegram username. Після Connect/Change
+  компонент опитує profile endpoint раз на 5 секунд, максимум 2 хвилини, і
+  сам показує результат підтвердженої прив'язки. Для підключеного облікового запису
+  дії Change/Disconnect використовують одну responsive-групу: на mobile обидві
+  кнопки займають рядок без перенесення слів, на `sm` повертаються до природної
+  ширини;
+- `EditProfileModal.tsx` надсилає зміни профілю та поточний пароль до account
+  API, показує поточний Telegram username і дозволяє замінити прив'язку через
+  одноразовий deep link. Disconnect відкриває той самий `ConfirmationModal`, що й
+  інші destructive-дії, та явно повідомляє, що email recovery зберігається;
+- `ApiKeyManager.tsx` показує API secret один раз після `POST`, потім лише
+  metadata та revoke;
+- `PrivacySettings.tsx` змінює вибір зберігання, якщо це дозволено тарифом;
+- `UserPlan.tsx` отримує billing overview і відкриває mock checkout.
 
-## 5. Auth и формы
+## 5. Auth і форми
 
-`components/auth/PasswordField.tsx` — единый input c show/hide control. Поэтому
-E2E-тесты выбирают пароль как textbox, а кнопку — по роли `button` и accessible
-name `Show Password`, не неоднозначным `getByLabel('Password')`.
+`components/auth/PasswordField.tsx` — єдиний input із show/hide control. Тому
+E2E-тести обирають пароль як textbox, а кнопку — за роллю `button` і accessible
+name `Show Password`, а не неоднозначним `getByLabel('Password')`.
 
-`RegisterForm.tsx`, `LoginForm.tsx` и password-reset pages выполняют проверку для
-быстрого feedback, но canonical password policy применяет backend. Email и Telegram
-не считаются подтверждёнными, пока server endpoint не обработает одноразовый token.
-После Telegram-привязки форма Password Reset принимает `@username`: одноразовая
-ссылка на смену пароля приходит только в подтверждённый private chat.
+`RegisterForm.tsx`, `LoginForm.tsx` і password-reset pages виконують перевірку для
+швидкого feedback, але canonical password policy застосовує backend. Email і Telegram
+не вважаються підтвердженими, доки server endpoint не обробить одноразовий token.
+Після Telegram-прив'язки форма Password Reset приймає `@username`: одноразове
+посилання на зміну пароля надходить лише до підтвердженого private chat.
 
-## 6. Интерактивные состояния: единая политика UI
+## 6. Інтерактивні стани: єдина політика UI
 
-У компонентов нет права считать успешным действие до ответа сервера. Для нового
-или изменяемого UI-flow сначала определите все наблюдаемые состояния:
+Компоненти не мають права вважати дію успішною до відповіді сервера. Для нового
+або змінюваного UI-flow спочатку визначте всі спостережувані стани:
 
-| Состояние       | Что видит пользователь                                                             | Примеры в проекте                                       |
+| Стан            | Що бачить користувач                                                               | Приклади у проєкті                                      |
 | --------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Initial/loading | нейтральный текст или skeleton, без ложной ошибки                                  | `Checking your session…`, загрузка history и profile    |
-| Pending         | действие нельзя отправить повторно; кнопка сохраняет понятную цель                 | `FileDropzone` во время upload, модальные подтверждения |
-| Success         | точный toast и обновлённые данные, а не только закрытая модалка                    | создание/revoke API key, сохранение profile             |
-| Error           | безопасное сообщение без server stack trace; пользователь может повторить действие | route errors в Dashboard и формах                       |
-| Empty/disabled  | объяснение причины и следующий допустимый шаг                                      | Free-plan API keys, storage toggle, пустая history      |
+| Initial/loading | нейтральний текст або skeleton, без хибної помилки                                 | `Checking your session…`, завантаження history і profile |
+| Pending         | дію не можна надіслати повторно; кнопка зберігає зрозумілу мету                    | `FileDropzone` під час upload, модальні підтвердження    |
+| Success         | точний toast і оновлені дані, а не лише закрита модалка                            | створення/revoke API key, збереження profile             |
+| Error           | безпечне повідомлення без server stack trace; користувач може повторити дію        | route errors у Dashboard і формах                        |
+| Empty/disabled  | пояснення причини й наступний допустимий крок                                      | Free-plan API keys, storage toggle, порожня history      |
 
-`FileDropzone.tsx` — эталон для длительного пользовательского действия: его
-`uploadInProgress.current` предотвращает параллельный upload, а visual status
-меняется только после результата. Для коротких `fetch`-операций используйте
-локальный `isSubmitting`/`isSaving` и передавайте `disabled`, пока promise не
-завершится. Не заменяйте это только toast-ом: toast не предотвращает двойной
-клик и не сообщает screen reader, что control временно недоступен.
+`FileDropzone.tsx` — еталон для тривалої користувацької дії: його
+`uploadInProgress.current` запобігає паралельному upload, а visual status
+змінюється лише після результату. Для коротких `fetch`-операцій використовуйте
+локальний `isSubmitting`/`isSaving` і передавайте `disabled`, доки promise не
+завершиться. Не замінюйте це лише toast-ом: toast не запобігає подвійному
+кліку та не повідомляє screen reader, що control тимчасово недоступний.
 
-Responsive action в карточке следует тому же правилу: на узком экране описание
-идёт первым, а одна action-кнопка располагается ниже на всю доступную ширину без
-переноса слов; с `sm` action возвращается вправо и имеет natural width. Так
-устроены `Create key` и `Delete Account` в `ApiKeyManager.tsx` и
-`UserProfile.tsx`. Если состояний два (`Request submitted` и `Cancel request`),
-они остаются в одной равной mobile-строке.
+Responsive action у картці слідує тому самому правилу: на вузькому екрані опис
+іде першим, а одна action-кнопка розміщується нижче на всю доступну ширину без
+перенесення слів; з `sm` action повертається праворуч і має natural width. Так
+влаштовані `Create key` і `Delete Account` у `ApiKeyManager.tsx` та
+`UserProfile.tsx`. Якщо станів два (`Request submitted` і `Cancel request`),
+вони лишаються в одному рівному mobile-рядку.
 
-### Polling — только когда сервер меняет данные вне текущего click
+### Polling — лише коли сервер змінює дані поза поточним click
 
-Polling здесь не является общим способом обновления Dashboard:
+Polling тут не є спільним способом оновлення Dashboard:
 
-- после Telegram deep link `UserProfile.tsx` обновляет profile каждые 5 секунд,
-  не дольше 2 минут, чтобы показать подтверждённую привязку без ручного refresh;
-- deletion request проверяется примерно раз в 30 секунд, потому что администратор
-  завершает удаление в другом сеансе. Если сервер больше не находит текущего
-  пользователя, клиент завершает сессию и переводит его на главную;
-- history, тариф и API keys обновляются после своего успешного действия или
-  явного refresh, а не постоянным polling.
+- після Telegram deep link `UserProfile.tsx` оновлює profile кожні 5 секунд,
+  не довше 2 хвилин, щоб показати підтверджену прив'язку без ручного refresh;
+- deletion request перевіряється приблизно раз на 30 секунд, оскільки адміністратор
+  завершує видалення в іншому сеансі. Якщо сервер більше не знаходить поточного
+  користувача, клієнт завершує сесію та переводить його на головну;
+- history, тариф і API keys оновлюються після своєї успішної дії або
+  явного refresh, а не постійним polling.
 
-Перед добавлением нового interval ответьте на три вопроса: какое внешнее событие
-мы ждём, когда остановить таймер и что должен увидеть пользователь при ошибке.
-Всегда очищайте interval в cleanup `useEffect`; не запускайте второй interval при
-повторном render.
+Перед додаванням нового interval дайте відповідь на три питання: яку зовнішню подію
+ми чекаємо, коли зупинити таймер і що має побачити користувач у разі помилки.
+Завжди очищуйте interval у cleanup `useEffect`; не запускайте другий interval під час
+повторного render.
 
-## 7. Безопасный порядок frontend-изменения
+## 7. Безпечний порядок frontend-зміни
 
-1. Определите, это экран (`app/`), reusable UI (`components/ui`) или business UI
+1. Визначте, це екран (`app/`), reusable UI (`components/ui`) чи business UI
    (`components/dashboard`, `components/admin`).
-2. Добавьте/измените typed contract API, но не дублируйте server validation в UI.
-3. Для новой интерактивности пометьте компонент `'use client'` только если нужны
-   hooks, browser API или event handler.
-4. Проверьте loading, error, empty и disabled states; не скрывайте server failure.
-5. Добавьте component test рядом с component; при критическом пользователском
-   пути — Playwright scenario.
+2. Додайте/змініть typed contract API, але не дублюйте server validation в UI.
+3. Для нової інтерактивності позначте компонент `'use client'` лише якщо потрібні
+   hooks, browser API або event handler.
+4. Перевірте loading, error, empty і disabled states; не приховуйте server failure.
+5. Додайте component test поруч із component; для критичного користувацького
+   шляху — Playwright scenario.
 
-Связанные проверки: [testing-and-operations.md](./testing-and-operations.md).
+Пов'язані перевірки: [testing-and-operations.md](./testing-and-operations.md).

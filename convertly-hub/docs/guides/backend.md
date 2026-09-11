@@ -1,31 +1,31 @@
-# Backend / server: от HTTP-запроса до результата
+# Backend / server: від HTTP-запиту до результату
 
-## 1. Граница и слои server-кода
+## 1. Межа та шари server-коду
 
-В Convertly Hub backend находится в Next.js Route Handlers `app/api/**/route.ts`.
-Каждый handler должен быть тонкой HTTP-границей: аутентифицировать запрос,
-распарсить данные, вызвать `lib/**`, перевести ожидаемую ошибку в HTTP status и
-не раскрыть секреты. Бизнес-цепочки находятся в `lib/`.
+У Convertly Hub backend розташований у Next.js Route Handlers `app/api/**/route.ts`.
+Кожен handler має бути тонкою HTTP-межею: аутентифікувати запит,
+розібрати дані, викликати `lib/**`, перетворити очікувану помилку на HTTP status і
+не розкрити секрети. Бізнес-ланцюжки розташовані у `lib/`.
 
 ```text
 Request
   → app/api/.../route.ts       HTTP + auth + response
-  → lib/api or lib/auth        входная валидация и principal
-  → lib/billing / lib/core     правила тарифа и конвертация
-  → lib/privacy / lib/storage  приватный файл
+  → lib/api or lib/auth        вхідна валідація та principal
+  → lib/billing / lib/core     правила тарифу та конвертація
+  → lib/privacy / lib/storage  приватний файл
   → lib/prisma.ts              PostgreSQL adapter
 ```
 
-`runtime = 'nodejs'` нужен routes, которые используют `Buffer`, `sharp`, bcrypt
-или Node SMTP/S3 libraries. Их нельзя без проверки переносить в Edge runtime.
+`runtime = 'nodejs'` потрібен routes, що використовують `Buffer`, `sharp`, bcrypt
+або Node SMTP/S3 libraries. Їх не можна без перевірки переносити до Edge runtime.
 
-## 2. Аутентификация и авторизация
+## 2. Аутентифікація та авторизація
 
 ### Web session
 
-[`lib/auth/options.ts`](../../lib/auth/options.ts) создаёт NextAuth Credentials
-Provider. `authorize` делегирует проверку в `lib/auth/users.ts`; в JWT записываются
-`id` и `role`, а callback `session` переносит их в `session.user`.
+[`lib/auth/options.ts`](../../lib/auth/options.ts) створює NextAuth Credentials
+Provider. `authorize` делегує перевірку до `lib/auth/users.ts`; до JWT записуються
+`id` і `role`, а callback `session` переносить їх до `session.user`.
 
 ```ts
 session: { strategy: 'jwt', maxAge: 8 * 60 * 60 },
@@ -37,16 +37,16 @@ cookies: {
 },
 ```
 
-Код клиента никогда не получает password hash или `NEXTAUTH_SECRET`. Server-only
-helpers `lib/auth/session.ts` и `lib/auth/authorization.ts` достают текущего
-пользователя и применяют `ACTIVE`/`ADMIN` проверки. UI hide/show не является
-authorization: то же требование повторяется в handler и server layout.
+Код клієнта ніколи не отримує password hash або `NEXTAUTH_SECRET`. Server-only
+helpers `lib/auth/session.ts` і `lib/auth/authorization.ts` отримують поточного
+користувача та застосовують перевірки `ACTIVE`/`ADMIN`. UI hide/show не є
+authorization: ту саму вимогу повторено у handler і server layout.
 
 ### API key principal
 
-[`lib/api/conversion-request.ts`](../../lib/api/conversion-request.ts) извлекает
-Bearer key, хеширует его и ищет только активный ключ. В `/api/v1/convert` это
-выглядит так:
+[`lib/api/conversion-request.ts`](../../lib/api/conversion-request.ts) витягує
+Bearer key, хешує його та шукає лише активний ключ. У `/api/v1/convert` це
+має такий вигляд:
 
 ```ts
 const principal = await authenticateApiKey(request.headers.get('authorization'));
@@ -60,19 +60,19 @@ if (!getPlanDefinition(principal.plan ?? 'FREE').apiAccess) {
 }
 ```
 
-Secret существует только в момент создания ключа. `ApiKey.keyHash` и `keyPrefix`
-позволяют проверить и отобразить ключ без возможности его восстановить.
+Secret існує лише в момент створення ключа. `ApiKey.keyHash` і `keyPrefix`
+дають змогу перевірити та відобразити ключ без можливості його відновити.
 
-## 3. Канонический flow: API-конвертация
+## 3. Канонічний flow: API-конвертація
 
-Файл [`app/api/v1/convert/route.ts`](../../app/api/v1/convert/route.ts) — хороший
-пример всей серверной цепочки.
+Файл [`app/api/v1/convert/route.ts`](../../app/api/v1/convert/route.ts) — гарний
+приклад усього серверного ланцюжка.
 
-### Шаг 1. Early rejection
+### Крок 1. Early rejection
 
-Сначала handler проверяет API key, право тарифа, in-memory rate limit и
-`multipart/form-data`. Это важно сделать до чтения `request.formData()` и до
-`file.arrayBuffer()`: так запрос без права не расходует память на файл.
+Спочатку handler перевіряє API key, право тарифу, in-memory rate limit і
+`multipart/form-data`. Це важливо зробити до читання `request.formData()` і до
+`file.arrayBuffer()`: так запит без права не витрачає пам'ять на файл.
 
 ```ts
 const rateLimit = consumeApiKeyRateLimit(principal.apiKeyId);
@@ -84,37 +84,37 @@ if (!rateLimit.allowed) {
 }
 ```
 
-Текущий limiter хранится в памяти процесса (`lib/api/rate-limit.ts`). Он достаточен
-для одной VM MVP, но перед несколькими instances должен быть заменён общим Redis
-backend, иначе у каждого instance появится своё окно лимита.
+Поточний limiter зберігається у пам'яті процесу (`lib/api/rate-limit.ts`). Він достатній
+для однієї VM MVP, але перед кількома instances має бути замінений спільним Redis
+backend, інакше кожен instance матиме власне вікно ліміту.
 
-### Шаг 2. Две независимые проверки файла
+### Крок 2. Дві незалежні перевірки файлу
 
-[`lib/api/conversion-request.ts`](../../lib/api/conversion-request.ts) проверяет
-`File`, target format, allowlist и size для плана. Затем handler читает buffer и
-вызывает [`lib/core/conversion.ts`](../../lib/core/conversion.ts): Core проверяет
-сигнатуру/содержимое и совместимость направления. Не доверяйте браузерному MIME,
-расширению или react-dropzone.
+[`lib/api/conversion-request.ts`](../../lib/api/conversion-request.ts) перевіряє
+`File`, target format, allowlist і size для плану. Потім handler читає buffer і
+викликає [`lib/core/conversion.ts`](../../lib/core/conversion.ts): Core перевіряє
+сигнатуру/вміст і сумісність напряму. Не довіряйте браузерному MIME,
+розширенню або react-dropzone.
 
-Ошибки намеренно различаются:
+Помилки навмисно відрізняються:
 
-| Случай                                        | HTTP  |
+| Випадок                                        | HTTP  |
 | --------------------------------------------- | ----- |
-| нет/неверный ключ                             | `401` |
-| API недоступно плану                          | `403` |
-| слишком большой файл                          | `413` |
-| неразрешённый источник/не multipart           | `415` |
-| неподдерживаемая пара форматов или битый файл | `422` |
-| месячная квота конвертаций                    | `429` |
+| немає/неправильний ключ                       | `401` |
+| API недоступне для плану                      | `403` |
+| надто великий файл                            | `413` |
+| недозволене джерело/не multipart              | `415` |
+| непідтримувана пара форматів або пошкоджений файл | `422` |
+| місячна квота конвертацій                     | `429` |
 
-### Шаг 3. Атомарное создание request и квота
+### Крок 3. Атомарне створення request і квота
 
-`createConversionRequest(principal, input)` создаёт `ConversionLog` со статусом
-`PENDING` и проверяет месячный лимит. Для browser-account route дополнительно
-передаётся SHA-256 source file и `reuseStoredResult: true`, чтобы не делать ещё
-одну одинаковую доступную конвертацию.
+`createConversionRequest(principal, input)` створює `ConversionLog` зі статусом
+`PENDING` і перевіряє місячний ліміт. Для browser-account route додатково
+передається SHA-256 source file та `reuseStoredResult: true`, щоб не виконувати ще
+одну однакову доступну конвертацію.
 
-При `storeConversions=true` handler возвращает только metadata:
+За `storeConversions=true` handler повертає лише metadata:
 
 ```ts
 after(() => processConversionJob(job));
@@ -128,17 +128,17 @@ return NextResponse.json(
 );
 ```
 
-`after()` позволяет отдать `202` прежде тяжёлой работы. Это не внешняя очередь:
-на одном process задача выполняется после response. Для долговременных/retryable
-jobs понадобится отдельная queue/worker — это будущая архитектурная задача.
+`after()` дає змогу повернути `202` до важкої роботи. Це не зовнішня черга:
+в одному process задача виконується після response. Для довготривалих/retryable
+jobs знадобиться окрема queue/worker — це майбутня архітектурна задача.
 
-При `storeConversions=false` handler синхронно запускает job и возвращает
-`Content-Disposition: attachment`; ни `storageKey`, ни S3-object не создаются.
+За `storeConversions=false` handler синхронно запускає job і повертає
+`Content-Disposition: attachment`; ані `storageKey`, ані S3-object не створюються.
 
-## 4. `processConversionJob`: состояние, Core и компенсация
+## 4. `processConversionJob`: стан, Core та компенсація
 
-[`lib/core/conversion-job.ts`](../../lib/core/conversion-job.ts) — центральный
-orchestrator. Он сначала делает compare-and-set:
+[`lib/core/conversion-job.ts`](../../lib/core/conversion-job.ts) — центральний
+orchestrator. Він спочатку виконує compare-and-set:
 
 ```ts
 const started = await prisma.conversionLog.updateMany({
@@ -148,93 +148,93 @@ const started = await prisma.conversionLog.updateMany({
 if (started.count === 0) return undefined;
 ```
 
-Это не позволяет двум параллельным вызовам обработать один `PENDING` log. Затем:
+Це не дає двом паралельним викликам обробити один `PENDING` log. Далі:
 
-1. `convertFile()` выбирает `sharp` для `JPG ↔ PNG` или Gotenberg для `DOCX → PDF`.
-2. Если результат нужно хранить, `reserveStorageCapacity()` под транзакцией
-   резервирует bytes, не позволяя двум jobs превысить quota одновременно.
-3. `storeConversionResult()` генерирует private storage key и пишет object через
+1. `convertFile()` обирає `sharp` для `JPG ↔ PNG` або Gotenberg для `DOCX → PDF`.
+2. Якщо результат потрібно зберігати, `reserveStorageCapacity()` у транзакції
+   резервує bytes, не даючи двом jobs одночасно перевищити quota.
+3. `storeConversionResult()` генерує private storage key і записує object через
    `lib/storage/s3.ts`.
-4. `ConversionLog` становится `COMPLETED`, получает имя, MIME, размер, key и
-   `expiresAt` из plan retention.
-5. При ошибке storage object удаляется как compensating action, reservation
-   очищается, log становится `FAILED`, а пользователю выдаётся безопасный текст
-   без внутренних stack traces.
+4. `ConversionLog` стає `COMPLETED`, отримує назву, MIME, розмір, key та
+   `expiresAt` з plan retention.
+5. За помилки storage object видаляється як compensating action, reservation
+   очищується, log стає `FAILED`, а користувачу видається безпечний текст
+   без внутрішніх stack traces.
 
-Storage layer намеренно использует нейтральный S3-compatible контракт, хотя
-исторические названия переменных начинаются с `MINIO_`: endpoint, access key,
-secret key и bucket остаются server-only. `S3_REGION` имеет default `us-east-1`
-для локального и Oracle MinIO; managed provider, например Supabase, получает
-свой точный регион. Клиентский код и Route Handlers этих credentials не видят.
+Storage layer навмисно використовує нейтральний S3-compatible контракт, хоча
+історичні назви змінних починаються з `MINIO_`: endpoint, access key,
+secret key і bucket залишаються server-only. `S3_REGION` має default `us-east-1`
+для локального й Oracle MinIO; managed provider, наприклад Supabase, отримує
+свій точний регіон. Клієнтський код і Route Handlers цих credentials не бачать.
 
-## 5. Account и guest routes: чем отличаются
+## 5. Account і guest routes: чим відрізняються
 
 ### Account browser flow
 
 [`app/api/account/conversions/route.ts`](../../app/api/account/conversions/route.ts)
-требует HttpOnly session. Он использует тот же Core/request logic, что API, но не
-принимает API key. Сохранённый результат скачивается только в своём account route:
+потребує HttpOnly session. Він використовує ту саму Core/request logic, що API, але не
+приймає API key. Збережений результат завантажується лише у власному account route:
 
 ```text
 GET /api/account/conversions/:conversionId/download
 ```
 
-Handler проверяет владельца `userId`, завершённый статус, `storageKey` и expiry,
-после чего stream-ит object из S3. Прямая public URL не выдаётся.
+Handler перевіряє власника `userId`, завершений статус, `storageKey` та expiry,
+після чого stream-ить object із S3. Пряма public URL не видається.
 
 ### Guest flow
 
 [`app/api/guest/conversions/route.ts`](../../app/api/guest/conversions/route.ts)
-создаёт анонимный visitor token в HttpOnly cookie, хеширует его и учитывает месяц в
-`GuestConversionQuota`. Доступны ровно guest limits и 1 MB. У guest нет `User`,
-`Subscription`, `ConversionLog` и storage object; бинарный result возвращается
-сразу, а браузер хранит его временно.
+створює анонімний visitor token у HttpOnly cookie, хешує його та враховує місяць у
+`GuestConversionQuota`. Доступні лише guest limits і 1 MB. У guest немає `User`,
+`Subscription`, `ConversionLog` і storage object; бінарний result повертається
+одразу, а браузер зберігає його тимчасово.
 
-## 6. Другие server domains
+## 6. Інші server domains
 
-| Domain             | Основные файлы                                                              | Ответственность                                                                             |
+| Domain             | Основні файли                                                              | Відповідальність                                                                             |
 | ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Регистрация/пароль | `lib/auth/users.ts`, `recovery.ts`, `password-policy.ts`, `app/api/auth/**` | bcrypt, one-time tokens, neutral reset responses                                            |
-| Письма             | `lib/mail/send-auth-email.ts`                                               | verification/reset SMTP; MailHog только локально                                            |
-| Профиль            | `app/api/account/profile`, `email`, `password`, `preferences`               | current-password confirmation, pending email, privacy                                       |
-| Telegram           | `lib/telegram/linking.ts`, `bot.ts`, `app/api/telegram/webhook`             | one-time secure linking, username normalization и reset только в подтверждённый active chat |
-| Тарифы             | `lib/billing/plans.ts`, `subscriptions.ts`, `quota-lock.ts`                 | plan definition, mock checkout, monthly/storage quota                                       |
-| Админ              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics                                               |
-| Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 и Gotenberg status                                                 |
+| Реєстрація/пароль | `lib/auth/users.ts`, `recovery.ts`, `password-policy.ts`, `app/api/auth/**` | bcrypt, one-time tokens, neutral reset responses                                            |
+| Пошта              | `lib/mail/send-auth-email.ts`                                               | verification/reset SMTP; MailHog лише локально                                              |
+| Профіль            | `app/api/account/profile`, `email`, `password`, `preferences`               | current-password confirmation, pending email, privacy                                       |
+| Telegram           | `lib/telegram/linking.ts`, `bot.ts`, `app/api/telegram/webhook`             | one-time secure linking, username normalization та reset лише у підтверджений active chat |
+| Тарифи             | `lib/billing/plans.ts`, `subscriptions.ts`, `quota-lock.ts`                 | plan definition, mock checkout, monthly/storage quota                                       |
+| Адмін              | `lib/admin/*.ts`, `app/api/admin/**`                                        | `ADMIN`-only search/status/key revoke/metrics                                               |
+| Health             | `app/api/health/route.ts`                                                   | read-only PostgreSQL, S3 та Gotenberg status                                                 |
 
-### 6.1. Password reset и Telegram: два delivery channel, один security contract
+### 6.1. Password reset і Telegram: два delivery channel, один security contract
 
-`app/api/auth/password-reset/request/route.ts` принимает email или
-`@username`, нормализует contact и всегда возвращает нейтральный `202`: нельзя
-по HTTP-ответу узнать, существует ли пользователь. При разрешённом запросе
-`lib/auth/recovery.ts` сохраняет только hash одноразового токена и TTL. Затем
-route выбирает канал доставки:
+`app/api/auth/password-reset/request/route.ts` приймає email або
+`@username`, нормалізує contact і завжди повертає нейтральний `202`: не можна
+за HTTP-відповіддю дізнатися, чи існує користувач. За дозволеного запиту
+`lib/auth/recovery.ts` зберігає лише hash одноразового токена та TTL. Потім
+route обирає канал доставки:
 
 ```text
 email → lib/mail/send-auth-email.ts → SMTP
 @username → verified telegramId → lib/telegram/bot.ts → Telegram Bot API
 ```
 
-Username сам по себе не доказывает владение chat: `createTelegramPasswordReset`
-требует одновременно `telegramId`, `telegramVerified` и `UserStatus.ACTIVE`.
-Webhook `POST /api/telegram/webhook` сначала проверяет заголовок
-`x-telegram-bot-api-secret-token`, принимает link-команду только из private
-chat и только затем передаёт `/start link_<token>` в `verifyTelegramLink`.
-Новая pending-ссылка не отменяет прежнюю подтверждённую привязку. Owner-scoped
-`DELETE /api/account/telegram/link` очищает Telegram поля и pending token, после
-чего recovery по `@username` остаётся нейтрально недоступным. Токены, bot token,
-chat ID, URL reset-ссылки и provider response не должны попадать в
-пользовательский JSON или обычные логи.
+Username сам собою не доводить володіння chat: `createTelegramPasswordReset`
+потребує одночасно `telegramId`, `telegramVerified` і `UserStatus.ACTIVE`.
+Webhook `POST /api/telegram/webhook` спочатку перевіряє заголовок
+`x-telegram-bot-api-secret-token`, приймає link-команду лише з private
+chat і лише потім передає `/start link_<token>` до `verifyTelegramLink`.
+Нове pending-посилання не скасовує попередню підтверджену прив'язку. Owner-scoped
+`DELETE /api/account/telegram/link` очищує Telegram поля та pending token, після
+чого recovery за `@username` залишається нейтрально недоступним. Токени, bot token,
+chat ID, URL reset-посилання та provider response не мають потрапляти до
+користувацького JSON або звичайних логів.
 
-### 6.2. Account deletion: request не равен немедленному удалению
+### 6.2. Account deletion: request не дорівнює негайному видаленню
 
-Пользовательский `POST /api/account/deletion-request` вызывает
-`createAccountDeletionRequest`. Он создаёт `PENDING` request и append-only
-`REQUESTED` event; повторный активный request не создаётся. Отмена разрешена
-только пока request `PENDING`.
+Користувацький `POST /api/account/deletion-request` викликає
+`createAccountDeletionRequest`. Він створює `PENDING` request і append-only
+`REQUESTED` event; повторний активний request не створюється. Скасування дозволене
+лише поки request `PENDING`.
 
-Админские endpoints используют `lib/account-deletion/workflow.ts` и делают
-состояния явными:
+Адміністративні endpoints використовують `lib/account-deletion/workflow.ts` і роблять
+стани явними:
 
 ```text
 PENDING → PROCESSING → COMPLETED
@@ -242,29 +242,29 @@ PENDING → PROCESSING → COMPLETED
 PENDING → CANCELLED
 ```
 
-`processAccountDeletionRequest` сначала атомарно claim-ит request в
-`PROCESSING`, затем удаляет private S3 objects пользователя и только после этого
-удаляет `User`. Prisma каскадно удаляет связанные account records, а
-`AccountDeletionRequest` сохраняется с `userId = null` для audit trail. Если
-storage или удаление не завершилось, request становится `FAILED`, создаётся
-event и администратор может выполнить controlled retry. SMTP-уведомления на
-support mailbox best-effort: их ошибка логируется, но не отменяет уже корректно
-выполненную операцию с данными.
+`processAccountDeletionRequest` спочатку атомарно claim-ить request у
+`PROCESSING`, потім видаляє private S3 objects користувача й лише після цього
+видаляє `User`. Prisma каскадно видаляє пов'язані account records, а
+`AccountDeletionRequest` зберігається з `userId = null` для audit trail. Якщо
+storage або видалення не завершилося, request стає `FAILED`, створюється
+event і адміністратор може виконати controlled retry. SMTP-сповіщення на
+support mailbox best-effort: їхня помилка логується, але не скасовує вже коректно
+виконану операцію з даними.
 
-Полные статусы, права и ручная проверка находятся в
+Повні статуси, права та ручна перевірка розташовані у
 [account-deletion-workflow.md](../account-deletion-workflow.md).
 
-## 7. Безопасный порядок backend-изменения
+## 7. Безпечний порядок backend-зміни
 
-1. Опишите вход/выход и auth requirement в `docs/architecture.md` и UI docs.
-2. Создайте/расширьте pure helper в `lib/`; handler не должен содержать всю логику.
-3. Валидируйте input на HTTP-границе, но повторите критичные проверки в Core.
-4. Не возвращайте password hash, verification/reset token, API secret или
-   provider error в JSON/log, доступный пользователю.
-5. Для Telegram recovery сопоставляйте `@username` лишь как удобный lookup:
-   право доставки reset-ссылки подтверждает сохранённый chat ID, а не имя
-   пользователя. Bot token, webhook secret, chat ID и reset URL не логируются.
-6. Если меняются данные — сначала Prisma schema/migration и database guide.
-7. Добавьте route/unit test, затем при сквозном контракте — integration/E2E.
+1. Опишіть вхід/вихід та auth requirement у `docs/architecture.md` і UI docs.
+2. Створіть/розширте pure helper у `lib/`; handler не має містити всю логіку.
+3. Валідуйте input на HTTP-межі, але повторіть критичні перевірки у Core.
+4. Не повертайте password hash, verification/reset token, API secret або
+   provider error у JSON/log, доступний користувачу.
+5. Для Telegram recovery зіставляйте `@username` лише як зручний lookup:
+   право доставки reset-посилання підтверджує збережений chat ID, а не ім'я
+   користувача. Bot token, webhook secret, chat ID і reset URL не логуються.
+6. Якщо змінюються дані — спочатку Prisma schema/migration і database guide.
+7. Додайте route/unit test, а потім за наскрізного контракту — integration/E2E.
 
-Связанные модели и транзакции: [database.md](./database.md).
+Пов'язані моделі та транзакції: [database.md](./database.md).

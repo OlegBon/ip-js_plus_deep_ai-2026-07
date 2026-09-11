@@ -63,7 +63,7 @@ async function parseAuditFile(): Promise<ParsedAudit> {
     for (const line of lines) {
       const trimmedLine = line.trim();
 
-      if (trimmedLine.startsWith("## Статус эндпоинтов")) {
+      if (trimmedLine.startsWith("## Статус ендпойнтів")) {
         mode = "statuses";
         if (currentAnalysis) {
           analyses.push(currentAnalysis);
@@ -155,10 +155,10 @@ export default async function DataSourcesPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 md:p-12 bg-gray-100 text-gray-800">
       <div className="w-full max-w-4xl space-y-8">
         <div className="text-right text-sm text-gray-500">
-          Отчет сгенерирован: {reportDate}
+          Звіт згенеровано: {reportDate}
         </div>
 
-        <Section title="Статус эндпоинтов">
+        <Section title="Статус ендпойнтів">
           <div className="space-y-2">
             {statuses.length > 0 ? (
               statuses.map(({ title, status }) => (
@@ -180,13 +180,13 @@ export default async function DataSourcesPage() {
               ))
             ) : (
               <p className="text-center text-gray-500">
-                Не удалось загрузить статусы эндпоинтов.
+                Не вдалося завантажити статуси ендпойнтів.
               </p>
             )}
           </div>
         </Section>
 
-        <Section title="Источники данных для расчетов">
+        <Section title="Джерела даних для розрахунків">
           <div className="space-y-2">
             {calculationTransactions.length > 0 ? (
               Object.entries(groupedTransactions).map(([source, txs]) => {
@@ -255,13 +255,13 @@ export default async function DataSourcesPage() {
               })
             ) : (
               <p className="text-center py-4 text-gray-500">
-                Данные для расчетов не загружены.
+                Дані для розрахунків не завантажено.
               </p>
             )}
           </div>
         </Section>
 
-        <Section title="Детальный анализ источников">
+        <Section title="Детальний аналіз джерел">
           {analyses.length > 0 ? (
             analyses.map((source) => (
               <div
@@ -286,7 +286,7 @@ export default async function DataSourcesPage() {
             ))
           ) : (
             <p className="text-center text-gray-500 py-4">
-              Детальный анализ источников не загружен.
+              Детальний аналіз джерел не завантажено.
             </p>
           )}
         </Section>

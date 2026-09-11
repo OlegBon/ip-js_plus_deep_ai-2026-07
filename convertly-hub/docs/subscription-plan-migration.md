@@ -1,70 +1,70 @@
-# Нормализация тарифов: `Subscription.activePlan`
+# Нормалізація тарифів: `Subscription.activePlan`
 
-## Инвариант
+## Інваріант
 
-Активный тариф пользователя хранится только в `Subscription.activePlan`.
-`User.plan` был legacy-дубликатом и удалён migration
+Активний тариф користувача зберігається лише у `Subscription.activePlan`.
+`User.plan` був legacy-дублікатом і видалений migration
 `20260907140000_subscription_plan_source_of_truth`.
 
-У каждого зарегистрированного пользователя должна существовать ровно одна
-`Subscription`: это обеспечивают регистрация и unique foreign key
-`Subscription.userId`. `requestedPlan` и `PENDING_DEMO` остаются только для
-неоплаченной демонстрационной заявки; они не меняют активные лимиты, API-доступ
-или retention.
+У кожного зареєстрованого користувача має існувати рівно одна
+`Subscription`: це забезпечують реєстрація та unique foreign key
+`Subscription.userId`. `requestedPlan` і `PENDING_DEMO` лишаються лише для
+неоплаченої демонстраційної заявки; вони не змінюють активні ліміти, API-доступ
+або retention.
 
-## Что делает migration
+## Що робить migration
 
-Migration выполняется в одной транзакции PostgreSQL:
+Migration виконується в одній транзакції PostgreSQL:
 
-1. Находит пользователей без `Subscription`.
-2. Создаёт им `Subscription` с legacy `User.plan` и `ACTIVE`.
-3. Если Subscription уже есть и её `activePlan` расходится с `User.plan`, не
-   меняет её: победителем остаётся `Subscription.activePlan`.
-4. Удаляет `User.plan`.
+1. Знаходить користувачів без `Subscription`.
+2. Створює їм `Subscription` із legacy `User.plan` і `ACTIVE`.
+3. Якщо Subscription уже є і її `activePlan` розходиться з `User.plan`, не
+   змінює її: переможцем лишається `Subscription.activePlan`.
+4. Видаляє `User.plan`.
 
-Поэтому migration применяется только вперёд. Откат app image не откатывает
-схему; при проблеме нужна отдельная forward migration и backup.
+Тому migration застосовується лише вперед. Відкат app image не відкочує
+схему; у разі проблеми потрібні окрема forward migration і backup.
 
 ## Production-порядок для Northflank + Supabase
 
-1. Создайте логический backup Supabase вне Git: roles, schema и data SQL dumps.
-2. Пересоберите `convertly-migrate` из commit с этой migration, но ещё не
-   запускайте его стандартный CMD.
-3. Запустите один manual run с run-only Custom command:
+1. Створіть логічний backup Supabase поза Git: roles, schema і data SQL dumps.
+2. Перезберіть `convertly-migrate` із commit із цією migration, але ще не
+   запускайте його стандартний CMD.
+3. Запустіть один manual run із run-only Custom command:
 
    ```text
    node scripts/audit-subscription-plans.mjs
    ```
 
-   Он только читает БД и печатает три счётчика: `totalUsers`,
-   `usersWithoutSubscription`, `legacyPlanMismatches`. Email, планы отдельных
-   пользователей и connection string в лог не выводятся.
+   Він лише читає БД і виводить три лічильники: `totalUsers`,
+   `usersWithoutSubscription`, `legacyPlanMismatches`. Email, тарифи окремих
+   користувачів і connection string до логу не виводяться.
 
-4. Сохраните результат audit в operational notes. Ненулевые `usersWithoutSubscription`
-   и `legacyPlanMismatches` допустимы: migration обработает их по описанному
-   правилу. При неожиданно большом числе остановитесь и проверьте backup.
-5. Запустите тот же актуальный build с обычным CMD job:
+4. Збережіть результат audit у operational notes. Ненульові `usersWithoutSubscription`
+   і `legacyPlanMismatches` допустимі: migration обробить їх за описаним
+   правилом. У разі неочікувано великої кількості зупиніться та перевірте backup.
+5. Запустіть той самий актуальний build зі звичайним CMD job:
 
    ```text
    npx prisma migrate deploy
    ```
 
-   В логах должно быть `Applying migration
-\`20260907140000_subscription_plan_source_of_truth\``и exit code`0`.
+   У логах має бути `Applying migration
+\`20260907140000_subscription_plan_source_of_truth\`` і exit code `0`.
 
-6. Снова выполните audit script. После migration ожидаются
+6. Знову виконайте audit script. Після migration очікуються
    `usersWithoutSubscription: 0`, `legacyPlanColumnPresent: false` и
    `legacyPlanMismatches: null`.
-7. Только после этого пересоберите и задеплойте `convertly-app` из того же
-   commit. Проверьте Free, Basic, Pro, создание API key и browser/API conversion.
+7. Лише після цього перезберіть і задеплойте `convertly-app` із того самого
+   commit. Перевірте Free, Basic, Pro, створення API key і browser/API conversion.
 
-## Ручная смена тестового тарифа
+## Ручна зміна тестового тарифу
 
-До настоящего payment provider используйте существующий one-off command
-`node scripts/sync-user-plan.mjs` в manual run `convertly-migrate`. Передавайте
-только run-time overrides `PLAN_SYNC_EMAIL` и `PLAN_SYNC_ACTIVE_PLAN`. Скрипт
-изменяет одну запись `Subscription`, очищает `requestedPlan` и ставит `ACTIVE`.
-Он не создаёт пользователя и не пишет его email в лог.
+До появи справжнього payment provider використовуйте наявний one-off command
+`node scripts/sync-user-plan.mjs` у manual run `convertly-migrate`. Передавайте
+лише run-time overrides `PLAN_SYNC_EMAIL` і `PLAN_SYNC_ACTIVE_PLAN`. Скрипт
+змінює один запис `Subscription`, очищує `requestedPlan` і встановлює `ACTIVE`.
+Він не створює користувача та не записує його email до логу.
 
-Не применяйте этот script как платёжный flow: после подключения billing provider
-тариф обязан меняться только из проверенного webhook.
+Не застосовуйте цей script як платіжний flow: після підключення billing provider
+тариф має змінюватися лише з перевіреного webhook.

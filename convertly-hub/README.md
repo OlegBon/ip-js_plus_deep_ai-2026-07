@@ -1,63 +1,63 @@
 # 🛡️ Convertly Hub
 
-> Современный SaaS-сервис для конвертации документов и файлов с предоставлением публичного API. Разработан в рамках задания на курсе "Javascript + deep AI" (Ivan Petrychenko, 2026-07) для демонстрации навыков Full Stack разработки и системной архитектуры.
+> Сучасний SaaS-сервіс для конвертації документів і файлів із наданням публічного API. Розроблений у межах завдання курсу "Javascript + deep AI" (Ivan Petrychenko, 2026-07) для демонстрації навичок Full Stack-розробки та системної архітектури.
 
-Развёрнут публичный функциональный demo [convertly-hub.bon.kharkov.ua](https://convertly-hub.bon.kharkov.ua/): Northflank public Next.js app, private Gotenberg, Supabase PostgreSQL и private S3-compatible Storage. Настроены DNS, TLS, SMTP, controlled Prisma migration job и smoke-tests.
+Розгорнуто публічний функціональний demo [convertly-hub.bon.kharkov.ua](https://convertly-hub.bon.kharkov.ua/): Northflank public Next.js app, private Gotenberg, Supabase PostgreSQL і private S3-compatible Storage. Налаштовано DNS, TLS, SMTP, controlled Prisma migration job та smoke-tests.
 
-Рабочий процесс удаления аккаунта описан в [документации по удалению аккаунта](./docs/account-deletion-workflow.md).
-
----
-
-## 🛠️ Технологический стек
-
-- **Фронтенд / Оркестратор:** Next.js (App Router), React, TypeScript, Tailwind CSS
-- **Бэкенд и API:** Next.js Route Handlers, NextAuth.js, Prisma ORM (v7)
-- **База данных:** PostgreSQL (локально — Docker Compose; публичный demo — Supabase)
-- **Файловое хранилище:** S3-compatible API (локально — MinIO; публичный demo — private Supabase Storage)
-- **Движок конвертации:** Gotenberg (Chromium + LibreOffice в изолированном контейнере)
-- **Почта в локальной разработке:** MailHog; в production — настраиваемый SMTP-провайдер
-- **Контейнеризация:** Docker Compose
+Робочий процес видалення акаунта описано в [документації з видалення акаунта](./docs/account-deletion-workflow.md).
 
 ---
 
-## 📐 Архитектура проекта
+## 🛠️ Технологічний стек
 
-Проект построен по принципу микросервисной изоляции тяжелых задач:
-
-1. **Next.js** предоставляет UI, гостевую потоковую конвертацию, session-защищённые account/API-маршруты и публичный API по API-ключу.
-2. **Prisma ORM** управляет пользователями, ролями, тарифами, API-ключами, Telegram-привязкой и журналом конвертаций в PostgreSQL.
-3. **MinIO** хранит только приватные результаты, для которых пользователь включил хранение. Публичные S3 URL не создаются.
-4. **Core** конвертирует `JPG ↔ PNG` через `sharp` и отправляет `DOCX → PDF` в Gotenberg. `PDF → DOCX` намеренно остаётся planned.
+- **Frontend / оркестратор:** Next.js (App Router), React, TypeScript, Tailwind CSS
+- **Backend і API:** Next.js Route Handlers, NextAuth.js, Prisma ORM (v7)
+- **База даних:** PostgreSQL (локально — Docker Compose; публічний demo — Supabase)
+- **Файлове сховище:** S3-compatible API (локально — MinIO; публічний demo — private Supabase Storage)
+- **Рушій конвертації:** Gotenberg (Chromium + LibreOffice в ізольованому контейнері)
+- **Пошта в локальній розробці:** MailHog; у production — налаштовуваний SMTP-провайдер
+- **Контейнеризація:** Docker Compose
 
 ---
 
-## 🚀 Быстрый старт (Локальная разработка)
+## 📐 Архітектура проєкту
 
-Каноническое пошаговое руководство — [local-start.md](./docs/local-start.md). Техническая справка сохранена в [START.md](./docs/START.md).
+Проєкт побудовано за принципом мікросервісної ізоляції важких завдань:
 
-1. Клонируйте репозиторий и установите зависимости:
+1. **Next.js** надає UI, гостьову потокову конвертацію, захищені сесією account/API-маршрути та публічний API за API-ключем.
+2. **Prisma ORM** керує користувачами, ролями, тарифами, API-ключами, Telegram-прив'язкою та журналом конвертацій у PostgreSQL.
+3. **MinIO** зберігає лише приватні результати, для яких користувач увімкнув збереження. Публічні S3 URL не створюються.
+4. **Core** конвертує `JPG ↔ PNG` через `sharp` і надсилає `DOCX → PDF` до Gotenberg. `PDF → DOCX` навмисно лишається planned.
+
+---
+
+## 🚀 Швидкий старт (локальна розробка)
+
+Канонічний покроковий посібник — [local-start.md](./docs/local-start.md). Технічну довідку збережено в [START.md](./docs/START.md).
+
+1. Клонуй репозиторій та встанови залежності:
 
 ```bash
-git clone <url-репозитория>
+git clone <url-репозиторія>
 cd convertly-hub
 npm install
 ```
 
-2. Поднимите инфраструктуру (PostgreSQL, MinIO, Gotenberg, MailHog) через Docker:
+2. Підніми інфраструктуру (PostgreSQL, MinIO, Gotenberg, MailHog) через Docker:
 
 ```bash
 docker compose up -d
 ```
 
-3. Создайте корневой `.env` из [`.env.example`](./.env.example) и заполните локальные секреты. Не добавляйте `.env` в Git.
-4. Примените миграции базы данных и сгенерируйте Prisma Client:
+3. Створи кореневий `.env` із [`.env.example`](./.env.example) і заповни локальні секрети. Не додавай `.env` до Git.
+4. Застосуй міграції бази даних і згенеруй Prisma Client:
 
 ```bash
 npx prisma migrate deploy
 npx prisma generate
 ```
 
-5. Запустите проект в режиме разработки:
+5. Запусти проєкт у режимі розробки:
 
 ```bash
 npm run dev
@@ -65,31 +65,31 @@ npm run dev
 
 ---
 
-## 📚 Документация
+## 📚 Документація
 
-- [Архитектура проекта](./docs/architecture.md)
-- [Технологии и SaaS](./docs/tech_saas.md)
-- [План работ](./docs/work_plan.md)
-- [Прогресс проекта](./docs/progress.md)
-- [План E2E-тестирования](./docs/e2e_test_plan.md)
-- [Реальные backend integration/E2E-тесты](./docs/integration-tests.md)
-- [Локальный старт и диагностика](./docs/local-start.md)
-- [Production-развёртывание на Oracle Cloud Free Tier](./docs/oracle-production-deployment.md)
-- [План развёртывания на Vercel Pro](./docs/vercel-production-deployment.md)
-- [План развёртывания на Render Paid / Free demo](./docs/render-production-deployment.md)
-- [Функциональный demo MVP: Northflank Developer Sandbox + Supabase Free](./docs/northflank-supabase-demo.md)
-- [Пошаговый запуск Northflank + Supabase](./docs/northflank-supabase-setup.md)
-- [Нормализация тарифов и production-порядок migration](./docs/subscription-plan-migration.md)
-- [Операционный one-off sync тарифа](./docs/northflank-supabase-setup.md#91-разово-синхронизировать-тариф-тестового-пользователя)
-- [Подробные руководства по frontend, backend и database](./docs/guides/README.md)
-- [PowerShell: публичный API](./docs/api-powershell.md)
-- [Логический backup Supabase PostgreSQL](./docs/supabase-logical-backup.md)
-- [Перенос между cloud providers](./docs/cloud-portability.md)
-- [Активный backlog](./docs/backlog/README.md)
-- [Исторический аудит документации, 7 сентября 2026](./docs/audits/documentation-audit-2026-09-07.md)
-- [Финальный аудит документации, 8 сентября 2026](./docs/audits/documentation-audit-2026-09-08.md)
+- [Архітектура проєкту](./docs/architecture.md)
+- [Технології та SaaS](./docs/tech_saas.md)
+- [План робіт](./docs/work_plan.md)
+- [Прогрес проєкту](./docs/progress.md)
+- [План E2E-тестування](./docs/e2e_test_plan.md)
+- [Реальні backend integration/E2E-тести](./docs/integration-tests.md)
+- [Локальний старт і діагностика](./docs/local-start.md)
+- [Production-розгортання на Oracle Cloud Free Tier](./docs/oracle-production-deployment.md)
+- [План розгортання на Vercel Pro](./docs/vercel-production-deployment.md)
+- [План розгортання на Render Paid / Free demo](./docs/render-production-deployment.md)
+- [Функціональний demo MVP: Northflank Developer Sandbox + Supabase Free](./docs/northflank-supabase-demo.md)
+- [Покроковий запуск Northflank + Supabase](./docs/northflank-supabase-setup.md)
+- [Нормалізація тарифів і production-порядок migration](./docs/subscription-plan-migration.md)
+- [Операційний one-off sync тарифу](./docs/northflank-supabase-setup.md#91-разово-синхронизировать-тариф-тестового-пользователя)
+- [Докладні посібники з frontend, backend і database](./docs/guides/README.md)
+- [PowerShell: публічний API](./docs/api-powershell.md)
+- [Логічний backup Supabase PostgreSQL](./docs/supabase-logical-backup.md)
+- [Перенесення між cloud providers](./docs/cloud-portability.md)
+- [Активний backlog](./docs/backlog/README.md)
+- [Історичний аудит документації, 7 вересня 2026](./docs/audits/documentation-audit-2026-09-07.md)
+- [Фінальний аудит документації, 8 вересня 2026](./docs/audits/documentation-audit-2026-09-08.md)
 
-## 🧪 Проверки
+## 🧪 Перевірки
 
 ```bash
 npm run linteslint
@@ -99,48 +99,48 @@ npm run test:e2e
 npm run test:integration
 ```
 
-Последняя команда поднимает отдельные PostgreSQL, MinIO, Gotenberg и MailHog,
-выполняет реальные HTTP-сценарии и затем удаляет только свою тестовую Compose-среду.
-Docker Desktop должен быть запущен. Подробности, порты и покрытие — в
-[integration-tests.md](./docs/integration-tests.md). Артефакты неуспешного
-Playwright-запуска сохраняются в локальной `test-results/` (она игнорируется Git)
-и прикладываются к упавшему GitHub Actions run.
+Остання команда піднімає окремі PostgreSQL, MinIO, Gotenberg і MailHog,
+виконує реальні HTTP-сценарії й потім видаляє лише власне тестове Compose-середовище.
+Docker Desktop має бути запущено. Подробиці, порти та покриття — в
+[integration-tests.md](./docs/integration-tests.md). Артефакти невдалого
+запуску Playwright зберігаються в локальній `test-results/` (її ігнорує Git)
+і додаються до невдалого GitHub Actions run.
 
-## ⚠️ Текущий статус
+## ⚠️ Поточний статус
 
-Реализованы аутентификация через HttpOnly-сессию, восстановление пароля по email или подтверждённому Telegram, подтверждение email через одноразовые ссылки, роли `USER`/`ADMIN`, API-ключи, тарифные квоты и Mock Checkout, приватное хранение в MinIO/S3-compatible storage, доступные Core-конвертации и контролируемый workflow удаления аккаунта. Гость может выполнить до трёх image- и двух document-конвертаций в месяц (до 1 МБ, без S3 и истории); зарегистрированный пользователь работает через сессию и получает тарифные возможности Dashboard.
+Реалізовано автентифікацію через HttpOnly-сесію, відновлення пароля за email або підтвердженим Telegram, підтвердження email через одноразові посилання, ролі `USER`/`ADMIN`, API-ключі, тарифні квоти та Mock Checkout, приватне зберігання в MinIO/S3-compatible storage, доступні Core-конвертації та контрольований workflow видалення акаунта. Гість може виконати до трьох image- і двох document-конвертацій на місяць (до 1 МБ, без S3 та історії); зареєстрований користувач працює через сесію й отримує тарифні можливості Dashboard.
 
-Dashboard и Admin UI работают с реальными account/admin API. Реальный изолированный backend integration/E2E-набор уже покрывает PostgreSQL, MinIO, Gotenberg, авторизацию, квоты, API-ключи и администрирование. Текущий публичный demo — Northflank app + private Gotenberg, Supabase PostgreSQL и private Supabase S3 bucket; это функциональный MVP, но не billing-ready production. Oracle, Vercel и Render остаются подготовленными вариантами переноса. Перед migration или сменой provider создавайте [логический backup](./docs/supabase-logical-backup.md), а порядок cutover берите только из [cloud portability runbook](./docs/cloud-portability.md). Активные отложенные задачи находятся в [docs/backlog](./docs/backlog/README.md).
+Dashboard та Admin UI працюють із реальними account/admin API. Реальний ізольований backend integration/E2E-набір уже покриває PostgreSQL, MinIO, Gotenberg, авторизацію, квоти, API-ключі й адміністрування. Поточний публічний demo — Northflank app + private Gotenberg, Supabase PostgreSQL і private Supabase S3 bucket; це функціональний MVP, але не billing-ready production. Oracle, Vercel і Render лишаються підготовленими варіантами перенесення. Перед migration або зміною provider створюй [логічний backup](./docs/supabase-logical-backup.md), а порядок cutover бери лише з [cloud portability runbook](./docs/cloud-portability.md). Активні відкладені завдання містяться в [docs/backlog](./docs/backlog/README.md).
 
-Перед production deployment повторно проверьте [актуальную сводку dependency security](./docs/audits/dependency-security-latest.md) и выполните `npm audit --omit=dev`. На 8 сентября 2026 audit возвращает `0 vulnerabilities`: Prisma-транзитивные `fast-uri` и `mysql2` закреплены узкими npm overrides. Не применяйте `npm audit fix --force`: major-обновление Prisma или NextAuth требует отдельного compatibility-аудита.
+Перед production deployment повторно перевір [актуальне зведення dependency security](./docs/audits/dependency-security-latest.md) і виконай `npm audit --omit=dev`. Станом на 8 вересня 2026 audit повертає `0 vulnerabilities`: Prisma-транзитивні `fast-uri` та `mysql2` закріплено вузькими npm overrides. Не застосовуй `npm audit fix --force`: major-оновлення Prisma або NextAuth потребує окремого compatibility-аудиту.
 
 ---
 
-## 🎥 Видео (YouTube)
+## 🎥 Відео (YouTube)
 
 - [2026-09-08 Cloud MVP: Northflank + Supabase](https://youtu.be/gH8szKpm9MU) — screen recording публичного demo, PaaS-контуров и проверки dependency audit.
-- [2026-09-02 Демонстрация интерфейса и функционала](https://youtu.be/-cZtM1-rf0Q) - Краткий обзор реализованных страниц и их адаптивности.
-- [2026-08-22 Демонстрация интерфейса и функционала](https://youtu.be/Dn_o8foUun0) - Краткий обзор реализованных страниц и их адаптивности.
-- [2026-08-16 Демонстрация интерфейса и функционала](https://youtu.be/qLZm8kayTsU) - Краткий обзор реализованных страниц и их адаптивности.
-- [2026-08-15 Демонстрация интерфейса и функционала](https://youtu.be/CvLo-cgkQx8) - Краткий обзор реализованных страниц и их адаптивности.
-- [2026-08-12 Демонстрация интерфейса и функционала](https://youtu.be/UHdkW6_1QEw) - Краткий обзор реализованных страниц и их адаптивности.
-- [2026-08-10 Демонстрация интерфейса и функционала](https://youtu.be/wYE38yYL1XE) - Краткий обзор реализованных страниц и их адаптивности.
+- [2026-09-02 Демонстрація інтерфейсу та функціональності](https://youtu.be/-cZtM1-rf0Q) — короткий огляд реалізованих сторінок і їхньої адаптивності.
+- [2026-08-22 Демонстрація інтерфейсу та функціональності](https://youtu.be/Dn_o8foUun0) — короткий огляд реалізованих сторінок і їхньої адаптивності.
+- [2026-08-16 Демонстрація інтерфейсу та функціональності](https://youtu.be/qLZm8kayTsU) — короткий огляд реалізованих сторінок і їхньої адаптивності.
+- [2026-08-15 Демонстрація інтерфейсу та функціональності](https://youtu.be/CvLo-cgkQx8) — короткий огляд реалізованих сторінок і їхньої адаптивності.
+- [2026-08-12 Демонстрація інтерфейсу та функціональності](https://youtu.be/UHdkW6_1QEw) — короткий огляд реалізованих сторінок і їхньої адаптивності.
+- [2026-08-10 Демонстрація інтерфейсу та функціональності](https://youtu.be/wYE38yYL1XE) — короткий огляд реалізованих сторінок і їхньої адаптивності.
 
-## 🖼️ Презентация
+## 🖼️ Презентація
 
-- [Convertly Hub — system overview (Canva)](https://canva.link/p7phuwtmnxaw3lb) — публичная презентация архитектуры и MVP; материал развивается вместе с проектом.
+- [Convertly Hub — system overview (Canva)](https://canva.link/p7phuwtmnxaw3lb) — публічна презентація архітектури й MVP; матеріал розвивається разом із проєктом.
 
 ---
 
-## 📌 Основные эндпоинты
+## 📌 Основні ендпоїнти
 
-- `POST /api/auth/register` — регистрация с bcrypt-хешированием пароля.
-- `POST /api/auth/password-reset/request` и `POST /api/auth/password-reset/confirm` — одноразовое восстановление пароля.
-- `POST /api/account/email-verification` — отправка ссылки для подтверждения email в текущую сессию.
-- `POST /api/account/conversions` — browser-конвертация для активной NextAuth-сессии.
-- `POST /api/guest/conversions` — потоковая гостевая конвертация с cookie-квотой и локальным IP limiter.
-- `GET /api/account/conversions/:conversionId/download` — session-защищённое скачивание сохранённого результата.
-- `POST /api/v1/convert` — конвертация по Bearer API-ключу для тарифов с API-доступом.
-- `GET /api/health` — безопасная проверка PostgreSQL, настроенного S3-бакета и Gotenberg: `200` при полном здоровье, `503` при деградации.
+- `POST /api/auth/register` — реєстрація з bcrypt-хешуванням пароля.
+- `POST /api/auth/password-reset/request` і `POST /api/auth/password-reset/confirm` — одноразове відновлення пароля.
+- `POST /api/account/email-verification` — надсилання посилання для підтвердження email у поточну сесію.
+- `POST /api/account/conversions` — browser-конвертація для активної NextAuth-сесії.
+- `POST /api/guest/conversions` — потокова гостьова конвертація з cookie-квотою та локальним IP limiter.
+- `GET /api/account/conversions/:conversionId/download` — session-захищене завантаження збереженого результату.
+- `POST /api/v1/convert` — конвертація за Bearer API-ключем для тарифів із API-доступом.
+- `GET /api/health` — безпечна перевірка PostgreSQL, налаштованого S3-бакета та Gotenberg: `200` за повного здоров'я, `503` за деградації.
 
-Полная карта маршрутов и правила ответов находятся в [architecture.md](./docs/architecture.md).
+Повна карта маршрутів і правила відповідей містяться в [architecture.md](./docs/architecture.md).

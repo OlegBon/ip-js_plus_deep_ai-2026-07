@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Финансовый дашборд",
-  description: "Анализ финансовых транзакций",
+  title: "Фінансовий дашборд",
+  description: "Аналіз фінансових транзакцій",
 };
 
 const NavLink = ({
@@ -53,8 +53,8 @@ export default function RootLayout({
                 </span>
               </div>
               <div className="flex items-baseline space-x-4">
-                <NavLink href="/">Главная</NavLink>
-                <NavLink href="/data-sources">Источники данных</NavLink>
+                <NavLink href="/">Головна</NavLink>
+                <NavLink href="/data-sources">Джерела даних</NavLink>
               </div>
             </div>
           </nav>

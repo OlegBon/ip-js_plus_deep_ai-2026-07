@@ -1,69 +1,69 @@
-# Telegram Bot: настройка и проверка
+# Telegram Bot: налаштування та перевірка
 
-Этот runbook описывает публичное оформление и эксплуатацию Convertly Hub Bot.
-Token и webhook secret не вставляются в чат, документацию или Git: они остаются
-server-only secrets группы `convertly-app-runtime`.
+Цей runbook описує публічне оформлення й експлуатацію Convertly Hub Bot.
+Token і webhook secret не вставляються в чат, документацію або Git: вони лишаються
+server-only secrets групи `convertly-app-runtime`.
 
-## 1. Перед началом
+## 1. Перед початком
 
-В Northflank должны быть заданы `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`
-без `@` и `TELEGRAM_WEBHOOK_SECRET`, после чего выполнен rollout restart.
-Webhook ведёт только на публичный HTTPS URL:
+У Northflank мають бути задані `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`
+без `@` і `TELEGRAM_WEBHOOK_SECRET`, після чого виконано rollout restart.
+Webhook веде лише на публічний HTTPS URL:
 
 ```text
 https://convertly-hub.bon.kharkov.ua/api/telegram/webhook
 ```
 
-В `setWebhook` используйте тот же secret как `secret_token` и оставьте
-`allowed_updates` равным `message`. Внутренние Northflank, Gotenberg и Supabase
-адреса никогда не являются webhook URL.
+У `setWebhook` використовуйте той самий secret як `secret_token` і лишайте
+`allowed_updates` рівним `message`. Внутрішні Northflank, Gotenberg і Supabase
+адреси ніколи не є webhook URL.
 
-## 2. Оформление в BotFather
+## 2. Оформлення у BotFather
 
-Откройте `@BotFather` → `/mybots` → Convertly Hub Bot → **Edit Bot**.
+Відкрийте `@BotFather` → `/mybots` → Convertly Hub Bot → **Edit Bot**.
 
-1. Установите профильный image через **Edit Botpic**.
-2. В **Edit Description** вставьте:
+1. Встановіть профільний image через **Edit Botpic**.
+2. У **Edit Description** вставте:
 
    ```text
    Securely link Telegram to Convertly Hub and receive password reset links.
    ```
 
-3. В **Edit About** вставьте:
+3. У **Edit About** вставте:
 
    ```text
    Secure Telegram linking and password recovery for Convertly Hub.
    ```
 
-4. В **Edit Commands** задайте:
+4. У **Edit Commands** задайте:
 
    ```text
    start - Start or complete account linking
    help - Learn how Telegram linking works
    ```
 
-Не добавляйте команды reset, email, files, API keys или account management:
-бот намеренно не принимает чувствительные данные.
+Не додавайте команди reset, email, files, API keys або account management:
+бот навмисно не приймає чутливі дані.
 
-## 3. Проверка после deploy
+## 3. Перевірка після deploy
 
-В private chat проверьте `/start`, `/help`, произвольное сообщение и Telegram
-deep link из Dashboard. Бот должен давать welcome/help, нейтрально отвечать на
-неизвестный текст и подтверждать успех либо истёкшую/уже использованную ссылку
-без данных другого аккаунта. После привязки проверьте password reset по
-`@username`, затем Disconnect Telegram: HTTP-ответ reset остаётся нейтральным,
-но ссылка в бот больше не приходит.
+У private chat перевірте `/start`, `/help`, довільне повідомлення й Telegram
+deep link із Dashboard. Бот має надавати welcome/help, нейтрально відповідати на
+невідомий текст і підтверджувати успіх або спливле/вже використане посилання
+без даних іншого облікового запису. Після прив'язки перевірте password reset за
+`@username`, потім Disconnect Telegram: HTTP-відповідь reset лишається нейтральною,
+але посилання до бота більше не надходить.
 
-Проверьте `getWebhookInfo`: URL должен быть final HTTPS endpoint, а
-`pending_update_count` и `last_error_*` не должны сообщать о проблемах доставки.
+Перевірте `getWebhookInfo`: URL має бути final HTTPS endpoint, а
+`pending_update_count` і `last_error_*` не мають повідомляти про проблеми доставки.
 
-## 4. Эксплуатация
+## 4. Експлуатація
 
-- Оставьте Privacy Mode для групп включённым; не добавляйте бота администратором
-  групп и не включайте inline mode без отдельной продуктовой задачи.
-- Не логируйте полный Telegram update, chat ID, deep-link token или reset URL.
-- При подозрении на раскрытие token перевыпустите его в BotFather, обновите
-  Northflank secret и повторно задайте webhook.
-- Личный Telegram account подходит для текущего manual smoke-test. Отдельный
-  test bot нужен, когда основной бот используют реальные пользователи или нужно
-  изолированно проверить рискованные изменения.
+- Залиште Privacy Mode для груп увімкненим; не додавайте бота адміністратором
+  груп і не вмикайте inline mode без окремої продуктової задачі.
+- Не логуйте повний Telegram update, chat ID, deep-link token або reset URL.
+- У разі підозри на розкриття token перевипустіть його в BotFather, оновіть
+  Northflank secret і повторно задайте webhook.
+- Особистий Telegram account підходить для поточного manual smoke-test. Окремий
+  test bot потрібен, коли основним ботом користуються реальні користувачі або потрібно
+  ізольовано перевірити ризиковані зміни.

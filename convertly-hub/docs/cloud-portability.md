@@ -1,55 +1,55 @@
-# Переносимость облачного развёртывания
+# Переносимість хмарного розгортання
 
-Этот runbook описывает перенос Convertly Hub между Northflank + Supabase,
-Oracle Cloud, Render, Vercel и новым provider. Приложение не привязано к
-Supabase SDK: оно использует стандартный PostgreSQL connection string и
-S3-compatible Storage. Поэтому перенос реалистичен, но это контролируемая
-операция, а не простая смена DNS.
+Цей runbook описує перенесення Convertly Hub між Northflank + Supabase,
+Oracle Cloud, Render, Vercel і новим provider. Застосунок не прив'язано до
+Supabase SDK: він використовує стандартний PostgreSQL connection string і
+S3-compatible Storage. Тому перенесення реалістичне, але це контрольована
+операція, а не проста зміна DNS.
 
-## Что является источником истины
+## Що є джерелом істини
 
-| Слой | Источник и действие при переносе |
+| Шар | Джерело та дія під час перенесення |
 | --- | --- |
-| Код и Prisma migrations | Git repository, папка `convertly-hub`; target Docker stages `runner` и `migration`. |
-| PostgreSQL | Логические `roles.sql`, `schema.sql`, `data.sql` из Supabase CLI; restore в новую БД. |
-| Результаты конвертаций | Private S3 bucket `convertly-files`; копируются S3-to-S3 с сохранением ключей. |
-| Схема и версии | `prisma/migrations` из Git, затем `npx prisma migrate deploy` только вперёд. |
-| Секреты | Не переносятся автоматически: заново создаются в secret manager нового provider. |
-| Домен и TLS | DNS-записи и сертификат настраиваются у нового ingress/provider до cutover. |
+| Код і Prisma migrations | Git repository, папка `convertly-hub`; target Docker stages `runner` і `migration`. |
+| PostgreSQL | Логічні `roles.sql`, `schema.sql`, `data.sql` із Supabase CLI; restore до нової БД. |
+| Результати конвертацій | Private S3 bucket `convertly-files`; копіюються S3-to-S3 зі збереженням ключів. |
+| Схема та версії | `prisma/migrations` із Git, потім `npx prisma migrate deploy` лише вперед. |
+| Секрети | Не переносяться автоматично: створюються заново у secret manager нового provider. |
+| Домен і TLS | DNS-записи та сертифікат налаштовуються у нового ingress/provider до cutover. |
 
-Никогда не копируйте `.env`, password-manager exports, Supabase service key или
-SMTP-пароль в Git. `NEXTAUTH_SECRET` нужно сохранить неизменным при миграции:
-иначе действующие NextAuth JWT-сессии станут невалидными. Это безопасно, но
-пользователи будут вынуждены войти снова.
+Ніколи не копіюйте `.env`, password-manager exports, Supabase service key або
+SMTP-пароль до Git. `NEXTAUTH_SECRET` потрібно зберегти незмінним під час міграції:
+інакше чинні NextAuth JWT-сесії стануть невалідними. Це безпечно, але
+користувачі будуть змушені увійти знову.
 
-## Целевые варианты
+## Цільові варіанти
 
 | Provider | App | PostgreSQL / storage | Gotenberg |
 | --- | --- | --- | --- |
-| Текущий demo: Northflank + Supabase | `convertly-app` service | Supabase PostgreSQL + Supabase S3 protocol | private Northflank service |
-| Oracle Cloud Free Tier | Docker Compose на A1 ARM64 VM | PostgreSQL и MinIO на той же VM, внешние backup обязательны | private Compose service |
-| Render | Web service | managed PostgreSQL + внешний S3 | отдельный private worker/service |
-| Vercel Pro | serverless Next.js, только после проверки runtime limits | managed PostgreSQL + внешний S3 | внешний всегда доступный Gotenberg service |
-| Новый provider | Docker image из Git | PostgreSQL и S3-compatible storage | private HTTP service на port 3000 |
+| Поточне demo: Northflank + Supabase | `convertly-app` service | Supabase PostgreSQL + Supabase S3 protocol | private Northflank service |
+| Oracle Cloud Free Tier | Docker Compose на A1 ARM64 VM | PostgreSQL і MinIO на тій самій VM, зовнішні backup обов'язкові | private Compose service |
+| Render | Web service | managed PostgreSQL + зовнішній S3 | окремий private worker/service |
+| Vercel Pro | serverless Next.js, лише після перевірки runtime limits | managed PostgreSQL + зовнішній S3 | зовнішній завжди доступний Gotenberg service |
+| Новий provider | Docker image із Git | PostgreSQL і S3-compatible storage | private HTTP service на port 3000 |
 
-Детали конкретных платформ остаются в
+Деталі конкретних платформ залишаються в
 [Northflank + Supabase](./northflank-supabase-setup.md),
 [Oracle](./oracle-production-deployment.md),
 [Render](./render-production-deployment.md) и
 [Vercel](./vercel-production-deployment.md).
 
-## Подготовка до cutover
+## Підготовка до cutover
 
-1. Выберите регион, limits, egress, backup retention и доступность ARM64/x86
-   образов. Не принимайте решение только по «free» тарифу.
-2. Создайте новую private PostgreSQL и private S3 bucket `convertly-files`.
-   Запишите endpoint, region и новые access keys в password manager.
-3. Создайте private Gotenberg `gotenberg/gotenberg:8`, port `3000`, health
+1. Оберіть регіон, limits, egress, backup retention і доступність ARM64/x86
+   образів. Не ухвалюйте рішення лише за «free» тарифом.
+2. Створіть нові private PostgreSQL і private S3 bucket `convertly-files`.
+   Запишіть endpoint, region і нові access keys до password manager.
+3. Створіть private Gotenberg `gotenberg/gotenberg:8`, port `3000`, health
    check `GET /health`.
-4. Подключите Git repository и соберите текущий `main` с build context
+4. Підключіть Git repository і зберіть поточний `main` з build context
    `/convertly-hub`, Dockerfile `/convertly-hub/Dockerfile`, target `runner`.
-   Создайте отдельный manual migration workload с target `migration`.
-5. Подготовьте новые runtime secrets:
+   Створіть окремий manual migration workload із target `migration`.
+5. Підготуйте нові runtime secrets:
 
    ```dotenv
    NODE_ENV=production
@@ -72,61 +72,61 @@ SMTP-пароль в Git. `NEXTAUTH_SECRET` нужно сохранить неи
    SUPPORT_EMAIL=support@bon.kharkov.ua
    ```
 
-   При использовании Telegram перенесите также `TELEGRAM_BOT_TOKEN`,
-   `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` и после cutover обновите
+   У разі використання Telegram перенесіть також `TELEGRAM_BOT_TOKEN`,
+   `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` і після cutover оновіть
    webhook URL.
-6. Не создавайте public domain для Gotenberg, Storage или migration job.
+6. Не створюйте public domain для Gotenberg, Storage або migration job.
 
-## Перенос данных
+## Перенесення даних
 
-1. Выберите maintenance window и сообщите пользователям. Остановите новые
-   записи: app service переведите в maintenance/остановите ingress, но не
-   удаляйте старый контур.
-2. Создайте final SQL backup по
-   [supabase-logical-backup.md](./supabase-logical-backup.md). Сохраните его
-   за пределами Git.
-3. Экспортируйте/copy private S3 bucket. Ключи нельзя переименовывать:
-   `ConversionLog.storageKey` содержит точный путь объекта. Сверьте количество
-   и общий размер объектов до и после copy.
-4. Restore PostgreSQL сначала в новую пустую БД: roles → schema → data.
-   Проверьте users, subscriptions, API key hashes, conversion logs и deletion
-   audit trail только read-only запросами.
-5. Запустите новый migration job с текущим Git commit. Он должен завершиться
-   `All migrations have been successfully applied.` Не используйте `db push`,
-   `migrate reset` и не редактируйте применённые migrations.
-6. Разверните app без публичного traffic и проверьте `/api/health`: все три
-   состояния должны быть `up`.
+1. Оберіть maintenance window і повідомте користувачів. Зупиніть нові
+   записи: переведіть app service у maintenance/зупиніть ingress, але не
+   видаляйте старий контур.
+2. Створіть final SQL backup за
+   [supabase-logical-backup.md](./supabase-logical-backup.md). Збережіть його
+   поза межами Git.
+3. Експортуйте/copy private S3 bucket. Ключі не можна перейменовувати:
+   `ConversionLog.storageKey` містить точний шлях об'єкта. Зіставте кількість
+   і загальний розмір об'єктів до та після copy.
+4. Restore PostgreSQL спочатку до нової порожньої БД: roles → schema → data.
+   Перевірте users, subscriptions, API key hashes, conversion logs і deletion
+   audit trail лише read-only запитами.
+5. Запустіть новий migration job із поточним Git commit. Він має завершитися
+   `All migrations have been successfully applied.` Не використовуйте `db push`,
+   `migrate reset` і не редагуйте застосовані migrations.
+6. Розгорніть app без публічного traffic і перевірте `/api/health`: усі три
+   стани мають бути `up`.
 
 ## Smoke-test до DNS
 
-- вход уже существующего пользователя и проверка сохранности API key;
-- `JPG ↔ PNG`, `DOCX → PDF`, сохранённая и несохранённая конвертация;
-- download старого результата и нового результата;
-- email verification или password reset на внешний адрес;
-- API flow из [api-powershell.md](./api-powershell.md);
-- admin access и read-only review deletion requests;
-- отсутствие внешнего доступа к Gotenberg и S3.
+- вхід уже наявного користувача та перевірка збереження API key;
+- `JPG ↔ PNG`, `DOCX → PDF`, збережена й незбережена конвертація;
+- download старого та нового результату;
+- email verification або password reset на зовнішню адресу;
+- API flow із [api-powershell.md](./api-powershell.md);
+- admin access і read-only review deletion requests;
+- відсутність зовнішнього доступу до Gotenberg і S3.
 
-## Cutover и rollback
+## Cutover і rollback
 
-1. Добавьте DNS record, выданный новым provider, дождитесь TLS и только затем
-   измените `NEXTAUTH_URL`/`APP_DOMAIN` на final domain.
-2. Переключите DNS с небольшим TTL, наблюдайте `/api/health`, email и error
-   logs. Старый app не удаляйте во время TTL и первого периода наблюдения.
-3. Если приложение не проходит smoke-test до публикации DNS, откатите только
-   новый deployment и исправьте конфигурацию; данные старого контура не
-   изменяйте.
-4. После DNS cutover rollback возможен возвратом DNS к старому работающему
-   окружению, пока в новом не появились расходящиеся записи. Если появились,
-   сначала выберите один источник истины и спланируйте обратную синхронизацию.
+1. Додайте DNS record, виданий новим provider, дочекайтеся TLS і лише тоді
+   змініть `NEXTAUTH_URL`/`APP_DOMAIN` на final domain.
+2. Перемкніть DNS із невеликим TTL, спостерігайте за `/api/health`, email та error
+   logs. Не видаляйте старий app упродовж TTL і першого періоду спостереження.
+3. Якщо застосунок не проходить smoke-test до публікації DNS, відкочуйте лише
+   новий deployment і виправляйте конфігурацію; дані старого контуру не
+   змінюйте.
+4. Після DNS cutover rollback можливий поверненням DNS до старого робочого
+   оточення, доки в новому не з'явилися розбіжні записи. Якщо вони з'явилися,
+   спочатку оберіть одне джерело істини та сплануйте зворотну синхронізацію.
 
-Rollback app image не откатывает PostgreSQL schema и не возвращает файлы из
-bucket. Schema исправляется только новой forward Prisma migration.
+Rollback app image не відкочує PostgreSQL schema і не повертає файли з
+bucket. Schema виправляється лише новою forward Prisma migration.
 
-## После переноса
+## Після перенесення
 
-- проверьте backup на новом provider и выполните тестовый restore;
-- замените/отзовите старые S3 keys и удалите secrets старого provider только
-  после периода наблюдения;
-- обновите SMTP/Telegram provider settings при необходимости;
-- обновите deployment runbook с фактическим provider, region и датой cutover.
+- перевірте backup на новому provider і виконайте тестовий restore;
+- замініть/відкличте старі S3 keys та видаліть secrets старого provider лише
+  після періоду спостереження;
+- оновіть SMTP/Telegram provider settings за потреби;
+- оновіть deployment runbook із фактичними provider, region і датою cutover.

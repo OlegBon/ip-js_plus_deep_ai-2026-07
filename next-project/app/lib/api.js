@@ -1,33 +1,33 @@
 import { API_URLS, API_HEADERS } from "./config.js";
 
 /**
- * Универсальная функция для GET-запросов.
- * Next.js расширяет fetch, добавляя возможности кэширования и дедупликации.
- * @param {string} url - Адрес запроса
- * @param {Object} options - Опции для fetch (включая headers)
+ * Універсальна функція для GET-запитів.
+ * Next.js розширює fetch, додаючи можливості кешування та дедуплікації.
+ * @param {string} url - Адреса запиту.
+ * @param {Object} options - Опції для fetch (включно з headers).
  */
 export async function fetchData(url, options = {}) {
   try {
-    // Используем revalidate, чтобы данные кэшировались, но периодически обновлялись.
-    // 3600 секунд = 1 час.
+    // Використовуємо revalidate, щоб дані кешувалися, але періодично оновлювалися.
+    // 3600 секунд = 1 година.
     const response = await fetch(url, {
       ...options,
       next: { revalidate: 3600 },
     });
 
     if (!response.ok) {
-      throw new Error(`Ошибка HTTP: ${response.status} ${response.statusText}`);
+      throw new Error(`Помилка HTTP: ${response.status} ${response.statusText}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error(`Ошибка при загрузке данных с ${url}:`, error.message);
-    return null; // Возвращаем null при ошибке, чтобы приложение не падало
+    console.error(`Помилка під час завантаження даних із ${url}:`, error.message);
+    return null; // Повертаємо null у разі помилки, щоб застосунок не падав
   }
 }
 
 /**
- * Запрашивает все необходимые данные параллельно.
+ * Запитує всі потрібні дані паралельно.
  */
 export function fetchAllData() {
   return Promise.all([

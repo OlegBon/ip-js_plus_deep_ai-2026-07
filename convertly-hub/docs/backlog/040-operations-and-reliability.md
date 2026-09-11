@@ -1,16 +1,16 @@
-# 040 — Operations, надёжность и переносимость
+# 040 — Operations, надійність і переносимість
 
-## До полноценного production
+## До повноцінного production
 
-- регулярный off-host PostgreSQL и S3 backup с тестовым restore;
-- monitoring и alerting для `/api/health`, SMTP и conversion failures;
-- policy хранения/удаления объектов и оценка egress;
-- CD с отдельным контролируемым migration шагом;
-- подтверждённый capacity/стоимость выбранного provider.
+- регулярний off-host PostgreSQL і S3 backup із тестовим restore;
+- monitoring і alerting для `/api/health`, SMTP і conversion failures;
+- policy зберігання/видалення об'єктів та оцінка egress;
+- CD з окремим контрольованим migration кроком;
+- підтверджені capacity/вартість вибраного provider.
 
 ## Cloud portability
 
-Канонический порядок переноса хранится в
-[cloud-portability.md](../cloud-portability.md). Перед сменой provider его
-нужно повторно сверить с ограничениями конкретной платформы, а не копировать
-секреты и DNS «как есть».
+Канонічний порядок перенесення зберігається у
+[cloud-portability.md](../cloud-portability.md). Перед зміною provider його
+потрібно повторно зіставити з обмеженнями конкретної платформи, а не копіювати
+секрети та DNS «як є».

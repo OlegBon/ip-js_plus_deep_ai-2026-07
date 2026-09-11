@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('главная страница предлагает оба направления конвертации', async ({ page }) => {
+test('головна сторінка пропонує обидва напрями конвертації', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: 'Seamless File Conversion' })).toBeVisible();
@@ -9,7 +9,7 @@ test('главная страница предлагает оба направл
   await expect(page.getByText('Document Converter', { exact: true })).toBeVisible();
 });
 
-test('страница входа отображает форму учётных данных', async ({ page }) => {
+test('сторінка входу відображає форму облікових даних', async ({ page }) => {
   await page.goto('/login');
 
   await expect(page.getByRole('textbox', { name: 'Email' })).toBeVisible();
@@ -17,7 +17,7 @@ test('страница входа отображает форму учётных
   await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
 });
 
-test('неавторизированный пользователь выбирает тариф и переходит к регистрации', async ({
+test('неавторизований користувач обирає тариф і переходить до реєстрації', async ({
   page,
 }) => {
   const sessionResponse = page.waitForResponse(
@@ -37,7 +37,7 @@ test('неавторизированный пользователь выбира
   await expect(page).toHaveURL(/\/register\?plan=PRO$/);
 });
 
-test('неавторизированный пользователь перенаправляется из личного кабинета на вход', async ({
+test('неавторизований користувач перенаправляється з особистого кабінету на вхід', async ({
   page,
 }) => {
   await page.goto('/dashboard');
@@ -45,7 +45,7 @@ test('неавторизированный пользователь перена
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('неавторизированный пользователь перенаправляется из панели администратора на вход', async ({
+test('неавторизований користувач перенаправляється з панелі адміністратора на вхід', async ({
   page,
 }) => {
   await page.goto('/management');

@@ -1,7 +1,7 @@
 /**
- * Адаптер для Источника 1
- * Ожидает: объект с массивом transactions.
- * Возвращает: объект с включенными (paid) и исключенными транзакциями.
+ * Адаптер для джерела 1.
+ * Очікує об’єкт із масивом transactions.
+ * Повертає об’єкт із включеними (paid) і виключеними транзакціями.
  */
 export function adaptSource1(data) {
   const result = {
@@ -21,13 +21,13 @@ export function adaptSource1(data) {
         currency: t.currency.toUpperCase(),
       });
     } else {
-      // Сохраняем информацию об исключенных транзакциях
+      // Зберігаємо інформацію про виключені транзакції
       result.excluded.push({
         amountInCents: Math.round((isValid ? t.amount : 0) * 100),
         currency: isValid ? t.currency.toUpperCase() : "N/A",
         reason: isValid
-          ? `Транзакция на ${t.amount} ${t.currency} имеет статус: '${t.type}'`
-          : `Некорректные данные транзакции: ${JSON.stringify(t) || '"пусто"'}`,
+          ? `Транзакція на ${t.amount} ${t.currency} має статус: '${t.type}'`
+          : `Некоректні дані транзакції: ${JSON.stringify(t) || '"порожньо"'}`,
       });
     }
   });
@@ -36,9 +36,9 @@ export function adaptSource1(data) {
 }
 
 /**
- * Адаптер для Источника 2
- * Ожидает: массив строк вида "300 usd".
- * Возвращает: объект с включенными и исключенными транзакциями.
+ * Адаптер для джерела 2.
+ * Очікує масив рядків на кшталт "300 usd".
+ * Повертає об’єкт із включеними та виключеними транзакціями.
  */
 export function adaptSource2(data) {
   const result = {
@@ -55,7 +55,7 @@ export function adaptSource2(data) {
       result.excluded.push({
         amountInCents: 0,
         currency: "N/A",
-        reason: `Неверный тип данных, ожидалась строка: ${JSON.stringify(item)}`,
+        reason: `Неправильний тип даних, очікувався рядок: ${JSON.stringify(item)}`,
       });
       return;
     }
@@ -74,7 +74,7 @@ export function adaptSource2(data) {
       result.excluded.push({
         amountInCents: Math.round((!isNaN(amount) ? amount : 0) * 100),
         currency: "N/A",
-        reason: `Не удалось обработать строку: "${item}"`,
+        reason: `Не вдалося обробити рядок: "${item}"`,
       });
     }
   });

@@ -1,46 +1,46 @@
-# Тесты и операции: как убедиться, что слои работают вместе
+# Тести та операції: як переконатися, що шари працюють разом
 
-## 1. Пирамида проверок
+## 1. Піраміда перевірок
 
-| Уровень              | Команда                                  | Что проверяет                                         | Где искать                        |
+| Рівень               | Команда                                  | Що перевіряє                                          | Де шукати                         |
 | -------------------- | ---------------------------------------- | ----------------------------------------------------- | --------------------------------- |
-| Стиль и типы         | `npm run linteslint`, `npx tsc --noEmit` | TypeScript, React/Next rules, imports                 | весь проект                       |
+| Стиль і типи         | `npm run linteslint`, `npx tsc --noEmit` | TypeScript, React/Next rules, imports                 | увесь проєкт                      |
 | Unit/component/route | `npm test`                               | isolated business/UI/HTTP contracts                   | `**/__tests__/*.test.*`           |
-| Browser E2E          | `npm run test:e2e`                       | критические публичные user flows в Chromium           | `e2e/critical-flows.spec.ts`      |
-| Real integration/E2E | `npm run test:integration`               | реальные PostgreSQL, MinIO, Gotenberg, MailHog и HTTP | `e2e/backend-integration.spec.ts` |
-| API audit            | `npm run audit:api`                      | договорённые HTTP responses на запущенном сервисе     | `scripts/audit-api.mjs`           |
+| Browser E2E          | `npm run test:e2e`                       | критичні публічні user flows у Chromium               | `e2e/critical-flows.spec.ts`      |
+| Real integration/E2E | `npm run test:integration`               | реальні PostgreSQL, MinIO, Gotenberg, MailHog і HTTP  | `e2e/backend-integration.spec.ts` |
+| API audit            | `npm run audit:api`                      | узгоджені HTTP responses на запущеному сервісі        | `scripts/audit-api.mjs`           |
 
-`npm test` не требует Docker. `test:integration` создаёт изолированный Compose
-stack и после успеха удаляет его; не направляйте его на локальную рабочую БД.
-Подробный запуск — [integration-tests.md](../integration-tests.md).
+`npm test` не потребує Docker. `test:integration` створює ізольований Compose
+stack і після успіху видаляє його; не спрямовуйте його на локальну робочу БД.
+Докладний запуск — [integration-tests.md](../integration-tests.md).
 
-## 2. Как тесты связаны с кодом
+## 2. Як тести пов'язані з кодом
 
-- `components/core/__tests__/FileDropzone.test.tsx` защищает disabled/upload/error/
+- `components/core/__tests__/FileDropzone.test.tsx` захищає disabled/upload/error/
   success states common dropzone.
-- `lib/core/__tests__/conversion*.test.ts` проверяет допустимые направления и job
+- `lib/core/__tests__/conversion*.test.ts` перевіряє допустимі напрями та job
   lifecycle без реального браузера.
-- `app/api/**/__tests__/route.test.ts` проверяют конкретный HTTP contract: status,
-  auth, validation и отсутствие опасных данных в response.
-- `components/dashboard/__tests__/ConversionHistory.test.tsx` проверяет поиск,
+- `app/api/**/__tests__/route.test.ts` перевіряють конкретний HTTP contract: status,
+  auth, validation і відсутність небезпечних даних у response.
+- `components/dashboard/__tests__/ConversionHistory.test.tsx` перевіряє пошук,
   cursor paging, availability и download affordance.
-- `e2e/critical-flows.spec.ts` использует устойчивые role/label locators и ждёт
-  наблюдаемый результат, а не `waitForTimeout`.
-- `e2e/backend-integration.spec.ts` проходит реальный путь auth → quota → storage
-  → API conversion → admin на отдельных сервисах.
+- `e2e/critical-flows.spec.ts` використовує стійкі role/label locators і чекає
+  спостережуваний результат, а не `waitForTimeout`.
+- `e2e/backend-integration.spec.ts` проходить реальний шлях auth → quota → storage
+  → API conversion → admin на окремих сервісах.
 
-Когда меняется behaviour, меняется соответствующий тест. Например, добавление
-password eye сделало `getByLabel('Password')` неоднозначным, потому что и input, и
-button получили label. Корректный Playwright locator тогда:
+Коли змінюється behaviour, змінюється відповідний тест. Наприклад, додавання
+password eye зробило `getByLabel('Password')` неоднозначним, оскільки і input, і
+button отримали label. Коректний Playwright locator тоді:
 
 ```ts
 await expect(page.getByRole('textbox', { name: 'Password' })).toBeVisible();
 await expect(page.getByRole('button', { name: 'Show Password' })).toBeVisible();
 ```
 
-## 3. Локальный операционный контур
+## 3. Локальний операційний контур
 
-Основной local stack:
+Основний local stack:
 
 ```text
 Next.js (host :3001)
@@ -50,19 +50,19 @@ Next.js (host :3001)
   └─ MailHog SMTP (:1025) / UI (:8025)
 ```
 
-Команды, порядок `.env`, миграции, health response и первого администратора
-зафиксированы в [local-start.md](../local-start.md). Не заменяйте основной `.env`
-шаблоном целиком: добавляйте отсутствующие keys из `.env.example` и сохраняйте
-локальные secrets.
+Команди, порядок `.env`, міграції, health response і першого адміністратора
+зафіксовані у [local-start.md](../local-start.md). Не замінюйте основний `.env`
+шаблоном цілком: додавайте відсутні keys із `.env.example` та зберігайте
+локальні secrets.
 
-Проверка готового stack:
+Перевірка готового stack:
 
 ```bash
 npm run audit:api
 curl http://localhost:3001/api/health
 ```
 
-Ожидаемый `/api/health` при полностью запущенной инфраструктуре:
+Очікуваний `/api/health` за повністю запущеної інфраструктури:
 
 ```json
 {
@@ -73,66 +73,66 @@ curl http://localhost:3001/api/health
 }
 ```
 
-Если один dependency недоступен, это не причина отключать health check: сначала
-проверьте `docker compose ps`, container logs и соответствующую environment
-variable. `MailHog` не участвует в данном health response, но нужен для ручной
-проверки verification/reset email.
+Якщо один dependency недоступний, це не причина вимикати health check: спочатку
+перевірте `docker compose ps`, container logs і відповідну environment
+variable. `MailHog` не бере участі в цьому health response, але потрібен для ручної
+перевірки verification/reset email.
 
-## 4. CI и артефакты
+## 4. CI та артефакти
 
-GitHub Actions запускается на push в любую ветку, когда затронут `convertly-hub`.
-Jobs разделены, поэтому failure browser E2E не должен загрязнять real integration
+GitHub Actions запускається на push до будь-якої гілки, коли зачеплено `convertly-hub`.
+Jobs розділені, тому failure browser E2E не має забруднювати real integration
 containers:
 
-1. **Lint, types and Jest** — установка, lint, `tsc`, production build и Jest.
+1. **Lint, types and Jest** — встановлення, lint, `tsc`, production build і Jest.
 2. **Playwright E2E** — browser scenarios.
-3. **Real backend integration/E2E** — Docker services и isolated HTTP scenario.
+3. **Real backend integration/E2E** — Docker services й isolated HTTP scenario.
 
-При failure Playwright `test-results/` содержит trace/screenshots и игнорируется
-Git локально; в CI он прикладывается как artifact. Его не нужно коммитить и не
-следует чистить пользовательские artefacts широкими delete-командами.
+За failure Playwright `test-results/` містить trace/screenshots і ігнорується
+Git локально; у CI він додається як artifact. Його не потрібно комітити й не
+слід чистити користувацькі artefacts широкими delete-командами.
 
-`npm audit --omit=dev` намеренно не запущен отдельной CI-командой: его выполняют
-перед dependency/deployment-изменением и сверяют с
-[dependency-security-latest.md](../audits/dependency-security-latest.md). Это
-делает результат audit явным решением, а не причиной автоматического
-необъяснённого deploy failure.
+`npm audit --omit=dev` навмисно не запущений окремою CI-командою: його виконують
+перед dependency/deployment-зміною та зіставляють з
+[dependency-security-latest.md](../audits/dependency-security-latest.md). Це
+робить результат audit явним рішенням, а не причиною автоматичного
+незрозумілого deploy failure.
 
 ## 5. Production operations: migration, backup, deploy
 
-Для Northflank + Supabase порядок безопаснее, чем «сначала deploy app»:
+Для Northflank + Supabase порядок безпечніший, ніж «спочатку deploy app»:
 
 ```text
-1. Проверить GitHub Actions и diff migration.
-2. Создать логический PostgreSQL backup через Supabase CLI.
-3. Запустить one-off job convertly-migrate: npx prisma migrate deploy.
-4. Убедиться, что job завершился с exit code 0.
-5. Собрать/deploy convertly-app и дождаться readiness/GET /api/health.
-6. Выполнить узкий smoke test изменённого пользовательского flow.
+1. Перевірити GitHub Actions і diff migration.
+2. Створити логічний PostgreSQL backup через Supabase CLI.
+3. Запустити one-off job convertly-migrate: npx prisma migrate deploy.
+4. Переконатися, що завдання завершилося з exit code 0.
+5. Зібрати/deploy convertly-app і дочекатися readiness/GET /api/health.
+6. Виконати вузький smoke test зміненого користувацького flow.
 ```
 
-Команды и безопасное хранение трёх файлов dump описаны в
+Команди та безпечне зберігання трьох файлів dump описано у
 [supabase-logical-backup.md](../supabase-logical-backup.md). Migration job
-использует тот же Dockerfile и `DATABASE_URL`, но отдельную secret group; он не
-должен получать SMTP, S3 или Telegram credentials, если migration не требует их.
-Для code-only изменения шаги 2–4 не нужны: достаточно build/deploy app и health
-check. `GET /api/health` проверяет PostgreSQL, S3 bucket и private Gotenberg;
-успешный health не заменяет проверку email или конкретной конвертации.
+використовує той самий Dockerfile і `DATABASE_URL`, але окрему secret group; він не
+має отримувати SMTP, S3 або Telegram credentials, якщо migration не потребує їх.
+Для code-only зміни кроки 2–4 не потрібні: достатньо build/deploy app і health
+check. `GET /api/health` перевіряє PostgreSQL, S3 bucket і private Gotenberg;
+успішний health не замінює перевірку email або конкретної конвертації.
 
-При смене провайдера не переносите Docker volumes «как есть». Используйте
-PostgreSQL dump, S3 object migration, Git revision и заново созданные secrets по
+Під час зміни provider не переносіть Docker volumes «як є». Використовуйте
+PostgreSQL dump, S3 object migration, Git revision і заново створені secrets за
 [cloud-portability.md](../cloud-portability.md).
 
-## 6. Минимальный чек-лист после изменения
+## 6. Мінімальний чек-лист після зміни
 
-| Изменение                   | Обязательный минимум                                                              |
+| Зміна                       | Обов'язковий мінімум                                                              |
 | --------------------------- | --------------------------------------------------------------------------------- |
-| Только Markdown             | `npx prettier --check <изменённые .md>`, `git diff --check`                       |
-| UI component                | component Jest + lint/typecheck; при критическом flow — browser E2E               |
-| Route Handler / `lib` logic | route/unit Jest + lint/typecheck; integration, если изменён реальный контракт     |
-| Prisma schema/migration     | `prisma generate`, migration/validate, relevant tests и обновление `db-schema.md` |
-| Dependency / deploy config  | полный CI-equivalent, `npm audit --omit=dev`, target environment smoke-test       |
+| Лише Markdown               | `npx prettier --check <змінені .md>`, `git diff --check`                          |
+| UI component                | component Jest + lint/typecheck; за критичного flow — browser E2E                 |
+| Route Handler / `lib` logic | route/unit Jest + lint/typecheck; integration, якщо змінено реальний контракт     |
+| Prisma schema/migration     | `prisma generate`, migration/validate, relevant tests і оновлення `db-schema.md`  |
+| Dependency / deploy config  | повний CI-equivalent, `npm audit --omit=dev`, target environment smoke-test       |
 
-Перед merge смотрите не только на зелёный тест: `git diff --check`, отсутствие
-секретов в diff и актуальность [`progress.md`](../progress.md) — такие же части
-готовности. Production actions описаны в Oracle/Vercel/Render runbooks.
+Перед merge дивіться не лише на успішний тест: `git diff --check`, відсутність
+секретів у diff та актуальність [`progress.md`](../progress.md) — такі самі частини
+готовності. Production actions описано в Oracle/Vercel/Render runbooks.

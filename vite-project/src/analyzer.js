@@ -28,14 +28,14 @@ export function analyzeData(rawData1, rawData2, rates) {
   const adapted1 = adaptSource1(rawData1);
   const adapted2 = adaptSource2(rawData2);
 
-  // Добавляем информацию об источнике в каждую транзакцию
+  // Додаємо інформацію про джерело до кожної транзакції
   const transactions1WithSource = adapted1.included.map((t) => ({
     ...t,
-    source: "Источник 1",
+    source: "Джерело 1",
   }));
   const transactions2WithSource = adapted2.included.map((t) => ({
     ...t,
-    source: "Источник 2",
+    source: "Джерело 2",
   }));
 
   const allIncludedTransactions = [
@@ -44,19 +44,19 @@ export function analyzeData(rawData1, rawData2, rates) {
   ];
 
   const currencyStatsBySource = {
-    "Источник 1": getCurrencyStats(adapted1.included),
-    "Источник 2": getCurrencyStats(adapted2.included),
+    "Джерело 1": getCurrencyStats(adapted1.included),
+    "Джерело 2": getCurrencyStats(adapted2.included),
   };
 
   const excludedStats = {
-    "Источник 1": {
+    "Джерело 1": {
       sum: adapted1.excluded.reduce(
         (sum, t) => sum + convertToTarget(t.amountInCents, t.currency, rates),
         0,
       ),
       count: adapted1.excluded.length,
     },
-    "Источник 2": {
+    "Джерело 2": {
       sum: adapted2.excluded.reduce(
         (sum, t) => sum + convertToTarget(t.amountInCents, t.currency, rates),
         0,
@@ -66,8 +66,8 @@ export function analyzeData(rawData1, rawData2, rates) {
   };
 
   const dataIssues = {
-    "Источник 1": adapted1.excluded,
-    "Источник 2": adapted2.excluded,
+    "Джерело 1": adapted1.excluded,
+    "Джерело 2": adapted2.excluded,
   };
 
   return {

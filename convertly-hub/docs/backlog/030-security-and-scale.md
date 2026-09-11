@@ -1,18 +1,18 @@
-# 030 — Security и масштабирование
+# 030 — Security і масштабування
 
 ## Distributed rate limit
 
-Текущий лимит API-ключа (30 запросов/минуту) in-memory и корректен только для
-одного app instance. Перед horizontal scaling перенести счётчик в Redis-
-совместимое хранилище и покрыть конкурентные сценарии integration-тестами.
+Поточний ліміт API-ключа (30 запитів/хвилину) in-memory і коректний лише для
+одного app instance. Перед horizontal scaling перенести лічильник до Redis-
+сумісного сховища та покрити конкурентні сценарії integration-тестами.
 
 ## Поиск в Admin
 
-Перед ростом списка пользователей проверить планы запросов поиска по имени/email
-и при необходимости добавить PostgreSQL `pg_trgm` index через отдельную Prisma
+Перед зростанням списку користувачів перевірити плани запитів пошуку за ім'ям/email
+і за потреби додати PostgreSQL `pg_trgm` index через окрему Prisma
 migration.
 
 ## Security review
 
-После любого крупного изменения auth, payments, Storage policy или provider
-проводить отдельный security audit, `npm audit --omit=dev` и проверку secrets.
+Після будь-якої великої зміни auth, payments, Storage policy або provider
+проводити окремий security audit, `npm audit --omit=dev` і перевірку secrets.

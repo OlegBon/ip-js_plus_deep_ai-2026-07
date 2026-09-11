@@ -1,7 +1,7 @@
 /**
- * Адаптирует данные из первого источника к единому формату.
- * @param {Object} data - Исходные данные.
- * @returns {Array} Массив стандартизированных транзакций.
+ * Адаптує дані з першого джерела до єдиного формату.
+ * @param {Object} data - Вихідні дані.
+ * @returns {Array} Масив стандартизованих транзакцій.
  */
 function adaptSource1(data) {
   if (!data?.transactions || !Array.isArray(data.transactions)) {
@@ -9,9 +9,9 @@ function adaptSource1(data) {
   }
   return data.transactions.map((tx, index) => ({
     id: `s1-${index + 1}`,
-    source: "Источник 1",
+    source: "Джерело 1",
     type: tx.type,
-    // Сразу переводим в центы для точности
+    // Одразу переводимо в центи для точності
     amountInCents: Math.round((tx.amount || 0) * 100),
     currency: tx.currency?.toUpperCase(),
     original: tx,
@@ -19,9 +19,9 @@ function adaptSource1(data) {
 }
 
 /**
- * Адаптирует данные из второго источника к единому формату.
- * @param {Array} data - Исходные данные.
- * @returns {Array} Массив стандартизированных транзакций.
+ * Адаптує дані з другого джерела до єдиного формату.
+ * @param {Array} data - Вихідні дані.
+ * @returns {Array} Масив стандартизованих транзакцій.
  */
 function adaptSource2(data) {
   if (!Array.isArray(data)) {
@@ -32,7 +32,7 @@ function adaptSource2(data) {
     if (typeof item !== "string") {
       return {
         id: `${id}-invalid`,
-        source: "Источник 2",
+        source: "Джерело 2",
         type: "invalid",
         amountInCents: 0,
         currency: null,
@@ -44,8 +44,8 @@ function adaptSource2(data) {
 
     return {
       id: id,
-      source: "Источник 2",
-      // В источнике 2 статус не передается, оставляем пустым
+      source: "Джерело 2",
+      // У джерелі 2 статус не передається, залишаємо порожнім
       type: "",
       amountInCents: !isNaN(amount) ? Math.round(amount * 100) : 0,
       currency: currency?.toUpperCase(),
@@ -55,10 +55,10 @@ function adaptSource2(data) {
 }
 
 /**
- * Объединяет и адаптирует данные из всех источников.
- * @param {Object} source1Data - Данные из источника 1.
- * @param {Array} source2Data - Данные из источника 2.
- * @returns {Array} Единый массив всех транзакций.
+ * Об’єднує та адаптує дані з усіх джерел.
+ * @param {Object} source1Data - Дані з джерела 1.
+ * @param {Array} source2Data - Дані з джерела 2.
+ * @returns {Array} Єдиний масив усіх транзакцій.
  */
 export function getUnifiedTransactions(source1Data, source2Data) {
   const adapted1 = adaptSource1(source1Data);

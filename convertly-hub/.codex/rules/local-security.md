@@ -1,33 +1,33 @@
-# Локальные правила: Безопасность (DevSecOps)
+# Локальні правила: безпека (DevSecOps)
 
-> Этот файл расширяет общие правила безопасности, добавляя специфичные для React/Next.js аспекты.
+> Цей файл розширює загальні правила безпеки, додаючи аспекти, специфічні для React/Next.js.
 
 ## 1. XSS через `dangerouslySetInnerHTML`
 
-**КРИТИЧНО.** Каждое использование этого пропа должно рассматриваться как серьезный риск.
+**КРИТИЧНО.** Кожне використання цього пропса має розглядатися як серйозний ризик.
 
 ```tsx
-// КРИТИЧЕСКАЯ УЯЗВИМОСТЬ: несанитизированный ввод пользователя
+// КРИТИЧНА ВРАЗЛИВІСТЬ: несанітизоване введення користувача
 <div dangerouslySetInnerHTML={{ __html: userBio }} />
 
-// ПРАВИЛЬНЫЕ ВАРИАНТЫ:
-// 1. Отрисовать как текст (безопасно по умолчанию)
+// ПРАВИЛЬНІ ВАРІАНТИ:
+// 1. Відрендерити як текст (безпечно за замовчуванням)
 <div>{userBio}</div>
 
-// 2. Если нужен HTML, сначала санитизировать с помощью DOMPurify
+// 2. Якщо потрібен HTML, спочатку санітизувати за допомогою DOMPurify
 import DOMPurify from "isomorphic-dompurify";
 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userBio) }} />
 ```
 
-## 2. Небезопасные URL-схемы
+## 2. Небезпечні URL-схеми
 
-Ссылки `javascript:` и `data:` в атрибутах `href` или `src` могут выполнить произвольный код.
+Посилання `javascript:` і `data:` в атрибутах `href` або `src` можуть виконати довільний код.
 
 ```tsx
-// УЯЗВИМОСТЬ: <a href="javascript:alert(1)">...</a>
-<a href={user.website}>Посетить</a>
+// ВРАЗЛИВІСТЬ: <a href="javascript:alert(1)">...</a>
+<a href={user.website}>Відвідати</a>
 
-// ПРАВИЛЬНО: валидировать протокол
+// ПРАВИЛЬНО: валідувати протокол
 function safeUrl(url: string): string | undefined {
   try {
     const parsed = new URL(url);
@@ -39,24 +39,24 @@ function safeUrl(url: string): string | undefined {
   }
   return undefined;
 }
-<a href={safeUrl(user.website)}>Посетить</a>
+<a href={safeUrl(user.website)}>Відвідати</a>
 ```
 
 ## 3. `target="_blank"` без `rel`
 
-Ссылка `<a target="_blank">` без `rel="noopener noreferrer"` позволяет новой странице получить доступ к `window.opener`, что небезопасно.
+Посилання `<a target="_blank">` без `rel="noopener noreferrer"` дозволяє новій сторінці отримати доступ до `window.opener`, що небезпечно.
 
 ```tsx
 // НЕПРАВИЛЬНО
-<a href={externalUrl} target="_blank">Внешний сайт</a>
+<a href={externalUrl} target="_blank">Зовнішній сайт</a>
 
 // ПРАВИЛЬНО
-<a href={externalUrl} target="_blank" rel="noopener noreferrer">Внешний сайт</a>
+<a href={externalUrl} target="_blank" rel="noopener noreferrer">Зовнішній сайт</a>
 ```
 
-## 4. Валидация в Server Actions
+## 4. Валідація в Server Actions
 
-Server Actions (`"use server"`) — это полноценные API-эндпоинты. Валидируй все входные данные так же, как в обычном API.
+Server Actions (`"use server"`) — це повноцінні API-ендпоїнти. Валідуй усі вхідні дані так само, як у звичайному API.
 
 ```tsx
 "use server";
@@ -67,19 +67,19 @@ const Input = z.object({ email: z.string().email() });
 export async function updateUser(formData: FormData) {
   const parsed = Input.safeParse({ email: formData.get("email") });
   if (!parsed.success) {
-    return { error: "Неверный email" };
+    return { error: "Некоректний email" };
   }
-  // ... логика обновления ...
+  // ... логіка оновлення ...
 }
 ```
 
-- **Всегда проверяй авторизацию** внутри Server Action.
+- **Завжди перевіряй авторизацію** всередині Server Action.
 
-## 5. Раскрытие секретов через переменные окружения
+## 5. Розкриття секретів через змінні середовища
 
-Переменные окружения, начинающиеся с `NEXT_PUBLIC_`, встраиваются в клиентский бандл и доступны всем.
+Змінні середовища, що починаються з `NEXT_PUBLIC_`, вбудовуються в клієнтський бандл і доступні всім.
 
-- **`NEXT_PUBLIC_*`:** для публичных ключей (например, Google Analytics ID).
-- **Без префикса:** для секретных ключей, которые используются только на сервере (`process.env.STRIPE_SECRET_KEY`).
+- **`NEXT_PUBLIC_*`:** для публічних ключів (наприклад, Google Analytics ID).
+- **Без префікса:** для секретних ключів, які використовуються лише на сервері (`process.env.STRIPE_SECRET_KEY`).
 
-**Никогда не используй `NEXT_PUBLIC_` для секретов!**
+**Ніколи не використовуй `NEXT_PUBLIC_` для секретів!**
